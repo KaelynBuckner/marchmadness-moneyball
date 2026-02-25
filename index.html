@@ -1,0 +1,172 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Money Madness</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background:#111827;
+  color:white;
+  text-align:center;
+  margin:0;
+}
+
+h1 { margin-top:20px; }
+
+#status {
+  margin:15px 0;
+  font-size:18px;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap:10px;
+  max-width:800px;
+  margin:0 auto 40px auto;
+}
+
+.ball {
+  background:#f97316;
+  border-radius:50%;
+  height:70px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-weight:bold;
+  transition: transform .3s;
+}
+
+.ball:hover {
+  transform:scale(1.05);
+}
+
+.ball.taken {
+  background:#444;
+  cursor:not-allowed;
+  opacity:0.5;
+}
+
+input {
+  padding:8px;
+  margin:5px;
+}
+button {
+  padding:8px 12px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Money Madness Ball Pick</h1>
+
+<div>
+  <input id="playerName" placeholder="Your Name">
+  <input id="token" placeholder="Invite Token">
+</div>
+
+<div id="status">Loading balls...</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+
+// 🔴 REPLACE THIS WITH YOUR APPS SCRIPT WEB APP URL
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybkTGLzWAb561Grfzd1X9dSotMIH2n5QZAZTXeLOxXvmN17a51JjUyT0PD8iPLgCM/exec";
+
+// helper
+async function api(action, payload = {}) {
+  const res = await fetch(SCRIPT_URL, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({action, ...payload})
+  });
+  return await res.json();
+}
+
+let balls = [];
+
+function shuffle(array) {
+  for (let i=array.length-1; i>0; i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [array[i],array[j]]=[array[j],array[i]];
+  }
+  return array;
+}
+
+async function loadState() {
+  const data = await api("getState");
+  if(!data.ok){
+    document.getElementById("status").innerText="Error loading.";
+    return;
+  }
+
+  balls = shuffle(data.balls.slice());
+  renderGrid();
+
+  const claimed = balls.filter(b=>b.isClaimed).length;
+  const available = 68-claimed;
+
+  document.getElementById("status").innerHTML =
+    "<b>"+claimed+"</b> of 68 balls claimed • <b>"+available+"</b> available";
+}
+
+function renderGrid(){
+  const grid = document.getElementById("grid");
+  grid.innerHTML="";
+
+  balls.forEach(b=>{
+    const div=document.createElement("div");
+    div.className="ball"+(b.isClaimed?" taken":"");
+    div.innerText="🏀";
+
+    div.onclick=()=>claimBall(b);
+    grid.appendChild(div);
+  });
+}
+
+async function claimBall(ball){
+  if(ball.isClaimed) return;
+
+  const token=document.getElementById("token").value.trim();
+  const name=document.getElementById("playerName").value.trim();
+
+  if(!token||!name){
+    alert("Enter name and token first.");
+    return;
+  }
+
+  const result=await api("claimBall",{
+    token:token,
+    playerName:name,
+    ballNumber:ball.ballNumber
+  });
+
+  if(!result.ok){
+    alert(result.error);
+    loadState();
+    return;
+  }
+
+  alert(
+    "You got Ball #"+result.claim.ballNumber+
+    "\nRegion: "+result.claim.region+
+    "\nSeed: "+result.claim.seed+
+    "\nSlot: "+result.claim.bracketSlot
+  );
+
+  loadState();
+}
+
+loadState();
+
+</script>
+
+</body>
+</html>
