@@ -82,14 +82,20 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6Y5HXhNoDLImsEjcle
 
 // helper
 async function api(action, payload = {}) {
-  const res = await fetch(SCRIPT_URL, {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({action, ...payload})
-  });
-  return await res.json();
-}
+  const formData = new URLSearchParams({ action, ...payload });
 
+  const res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    body: formData
+  });
+
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { ok: false, error: "Non-JSON response from Apps Script: " + text };
+  }
+}
 let balls = [];
 
 function shuffle(array) {
