@@ -11,8 +11,17 @@
       --line:rgba(255,255,255,.12);
       --card:rgba(255,255,255,.07);
       --shadow: 0 18px 55px rgba(0,0,0,.55);
-      --maxW:1200px;
+
+      --boxW: 240px;
+      --boxH: 44px;
+      --gapY: 14px;
+
+      /* Column spacing between rounds */
+      --colGap: 70px;
+      --stroke: rgba(255,255,255,.20);
+      --stroke2: rgba(255,140,40,.22);
     }
+
     *{box-sizing:border-box}
     body{
       margin:0;
@@ -25,13 +34,20 @@
       min-height:100vh;
     }
     header{
-      padding: 22px 16px 14px;
+      padding: 20px 16px 12px;
       border-bottom: 1px solid rgba(255,255,255,.08);
       background: linear-gradient(180deg, rgba(255,255,255,.06), transparent);
     }
-    .wrap{ max-width: var(--maxW); margin:0 auto; padding: 16px; }
+    .wrap{ max-width: 1400px; margin:0 auto; padding: 16px; }
     h1{ margin:0; text-align:center; font-size: 34px; font-weight: 900; letter-spacing:.2px; }
-    .sub{ margin: 8px auto 0; text-align:center; color:var(--muted); font-size: 13px; max-width: 900px;}
+    .sub{
+      margin: 8px auto 0;
+      text-align:center;
+      color:var(--muted);
+      font-size: 13px;
+      max-width: 1050px;
+      line-height:1.4;
+    }
     .topbar{
       margin-top: 14px;
       display:flex; gap:10px; justify-content: space-between; align-items:center; flex-wrap:wrap;
@@ -60,6 +76,7 @@
       background: rgba(255,255,255,.10);
       color: #fff;
       font-weight: 750;
+      transition: transform .12s ease, background .12s ease;
     }
     .btn:hover{ background: rgba(255,255,255,.14); transform: translateY(-1px); }
 
@@ -69,67 +86,103 @@
       grid-template-columns: repeat(2, minmax(0,1fr));
       gap: 14px;
     }
-    @media (max-width: 900px){ .regions{ grid-template-columns: 1fr; } }
+    @media (max-width: 1100px){ .regions{ grid-template-columns: 1fr; } }
 
-    .region{
+    .regionCard{
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: 18px;
       padding: 12px;
       box-shadow: 0 10px 40px rgba(0,0,0,.20);
       backdrop-filter: blur(14px);
+      overflow:auto;
     }
-    .region h2{
-      margin: 0 0 10px;
+
+    .regionHead{
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:10px;
+      margin-bottom: 8px;
+    }
+    .regionHead h2{
+      margin:0;
       font-size: 16px;
       font-weight: 900;
       letter-spacing:.2px;
-      display:flex; align-items:center; justify-content:space-between;
     }
     .small{ color: var(--muted); font-size: 12px; font-weight: 650; }
 
-    .slotGrid{
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 10px;
+    /* Bracket canvas */
+    .bracketCanvas{
+      position:relative;
+      min-width: calc(var(--boxW) * 5 + var(--colGap) * 4 + 30px);
+      padding: 10px 10px 16px;
     }
-    @media (max-width: 520px){ .slotGrid{ grid-template-columns: 1fr; } }
 
-    .slot{
+    .lines{
+      position:absolute;
+      inset: 0;
+      width:100%;
+      height:100%;
+      pointer-events:none;
+    }
+
+    .node{
+      position:absolute;
+      width: var(--boxW);
+      height: var(--boxH);
       border-radius: 14px;
       border: 1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.06);
-      padding: 10px;
-      min-height: 64px;
-    }
-    .slotTop{
+      padding: 8px 10px;
       display:flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: baseline;
-      margin-bottom: 6px;
+      flex-direction:column;
+      justify-content:center;
+      gap: 2px;
+      overflow:hidden;
+      box-shadow: 0 10px 22px rgba(0,0,0,.18);
+    }
+
+    .node.claimed{
+      outline: 2px solid var(--stroke2);
+      box-shadow: 0 0 18px rgba(255,140,40,.10), 0 10px 22px rgba(0,0,0,.18);
+    }
+
+    .topRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:baseline;
     }
     .slotCode{
       font-weight: 900;
-      letter-spacing: .2px;
-      font-size: 13px;
+      font-size: 12px;
+      letter-spacing:.2px;
     }
     .seed{
       font-size: 12px;
       color: rgba(255,255,255,.70);
-      font-weight: 700;
+      font-weight: 750;
     }
-    .line{
-      font-size: 13px;
+    .lineText{
+      font-size: 12px;
       color: rgba(255,255,255,.90);
-      margin: 2px 0;
-      line-height: 1.25;
-      word-break: break-word;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
-    .mutedLine{ color: rgba(255,255,255,.65); }
-    .claimed{
-      outline: 2px solid rgba(255,140,40,.22);
-      box-shadow: 0 0 18px rgba(255,140,40,.10);
+    .mutedLine{ color: rgba(255,255,255,.62); }
+
+    .roundLabel{
+      position:absolute;
+      top: 0px;
+      transform: translateY(-24px);
+      font-size: 11px;
+      color: rgba(255,255,255,.62);
+      font-weight: 750;
+      letter-spacing:.18px;
+      text-transform: uppercase;
     }
   </style>
 </head>
@@ -137,7 +190,10 @@
   <header>
     <div class="wrap">
       <h1>Money Madness Bracket</h1>
-      <div class="sub">This page auto-updates from your claims. When you fill the <b>Team</b> column in your Google Sheet, team names appear automatically.</div>
+      <div class="sub">
+        This draws a <b>visual bracket with lines</b>. Player names appear as balls are claimed. When you later fill the
+        <b>Team</b> column in your Google Sheet, team names appear automatically.
+      </div>
 
       <div class="topbar">
         <div class="pill" id="counter">Loading…</div>
@@ -153,99 +209,238 @@
 
 <script>
   // IMPORTANT: same Apps Script /exec URL as index.html
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiBXm6hLez-U4w2FF5bUtDfaxLlgLFtAGzp4z24IaBdwSEtHBySIKY9-zrow0rUQw/exec";
+  const SCRIPT_URL = "PASTE_YOUR_SCRIPT_URL_HERE";
 
+  // No CORS preflight: form-encoded POST
   async function api(action, payload = {}) {
     const formData = new URLSearchParams({ action, ...payload });
     const res = await fetch(SCRIPT_URL, { method: "POST", body: formData });
     const text = await res.text();
-    try { return JSON.parse(text); } catch { return { ok:false, error:text || "Empty response" }; }
+    try { return JSON.parse(text); }
+    catch { return { ok:false, error: text || "Empty response" }; }
   }
 
+  // Standard 1st-round seed display order (matches your Balls mapping)
+  const SEED_ORDER = [1,16,8,9,5,12,4,13,6,11,3,14,7,10,2,15];
+
   const REGIONS = [
-    { key:"East", code:"E" },
-    { key:"West", code:"W" },
-    { key:"South", code:"S" },
-    { key:"Midwest", code:"M" },
+    { name:"East", code:"E" },
+    { name:"West", code:"W" },
+    { name:"South", code:"S" },
+    { name:"Midwest", code:"M" }
   ];
 
-  function slotCode(regionCode, seed){ return `${regionCode}${seed}`; }
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+    }[m]));
+  }
 
-  function render(balls){
+  function setTopUI(balls){
     const claimed = balls.filter(b => b.isClaimed).length;
     document.getElementById("counter").innerHTML =
       `<b>${claimed}</b> of <b>68</b> balls claimed`;
     document.getElementById("updated").textContent =
       `Last updated: ${new Date().toLocaleTimeString()}`;
+  }
 
-    // Build quick lookup by BracketSlot like "E12"
-    const bySlot = new Map();
-    for (const b of balls) {
-      if (b.bracketSlot) bySlot.set(String(b.bracketSlot).trim(), b);
+  // Build bracket positions for a region: R1 (16), R2 (8), R3 (4), R4 (2), R5 (1)
+  function buildPositions() {
+    // y positions for R1 are evenly spaced; each next round is midpoint pairs.
+    const y1 = [];
+    const boxH = 44;
+    const gapY = 14;
+    for (let i=0;i<16;i++){
+      y1.push(i*(boxH+gapY));
+    }
+    const mid = (a,b)=> (a+b)/2;
+
+    const y2 = []; for (let i=0;i<8;i++)  y2.push(mid(y1[i*2], y1[i*2+1]));
+    const y3 = []; for (let i=0;i<4;i++)  y3.push(mid(y2[i*2], y2[i*2+1]));
+    const y4 = []; for (let i=0;i<2;i++)  y4.push(mid(y3[i*2], y3[i*2+1]));
+    const y5 = [ mid(y4[0], y4[1]) ];
+
+    return { y1,y2,y3,y4,y5, totalH: y1[15] + boxH };
+  }
+
+  function colX(roundIndex){
+    // 0..4 (R1..R5)
+    const boxW = 240;
+    const colGap = 70;
+    return roundIndex*(boxW + colGap);
+  }
+
+  function createRegionCard(region, ballsBySlot){
+    const card = document.createElement("section");
+    card.className = "regionCard";
+
+    const head = document.createElement("div");
+    head.className = "regionHead";
+    head.innerHTML = `<h2>${region.name}</h2><div class="small">Round of 64 → Regional Champ</div>`;
+    card.appendChild(head);
+
+    const canvas = document.createElement("div");
+    canvas.className = "bracketCanvas";
+
+    // Labels for rounds
+    const labels = ["Round of 64","Round of 32","Sweet 16","Elite 8","Regional Champ"];
+    labels.forEach((txt, i)=>{
+      const lab = document.createElement("div");
+      lab.className = "roundLabel";
+      lab.style.left = (colX(i) + 4) + "px";
+      lab.textContent = txt;
+      canvas.appendChild(lab);
+    });
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.classList.add("lines");
+    svg.setAttribute("xmlns","http://www.w3.org/2000/svg");
+    canvas.appendChild(svg);
+
+    const pos = buildPositions();
+
+    // Set canvas/SVG height based on content
+    const totalHeight = pos.totalH + 10; // padding
+    canvas.style.height = (totalHeight + 20) + "px";
+    svg.setAttribute("viewBox", `0 0 ${colX(4) + 240} ${totalHeight + 20}`);
+    svg.setAttribute("preserveAspectRatio", "none");
+
+    // Helper to draw a connector between two nodes in a round to the next round node
+    function drawToNext(roundFrom, idxFromA, idxFromB, roundTo, idxTo){
+      const xFrom = colX(roundFrom) + 240;         // right edge of box
+      const xMid  = colX(roundFrom) + 240 + 26;    // little horizontal
+      const xTo   = colX(roundTo);                 // left edge of next box
+
+      const yArrFrom = [pos.y1, pos.y2, pos.y3, pos.y4][roundFrom];
+      const yArrTo   = [pos.y2, pos.y3, pos.y4, pos.y5][roundFrom]; // next y array
+
+      const yA = yArrFrom[idxFromA] + 22; // vertical center of box
+      const yB = yArrFrom[idxFromB] + 22;
+      const yT = yArrTo[idxTo] + 22;
+
+      // Draw: from A to mid, from B to mid, vertical join, to next
+      const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+      const d = [
+        `M ${xFrom} ${yA} L ${xMid} ${yA}`,
+        `M ${xFrom} ${yB} L ${xMid} ${yB}`,
+        `M ${xMid} ${yA} L ${xMid} ${yB}`,
+        `M ${xMid} ${yT} L ${xTo} ${yT}`
+      ].join(" ");
+      path.setAttribute("d", d);
+      path.setAttribute("fill","none");
+      path.setAttribute("stroke","rgba(255,255,255,.18)");
+      path.setAttribute("stroke-width","2");
+      path.setAttribute("stroke-linecap","round");
+      svg.appendChild(path);
     }
 
+    // Draw lines round by round
+    // R1(16)->R2(8)
+    for (let i=0;i<8;i++){
+      drawToNext(0, i*2, i*2+1, 1, i);
+    }
+    // R2->R3
+    for (let i=0;i<4;i++){
+      drawToNext(1, i*2, i*2+1, 2, i);
+    }
+    // R3->R4
+    for (let i=0;i<2;i++){
+      drawToNext(2, i*2, i*2+1, 3, i);
+    }
+    // R4->R5
+    drawToNext(3, 0, 1, 4, 0);
+
+    // Create nodes (boxes)
+    function addNode(roundIndex, y, slotText, seedText, playerText, teamText, claimed){
+      const node = document.createElement("div");
+      node.className = "node" + (claimed ? " claimed" : "");
+      node.style.left = colX(roundIndex) + "px";
+      node.style.top  = (y + 10) + "px"; // padding top
+
+      node.innerHTML = `
+        <div class="topRow">
+          <div class="slotCode">${escapeHtml(slotText)}</div>
+          <div class="seed">${escapeHtml(seedText)}</div>
+        </div>
+        <div class="lineText ${playerText ? "" : "mutedLine"}"><b>Player:</b> ${playerText ? escapeHtml(playerText) : "—"}</div>
+        <div class="lineText ${teamText ? "" : "mutedLine"}"><b>Team:</b> ${teamText ? escapeHtml(teamText) : "TBD"}</div>
+      `;
+      canvas.appendChild(node);
+    }
+
+    // Round 1 nodes are real slots like E1..E16 (in your mapping order)
+    // We’ll create slot codes from region + seed number; positions follow SEED_ORDER.
+    for (let i=0;i<16;i++){
+      const seed = SEED_ORDER[i];
+      const slot = `${region.code}${seed}`;
+      const b = ballsBySlot.get(slot);
+
+      const player = b?.claimedBy ? String(b.claimedBy) : "";
+      const team = b?.team ? String(b.team) : "";
+      const claimed = !!player;
+
+      addNode(
+        0,
+        pos.y1[i],
+        slot,
+        `Seed ${seed}`,
+        player,
+        team,
+        claimed
+      );
+    }
+
+    // Future rounds are placeholders (you can later add a Winners sheet if you want automation)
+    // R2 placeholders
+    for (let i=0;i<8;i++){
+      addNode(1, pos.y2[i], `R32-${region.code}${i+1}`, "Winner", "", "", false);
+    }
+    // R3 placeholders
+    for (let i=0;i<4;i++){
+      addNode(2, pos.y3[i], `S16-${region.code}${i+1}`, "Winner", "", "", false);
+    }
+    // R4 placeholders
+    for (let i=0;i<2;i++){
+      addNode(3, pos.y4[i], `E8-${region.code}${i+1}`, "Winner", "", "", false);
+    }
+    // R5 placeholder
+    addNode(4, pos.y5[0], `CHAMP-${region.code}`, "Winner", "", "", false);
+
+    card.appendChild(canvas);
+    return card;
+  }
+
+  function buildSlotMap(balls){
+    const bySlot = new Map();
+    for (const b of balls){
+      if (b.bracketSlot) bySlot.set(String(b.bracketSlot).trim(), b);
+    }
+    return bySlot;
+  }
+
+  function renderAll(balls){
+    setTopUI(balls);
     const host = document.getElementById("regions");
     host.innerHTML = "";
 
-    for (const r of REGIONS) {
-      const card = document.createElement("section");
-      card.className = "region";
-      card.innerHTML = `<h2>${r.key} <span class="small">Seeds 1–16</span></h2>`;
-
-      const grid = document.createElement("div");
-      grid.className = "slotGrid";
-
-      for (let seed = 1; seed <= 16; seed++) {
-        const code = slotCode(r.code, seed); // e.g. E12
-        const b = bySlot.get(code);
-
-        const player = b?.claimedBy ? String(b.claimedBy) : "";
-        const team = b?.team ? String(b.team) : "";
-        const isClaimed = !!player;
-
-        const slot = document.createElement("div");
-        slot.className = "slot" + (isClaimed ? " claimed" : "");
-        slot.id = `slot-${code}`;
-
-        slot.innerHTML = `
-          <div class="slotTop">
-            <div class="slotCode">${code}</div>
-            <div class="seed">Seed ${seed}</div>
-          </div>
-          <div class="line ${isClaimed ? "" : "mutedLine"}">
-            <b>Player:</b> ${isClaimed ? escapeHtml(player) : "—"}
-          </div>
-          <div class="line ${team ? "" : "mutedLine"}">
-            <b>Team:</b> ${team ? escapeHtml(team) : "TBD"}
-          </div>
-        `;
-
-        grid.appendChild(slot);
-      }
-
-      card.appendChild(grid);
-      host.appendChild(card);
+    const bySlot = buildSlotMap(balls);
+    for (const region of REGIONS){
+      host.appendChild(createRegionCard(region, bySlot));
     }
-  }
-
-  function escapeHtml(str){
-    return str.replace(/[&<>"']/g, m => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
-    }[m]));
   }
 
   async function load(){
     const data = await api("getState");
-    if (!data.ok) {
+    if (!data.ok){
       document.getElementById("counter").textContent = "Error loading bracket";
       return;
     }
-    render(data.balls || []);
+    renderAll(data.balls || []);
   }
 
   (async function init(){
     await load();
-    setInterval(load, 10000); // live-ish updates
+    setInterval(load, 10000);
   })();
 </script>
 </body>
