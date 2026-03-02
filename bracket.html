@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Money Madness Bracket</title>
+  <style>
+    :root{
+      --bg0:#070b16; --bg1:#0b1226; --text:#fff;
+      --muted:rgba(255,255,255,.72);
+      --line:rgba(255,255,255,.12);
+      --card:rgba(255,255,255,.07);
+      --shadow: 0 18px 55px rgba(0,0,0,.55);
+      --maxW:1200px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 800px at 15% 10%, rgba(255,140,40,.14), transparent 60%),
+        radial-gradient(900px 650px at 85% 25%, rgba(88,170,255,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100vh;
+    }
+    header{
+      padding: 22px 16px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), transparent);
+    }
+    .wrap{ max-width: var(--maxW); margin:0 auto; padding: 16px; }
+    h1{ margin:0; text-align:center; font-size: 34px; font-weight: 900; letter-spacing:.2px; }
+    .sub{ margin: 8px auto 0; text-align:center; color:var(--muted); font-size: 13px; max-width: 900px;}
+    .topbar{
+      margin-top: 14px;
+      display:flex; gap:10px; justify-content: space-between; align-items:center; flex-wrap:wrap;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 10px 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.25);
+      backdrop-filter: blur(14px);
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.07);
+      font-size: 13px;
+      color: rgba(255,255,255,.86);
+    }
+    .btn{
+      text-decoration:none;
+      display:inline-flex; align-items:center; justify-content:center;
+      height: 38px; padding: 0 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.10);
+      color: #fff;
+      font-weight: 750;
+    }
+    .btn:hover{ background: rgba(255,255,255,.14); transform: translateY(-1px); }
+
+    .regions{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 14px;
+    }
+    @media (max-width: 900px){ .regions{ grid-template-columns: 1fr; } }
+
+    .region{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.20);
+      backdrop-filter: blur(14px);
+    }
+    .region h2{
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing:.2px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .small{ color: var(--muted); font-size: 12px; font-weight: 650; }
+
+    .slotGrid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 10px;
+    }
+    @media (max-width: 520px){ .slotGrid{ grid-template-columns: 1fr; } }
+
+    .slot{
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      padding: 10px;
+      min-height: 64px;
+    }
+    .slotTop{
+      display:flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+    .slotCode{
+      font-weight: 900;
+      letter-spacing: .2px;
+      font-size: 13px;
+    }
+    .seed{
+      font-size: 12px;
+      color: rgba(255,255,255,.70);
+      font-weight: 700;
+    }
+    .line{
+      font-size: 13px;
+      color: rgba(255,255,255,.90);
+      margin: 2px 0;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+    .mutedLine{ color: rgba(255,255,255,.65); }
+    .claimed{
+      outline: 2px solid rgba(255,140,40,.22);
+      box-shadow: 0 0 18px rgba(255,140,40,.10);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Money Madness Bracket</h1>
+      <div class="sub">This page auto-updates from your claims. When you fill the <b>Team</b> column in your Google Sheet, team names appear automatically.</div>
+
+      <div class="topbar">
+        <div class="pill" id="counter">Loading…</div>
+        <div class="pill" id="updated">Last updated: —</div>
+        <a class="btn" href="./index.html">← Back to Ball Pick</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="regions" id="regions"></div>
+  </main>
+
+<script>
+  // IMPORTANT: same Apps Script /exec URL as index.html
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiBXm6hLez-U4w2FF5bUtDfaxLlgLFtAGzp4z24IaBdwSEtHBySIKY9-zrow0rUQw/exec";
+
+  async function api(action, payload = {}) {
+    const formData = new URLSearchParams({ action, ...payload });
+    const res = await fetch(SCRIPT_URL, { method: "POST", body: formData });
+    const text = await res.text();
+    try { return JSON.parse(text); } catch { return { ok:false, error:text || "Empty response" }; }
+  }
+
+  const REGIONS = [
+    { key:"East", code:"E" },
+    { key:"West", code:"W" },
+    { key:"South", code:"S" },
+    { key:"Midwest", code:"M" },
+  ];
+
+  function slotCode(regionCode, seed){ return `${regionCode}${seed}`; }
+
+  function render(balls){
+    const claimed = balls.filter(b => b.isClaimed).length;
+    document.getElementById("counter").innerHTML =
+      `<b>${claimed}</b> of <b>68</b> balls claimed`;
+    document.getElementById("updated").textContent =
+      `Last updated: ${new Date().toLocaleTimeString()}`;
+
+    // Build quick lookup by BracketSlot like "E12"
+    const bySlot = new Map();
+    for (const b of balls) {
+      if (b.bracketSlot) bySlot.set(String(b.bracketSlot).trim(), b);
+    }
+
+    const host = document.getElementById("regions");
+    host.innerHTML = "";
+
+    for (const r of REGIONS) {
+      const card = document.createElement("section");
+      card.className = "region";
+      card.innerHTML = `<h2>${r.key} <span class="small">Seeds 1–16</span></h2>`;
+
+      const grid = document.createElement("div");
+      grid.className = "slotGrid";
+
+      for (let seed = 1; seed <= 16; seed++) {
+        const code = slotCode(r.code, seed); // e.g. E12
+        const b = bySlot.get(code);
+
+        const player = b?.claimedBy ? String(b.claimedBy) : "";
+        const team = b?.team ? String(b.team) : "";
+        const isClaimed = !!player;
+
+        const slot = document.createElement("div");
+        slot.className = "slot" + (isClaimed ? " claimed" : "");
+        slot.id = `slot-${code}`;
+
+        slot.innerHTML = `
+          <div class="slotTop">
+            <div class="slotCode">${code}</div>
+            <div class="seed">Seed ${seed}</div>
+          </div>
+          <div class="line ${isClaimed ? "" : "mutedLine"}">
+            <b>Player:</b> ${isClaimed ? escapeHtml(player) : "—"}
+          </div>
+          <div class="line ${team ? "" : "mutedLine"}">
+            <b>Team:</b> ${team ? escapeHtml(team) : "TBD"}
+          </div>
+        `;
+
+        grid.appendChild(slot);
+      }
+
+      card.appendChild(grid);
+      host.appendChild(card);
+    }
+  }
+
+  function escapeHtml(str){
+    return str.replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+    }[m]));
+  }
+
+  async function load(){
+    const data = await api("getState");
+    if (!data.ok) {
+      document.getElementById("counter").textContent = "Error loading bracket";
+      return;
+    }
+    render(data.balls || []);
+  }
+
+  (async function init(){
+    await load();
+    setInterval(load, 10000); // live-ish updates
+  })();
+</script>
+</body>
+</html>
