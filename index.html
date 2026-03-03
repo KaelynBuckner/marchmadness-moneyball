@@ -3,641 +3,610 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Money Madness • Ball Pick</title>
-
-  <!-- Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <title>Money Madness • Live Bracket</title>
 
   <style>
     :root{
-      --bg0:#070b16;
-      --bg1:#0b1226;
-      --navy:#0a1022;
-      --card:rgba(255,255,255,.08);
-      --card2:rgba(255,255,255,.12);
-      --line:rgba(255,255,255,.14);
-      --text:#fff;
-      --muted:rgba(255,255,255,.75);
-      --hot:#ff8a2b;
-      --blue:#58aaff;
-
+      --bg0:#070b16; --bg1:#0b1226;
+      --text:#fff; --muted:rgba(255,255,255,.72);
+      --line:rgba(255,255,255,.12);
+      --card:rgba(255,255,255,.07);
       --shadow: 0 18px 55px rgba(0,0,0,.55);
-      --maxW:1100px;
-      --gap:14px;
-      --ballSize:82px;
+
+      /* BIGGER + MORE LEGIBLE */
+      --boxW: 320px;
+      --boxH: 84px;
+      --gapY: 18px;
+
+      --colGap: 110px;
+      --stroke: rgba(255,255,255,.18);
+      --hot: rgba(255,140,40,.42);
+      --blue: rgba(88,170,255,.38);
     }
 
-    *{ box-sizing:border-box; }
+    *{box-sizing:border-box}
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
       background:
-        radial-gradient(1200px 800px at 12% 12%, rgba(255,140,40,.16), transparent 60%),
-        radial-gradient(900px 650px at 88% 25%, rgba(88,170,255,.14), transparent 55%),
+        radial-gradient(1200px 800px at 12% 12%, rgba(255,140,40,.14), transparent 60%),
+        radial-gradient(900px 650px at 88% 25%, rgba(88,170,255,.12), transparent 55%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       min-height:100vh;
     }
-
     header{
-      padding: 26px 16px 18px;
+      padding: 20px 16px 12px;
       border-bottom: 1px solid rgba(255,255,255,.10);
       background: linear-gradient(180deg, rgba(255,255,255,.06), transparent);
     }
-    .wrap{
-      max-width: var(--maxW);
-      margin: 0 auto;
-      padding: 0 16px;
-    }
-
-    .brandRow{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-
-    .title{
-      margin:0;
-      font-size: 40px;
-      font-weight: 950;
-      letter-spacing:.2px;
-      line-height:1.05;
-    }
+    .wrap{ max-width: 1700px; margin:0 auto; padding: 16px; }
+    h1{ margin:0; text-align:center; font-size: 34px; font-weight: 950; letter-spacing:.2px; }
     .sub{
-      margin: 10px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.35;
-      max-width: 900px;
-    }
-
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      height: 40px;
-      padding: 0 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.10);
-      color:#fff;
-      font-weight: 850;
-      text-decoration:none;
-      cursor:pointer;
-      user-select:none;
-      transition: transform .12s ease, background .12s ease;
-      white-space:nowrap;
-    }
-    .btn:hover{ background: rgba(255,255,255,.14); transform: translateY(-1px); }
-    .btn.primary{
-      border-color: rgba(255,140,40,.32);
-      background: rgba(255,140,40,.18);
-    }
-    .btn.primary:hover{ background: rgba(255,140,40,.25); }
-
-    .panel{
-      margin-top: 16px;
-      background: rgba(255,255,255,.07);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 18px;
-      padding: 14px;
-      box-shadow: 0 10px 40px rgba(0,0,0,.25);
-      backdrop-filter: blur(14px);
-    }
-
-    .warn{
-      display:none;
-      margin-top: 12px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,160,80,.35);
-      background: rgba(255,160,80,.14);
-      color: rgba(255,240,220,.95);
-      font-weight: 800;
-      line-height: 1.35;
-    }
-
-    .bar{
-      display:grid;
-      gap: 12px;
-      grid-template-columns: 1fr 1fr;
-      align-items:end;
-    }
-    @media (max-width: 760px){
-      .bar{ grid-template-columns: 1fr; }
-      .title{ font-size: 32px; }
-      :root{ --ballSize: 76px; }
-    }
-
-    label{
-      display:grid;
-      gap:6px;
+      margin: 8px auto 0;
+      text-align:center;
+      color:var(--muted);
       font-size: 13px;
-      color: rgba(255,255,255,.90);
-      font-weight: 750;
-    }
-    input{
-      height: 44px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.08);
-      color: #fff;
-      outline: none;
-      font-size: 15px;
-      font-weight: 700;
-    }
-    input::placeholder{ color: rgba(255,255,255,.55); }
-    input:focus{
-      border-color: rgba(88,170,255,.45);
-      box-shadow: 0 0 0 4px rgba(88,170,255,.14);
-    }
-    .hint{
-      font-size: 12px;
-      color: rgba(255,255,255,.65);
-      margin-top: 2px;
+      max-width: 1200px;
+      line-height:1.45;
       font-weight: 650;
     }
 
-    .statusLine{
-      margin-top: 12px;
-      font-size: 14px;
-      color: rgba(255,255,255,.86);
-      display:flex;
-      justify-content: space-between;
-      align-items:center;
-      gap: 10px;
-      flex-wrap: wrap;
+    .topbar{
+      margin-top: 14px;
+      display:flex; gap:10px; justify-content: space-between; align-items:center; flex-wrap:wrap;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 10px 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.25);
+      backdrop-filter: blur(14px);
     }
     .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+      display:inline-flex; align-items:center; gap:8px;
       padding: 7px 12px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,.14);
       background: rgba(255,255,255,.07);
-      font-weight: 800;
-    }
-    .small{
-      font-size: 12px;
-      color: rgba(255,255,255,.68);
-      font-weight: 750;
-    }
-
-    .main{
-      max-width: var(--maxW);
-      margin: 0 auto;
-      padding: 16px 16px 46px;
-    }
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(8, minmax(0, 1fr));
-      gap: var(--gap);
-      padding: 10px 4px 0;
-    }
-    @media (max-width: 980px){ .grid{ grid-template-columns: repeat(6, 1fr); } }
-    @media (max-width: 640px){ .grid{ grid-template-columns: repeat(4, 1fr); } }
-
-    /* ===== 3D Basketball ===== */
-    .ball{
-      position: relative;
-      height: var(--ballSize);
-      width: 100%;
-      border-radius: 999px;
-      cursor: pointer;
-      user-select: none;
-      transform-style: preserve-3d;
-      perspective: 900px;
-      background:
-        radial-gradient(circle at 30% 25%, rgba(255,255,255,.55), rgba(255,255,255,0) 38%),
-        radial-gradient(circle at 60% 65%, rgba(0,0,0,.35), rgba(0,0,0,0) 46%),
-        radial-gradient(circle at 50% 55%, #ff8a2b, #e85d00 62%, #b54000 100%);
-      box-shadow:
-        0 14px 26px rgba(0,0,0,.45),
-        inset 0 10px 18px rgba(255,255,255,.15),
-        inset 0 -14px 18px rgba(0,0,0,.28);
-      transition: transform .18s ease, filter .18s ease, box-shadow .18s ease, opacity .18s ease;
-      display:grid;
-      place-items:center;
-    }
-    .ball::before{
-      content:"";
-      position:absolute; inset:0;
-      border-radius:999px;
-      background:
-        radial-gradient(circle at 50% 50%, transparent 45%, rgba(0,0,0,.25) 46%, rgba(0,0,0,.25) 48%, transparent 49%),
-        linear-gradient(90deg, transparent 47%, rgba(0,0,0,.28) 48%, rgba(0,0,0,.28) 52%, transparent 53%),
-        linear-gradient(0deg, transparent 47%, rgba(0,0,0,.28) 48%, rgba(0,0,0,.28) 52%, transparent 53%);
-      mix-blend-mode: multiply;
-      opacity: .75;
-      transform: translateZ(4px);
-      pointer-events:none;
-    }
-    .ball::after{
-      content:"";
-      position:absolute; inset:1px;
-      border-radius:999px;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
-      pointer-events:none;
-    }
-    .ball:hover{
-      transform: translateY(-3px) rotateX(10deg) rotateY(-10deg);
-      box-shadow:
-        0 18px 40px rgba(0,0,0,.55),
-        0 0 24px rgba(255,140,40,.22),
-        inset 0 10px 18px rgba(255,255,255,.18),
-        inset 0 -14px 18px rgba(0,0,0,.26);
-    }
-    .ball.taken{
-      cursor:not-allowed;
-      filter: grayscale(.95) brightness(.72);
-      opacity: .55;
-      transform: none;
-    }
-    .lockOverlay{
-      position:absolute; inset:0;
-      display:grid; place-items:center;
-      font-size: 22px;
-      transform: translateZ(10px);
-      pointer-events:none;
-      opacity: .95;
-      text-shadow: 0 8px 18px rgba(0,0,0,.55);
-    }
-
-    @keyframes spin3d {
-      0%   { transform: rotateX(0deg) rotateY(0deg) scale(1); }
-      35%  { transform: rotateX(180deg) rotateY(260deg) scale(1.06); }
-      70%  { transform: rotateX(420deg) rotateY(520deg) scale(1.06); }
-      100% { transform: rotateX(720deg) rotateY(720deg) scale(1); }
-    }
-    .ball.spinning{ animation: spin3d 1.15s cubic-bezier(.2,.85,.2,1); }
-
-    /* ===== Modal ===== */
-    .modalBack{
-      position:fixed;
-      inset:0;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding: 18px;
-      background: rgba(0,0,0,.62);
-    }
-    .modal{
-      width: min(620px, 100%);
-      border-radius: 20px;
-      background: rgba(18,26,50,.72);
-      border: 1px solid rgba(255,255,255,.16);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-      padding: 18px;
-    }
-    .modalTop{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap: 10px;
-    }
-    .modalTitle{
-      margin:0;
-      font-size: 18px;
-      font-weight: 950;
-      letter-spacing: .2px;
-    }
-    .modalBig{
-      margin: 10px 0 6px;
-      font-size: 28px;
-      font-weight: 950;
-      letter-spacing: .2px;
-    }
-    .modalLine{
-      margin: 6px 0;
+      font-size: 13px;
       color: rgba(255,255,255,.90);
-      line-height: 1.35;
-      font-weight: 700;
+      white-space: nowrap;
+      font-weight: 850;
     }
-    .modalMeta{
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255,255,255,.12);
-      display:flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      color: rgba(255,255,255,.76);
-      font-size: 12px;
-      font-weight: 750;
+    .btn{
+      text-decoration:none;
+      display:inline-flex; align-items:center; justify-content:center;
+      height: 38px; padding: 0 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.10);
+      color: #fff;
+      font-weight: 900;
+      transition: transform .12s ease, background .12s ease;
+      cursor:pointer;
+      user-select:none;
+      white-space: nowrap;
     }
-    .btnRow{
-      display:flex;
-      gap: 10px;
+    .btn:hover{ background: rgba(255,255,255,.14); transform: translateY(-1px); }
+    .btn.primary{ border-color: rgba(88,170,255,.34); background: rgba(88,170,255,.14); }
+
+    .regions{
       margin-top: 14px;
-      justify-content:flex-end;
-      flex-wrap: wrap;
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 14px;
     }
-    .errorText{ color: rgba(255,140,140,.98); font-weight: 900; }
+    @media (max-width: 1180px){ .regions{ grid-template-columns: 1fr; } }
+
+    .regionCard{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.20);
+      backdrop-filter: blur(14px);
+      overflow:auto;
+    }
+    .regionHead{
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:10px;
+      margin-bottom: 8px;
+    }
+    .regionHead h2{
+      margin:0;
+      font-size: 16px;
+      font-weight: 950;
+      letter-spacing:.2px;
+    }
+    .small{ color: var(--muted); font-size: 12px; font-weight: 800; }
+
+    /* Bracket canvas */
+    .bracketCanvas{
+      position:relative;
+      min-width: calc(var(--boxW) * 5 + var(--colGap) * 4 + 30px);
+      padding: 10px 10px 18px;
+      transform-origin: top left;
+    }
+
+    .lines{
+      position:absolute;
+      inset: 0;
+      width:100%;
+      height:100%;
+      pointer-events:none;
+    }
+
+    .node{
+      position:absolute;
+      width: var(--boxW);
+      height: var(--boxH);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(20,28,52,.55);
+      padding: 10px 12px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap: 6px;
+      overflow:hidden;
+      box-shadow: 0 12px 26px rgba(0,0,0,.22);
+    }
+
+    .node.claimed{
+      outline: 3px solid var(--hot);
+      box-shadow: 0 0 18px rgba(255,140,40,.12), 0 12px 26px rgba(0,0,0,.22);
+    }
+    .node.mine{
+      outline: 3px solid var(--blue);
+      box-shadow: 0 0 18px rgba(88,170,255,.16), 0 12px 26px rgba(0,0,0,.22);
+    }
+    .node.highlight{
+      outline: 3px solid rgba(255,255,255,.34);
+      box-shadow: 0 0 22px rgba(255,255,255,.12), 0 12px 26px rgba(0,0,0,.22);
+    }
+
+    .topRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:baseline;
+    }
+    .slotCode{
+      font-weight: 950;
+      font-size: 13px;
+      letter-spacing:.3px;
+    }
+    .seed{
+      font-size: 12px;
+      color: rgba(255,255,255,.78);
+      font-weight: 900;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+    }
+
+    /* ESPN-style text hierarchy: Player is big */
+    .playerLine{
+      font-size: 16px;
+      font-weight: 950;
+      letter-spacing:.1px;
+      line-height: 1.05;
+      white-space: normal;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .teamLine{
+      font-size: 13px;
+      font-weight: 800;
+      color: rgba(255,255,255,.82);
+      white-space: normal;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .mutedLine{ color: rgba(255,255,255,.58); font-weight: 800; }
+
+    .roundLabel{
+      position:absolute;
+      top: 0px;
+      transform: translateY(-24px);
+      font-size: 11px;
+      color: rgba(255,255,255,.66);
+      font-weight: 950;
+      letter-spacing:.22px;
+      text-transform: uppercase;
+    }
+
+    .errorBox{
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,120,120,.30);
+      background: rgba(255,120,120,.10);
+      color: rgba(255,220,220,.95);
+      font-weight: 900;
+      display:none;
+    }
+
+    /* Zoom control */
+    .zoomWrap{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      color: rgba(255,255,255,.86);
+      font-weight: 900;
+      font-size: 12px;
+    }
+    input[type="range"]{ accent-color: #58aaff; }
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="wrap">
-      <div class="brandRow">
-        <div>
-          <h1 class="title">Money Madness</h1>
-          <div class="sub">
-            Pick any <b>open</b> basketball. It spins, reveals your bracket slot, then locks.
-            After you pick, you’ll jump to the bracket so you can see your name fill in instantly.
-          </div>
-        </div>
+<header>
+  <div class="wrap">
+    <h1>Money Madness • Live Bracket</h1>
+    <div class="sub">
+      Round of 64 shows <b>Player</b> (from BracketPicks) + <b>Team</b> (from Balls).
+      Later rounds auto-fill from <b>BracketWinners</b>.
+    </div>
 
-        <a class="btn" href="./bracket.html">📋 View Bracket</a>
+    <div class="topbar">
+      <div class="pill" id="counter">Loading…</div>
+      <div class="pill" id="updated">Last updated: —</div>
+
+      <div class="zoomWrap">
+        <span>Zoom</span>
+        <input id="zoom" type="range" min="70" max="130" value="100" />
+        <span id="zoomVal">100%</span>
       </div>
 
-      <div class="panel">
-        <div class="warn" id="cspWarn">
-          ⚠️ You’re viewing this on <b>github.com</b> (file viewer). GitHub blocks API calls to Apps Script (CSP),
-          so balls won’t load here. Open the site using <b>GitHub Pages</b> instead.
-        </div>
-
-        <div class="bar">
-          <label>
-            Your name
-            <input id="playerName" placeholder="Type your name (required)" autocomplete="name" />
-            <div class="hint">Use your real name so claims are easy to verify.</div>
-          </label>
-          <label>
-            Invite token
-            <input id="token" placeholder="Auto-filled from your link" autocomplete="off" />
-            <div class="hint">Use your unique invite link so the token fills automatically.</div>
-          </label>
-        </div>
-
-        <div class="statusLine">
-          <div class="pill" id="status">Loading balls…</div>
-          <div class="pill small" id="lastUpdated">Last updated: —</div>
-        </div>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <button class="btn primary" id="myPicksBtn" title="Highlight my picks if token is present">👤 My Picks: OFF</button>
+        <a class="btn" href="./index.html">← Back</a>
       </div>
     </div>
-  </header>
 
-  <div class="main">
-    <div class="grid" id="grid"></div>
+    <div class="errorBox" id="err"></div>
   </div>
+</header>
 
-  <!-- Modal -->
-  <div class="modalBack" id="modalBack" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modalTop">
-        <h2 class="modalTitle" id="modalTitle">Result</h2>
+<main class="wrap">
+  <div class="regions" id="regions"></div>
+</main>
+
+<script>
+  // Same Apps Script /exec URL as index.html
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiBXm6hLez-U4w2FF5bUtDfaxLlgLFtAGzp4z24IaBdwSEtHBySIKY9-zrow0rUQw/exec";
+
+  // Standard R64 seed order
+  const SEED_ORDER = [1,16,8,9,5,12,4,13,6,11,3,14,7,10,2,15];
+
+  const REGIONS = [
+    { name:"East", code:"E" },
+    { name:"West", code:"W" },
+    { name:"South", code:"S" },
+    { name:"Midwest", code:"M" }
+  ];
+
+  const labels = ["Round of 64","Round of 32","Sweet 16","Elite 8","Regional Champ"];
+
+  const regionsEl = document.getElementById("regions");
+  const counterEl = document.getElementById("counter");
+  const updatedEl = document.getElementById("updated");
+  const errEl = document.getElementById("err");
+
+  const myPicksBtn = document.getElementById("myPicksBtn");
+
+  const qp = new URLSearchParams(location.search);
+  const tokenParam = (qp.get("token") || "").trim();
+  const slotParam  = (qp.get("slot") || "").trim(); // like S7 / E2 etc
+
+  let myPicksOn = false;
+
+  const zoom = document.getElementById("zoom");
+  const zoomVal = document.getElementById("zoomVal");
+  zoom.addEventListener("input", () => {
+    zoomVal.textContent = `${zoom.value}%`;
+    document.querySelectorAll(".bracketCanvas").forEach(c => c.style.transform = `scale(${Number(zoom.value)/100})`);
+  });
+
+  myPicksBtn.addEventListener("click", () => {
+    myPicksOn = !myPicksOn;
+    myPicksBtn.textContent = `👤 My Picks: ${myPicksOn ? "ON" : "OFF"}`;
+    applyHighlights_();
+  });
+
+  function escapeHtml(str){
+    return String(str ?? "").replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+    }[m]));
+  }
+
+  async function api(action, payload = {}) {
+    const form = new URLSearchParams({ action, ...payload });
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 12000);
+
+    try {
+      const res = await fetch(SCRIPT_URL, { method:"POST", body: form, signal: ctrl.signal });
+      const text = await res.text();
+      if (!text) return { ok:false, error:"Empty response from Apps Script." };
+      try { return JSON.parse(text); }
+      catch { return { ok:false, error:"Non-JSON response: " + text.slice(0,200) }; }
+    } catch (e) {
+      return { ok:false, error:String(e && e.message ? e.message : e) };
+    } finally {
+      clearTimeout(t);
+    }
+  }
+
+  function buildPositions(){
+    const y1 = [];
+    const boxH = 84;   // match --boxH
+    const gapY = 18;   // match --gapY
+    for (let i=0;i<16;i++) y1.push(i*(boxH+gapY));
+    const mid = (a,b)=> (a+b)/2;
+    const y2 = []; for (let i=0;i<8;i++) y2.push(mid(y1[i*2], y1[i*2+1]));
+    const y3 = []; for (let i=0;i<4;i++) y3.push(mid(y2[i*2], y2[i*2+1]));
+    const y4 = []; for (let i=0;i<2;i++) y4.push(mid(y3[i*2], y3[i*2+1]));
+    const y5 = [ mid(y4[0], y4[1]) ];
+    return { y1,y2,y3,y4,y5, totalH: y1[15] + boxH };
+  }
+
+  function colX(roundIndex){
+    const boxW = 320;  // match --boxW
+    const colGap = 110;// match --colGap
+    return roundIndex*(boxW + colGap);
+  }
+
+  function drawLines(svg, pos){
+    function drawToNext(roundFrom, idxFromA, idxFromB, roundTo, idxTo){
+      const xFrom = colX(roundFrom) + 320;
+      const xMid  = colX(roundFrom) + 320 + 32;
+      const xTo   = colX(roundTo);
+
+      const yArrFrom = [pos.y1, pos.y2, pos.y3, pos.y4][roundFrom];
+      const yArrTo   = [pos.y2, pos.y3, pos.y4, pos.y5][roundFrom];
+
+      const yA = yArrFrom[idxFromA] + (84/2);
+      const yB = yArrFrom[idxFromB] + (84/2);
+      const yT = yArrTo[idxTo] + (84/2);
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+      const d = [
+        `M ${xFrom} ${yA} L ${xMid} ${yA}`,
+        `M ${xFrom} ${yB} L ${xMid} ${yB}`,
+        `M ${xMid} ${yA} L ${xMid} ${yB}`,
+        `M ${xMid} ${yT} L ${xTo} ${yT}`
+      ].join(" ");
+      path.setAttribute("d", d);
+      path.setAttribute("fill","none");
+      path.setAttribute("stroke","rgba(255,255,255,.22)");
+      path.setAttribute("stroke-width","3");
+      path.setAttribute("stroke-linecap","round");
+      svg.appendChild(path);
+    }
+
+    for (let i=0;i<8;i++) drawToNext(0, i*2, i*2+1, 1, i);
+    for (let i=0;i<4;i++) drawToNext(1, i*2, i*2+1, 2, i);
+    for (let i=0;i<2;i++) drawToNext(2, i*2, i*2+1, 3, i);
+    drawToNext(3, 0, 1, 4, 0);
+  }
+
+  function addNode(canvas, roundIndex, y, id, leftLabel, rightLabel, playerText, teamText, flags){
+    const node = document.createElement("div");
+    node.className = "node";
+    node.style.left = colX(roundIndex) + "px";
+    node.style.top  = (y + 10) + "px";
+    node.id = id;
+
+    if (flags?.claimed) node.classList.add("claimed");
+    if (flags?.mine) node.classList.add("mine");
+
+    const playerLine = playerText ? playerText : `<span class="mutedLine">Awaiting player…</span>`;
+    const teamLine   = teamText ? teamText : `<span class="mutedLine">Awaiting team…</span>`;
+
+    node.innerHTML = `
+      <div class="topRow">
+        <div class="slotCode">${escapeHtml(leftLabel)}</div>
+        <div class="seed">${escapeHtml(rightLabel)}</div>
       </div>
+      <div class="playerLine">${playerLine}</div>
+      <div class="teamLine">${teamLine}</div>
+    `;
+    canvas.appendChild(node);
+    return node;
+  }
 
-      <div class="modalBig" id="modalBig"></div>
-      <div class="modalLine" id="modalLine1"></div>
-      <div class="modalLine" id="modalLine2"></div>
+  function getWinnerMap(bracketWinners){
+    const map = new Map();
+    for (const w of (bracketWinners || [])){
+      if (!w || !w.slotKey) continue;
+      map.set(String(w.slotKey).trim(), w);
+    }
+    return map;
+  }
 
-      <div class="modalMeta" id="modalMeta"></div>
+  function getBallsMap(balls){
+    const map = new Map();
+    for (const b of (balls || [])){
+      if (!b || !b.bracketSlot) continue;
+      map.set(String(b.bracketSlot).trim(), b);
+    }
+    return map;
+  }
 
-      <div class="btnRow">
-        <button class="btn" id="closeBtn">Close</button>
-        <button class="btn" id="refreshBtn">Refresh</button>
-        <button class="btn primary" id="goBracketBtn">Go to Bracket</button>
-      </div>
-    </div>
-  </div>
+  function getPicksMap(bracketPicks){
+    const map = new Map();
+    for (const p of (bracketPicks || [])){
+      if (!p || !p.slotKey) continue;
+      map.set(String(p.slotKey).trim(), p);
+    }
+    return map;
+  }
 
-  <script>
-    // =========================
-    // Paste your Apps Script Web App /exec URL here (same as bracket.html)
-    // =========================
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiBXm6hLez-U4w2FF5bUtDfaxLlgLFtAGzp4z24IaBdwSEtHBySIKY9-zrow0rUQw/exec";
+  function createRegionCard(region, ballsBySlot, picksBySlot, winnerBySlotKey){
+    const card = document.createElement("section");
+    card.className = "regionCard";
 
-    const grid = document.getElementById("grid");
-    const statusEl = document.getElementById("status");
-    const lastUpdatedEl = document.getElementById("lastUpdated");
-    const tokenEl = document.getElementById("token");
-    const playerEl = document.getElementById("playerName");
+    const head = document.createElement("div");
+    head.className = "regionHead";
+    head.innerHTML = `<h2>${region.name}</h2><div class="small">R64 → Regional Champ</div>`;
+    card.appendChild(head);
 
-    const modalBack = document.getElementById("modalBack");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalBig = document.getElementById("modalBig");
-    const modalLine1 = document.getElementById("modalLine1");
-    const modalLine2 = document.getElementById("modalLine2");
-    const modalMeta = document.getElementById("modalMeta");
+    const canvas = document.createElement("div");
+    canvas.className = "bracketCanvas";
+    canvas.style.transform = `scale(${Number(zoom.value)/100})`;
 
-    const cspWarn = document.getElementById("cspWarn");
+    labels.forEach((txt, i)=>{
+      const lab = document.createElement("div");
+      lab.className = "roundLabel";
+      lab.style.left = (colX(i) + 6) + "px";
+      lab.textContent = txt;
+      canvas.appendChild(lab);
+    });
 
-    document.getElementById("closeBtn").onclick = () => hideModal();
-    document.getElementById("refreshBtn").onclick = async () => { hideModal(); await loadState(); };
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.classList.add("lines");
+    svg.setAttribute("xmlns","http://www.w3.org/2000/svg");
+    canvas.appendChild(svg);
 
-    const goBracketBtn = document.getElementById("goBracketBtn");
-    goBracketBtn.onclick = () => {};
+    const pos = buildPositions();
+    const totalHeight = pos.totalH + 10;
+    canvas.style.height = (totalHeight + 20) + "px";
+    svg.setAttribute("viewBox", `0 0 ${colX(4) + 320} ${totalHeight + 20}`);
+    svg.setAttribute("preserveAspectRatio", "none");
+    drawLines(svg, pos);
 
-    let balls = [];
-    let busy = false;
+    // R64: slot keys like E1..E16, S7, etc
+    for (let i=0;i<16;i++){
+      const seed = SEED_ORDER[i];
+      const slot = `${region.code}${seed}`;
+      const b = ballsBySlot.get(slot);
+      const p = picksBySlot.get(slot);
 
-    // Show CSP warning if on github.com file viewer
-    (function(){
-      const host = (location.hostname || "").toLowerCase();
-      if (host === "github.com" || host.endsWith(".github.com")) {
-        cspWarn.style.display = "block";
+      const player = p?.playerName ? String(p.playerName) : "";
+      const playerToken = p?.token ? String(p.token) : "";
+      const team = b?.team ? String(b.team) : "";
+
+      const claimed = !!player;
+      const mine = (myPicksOn && tokenParam && playerToken && tokenParam === playerToken);
+
+      const playerText = player ? escapeHtml(player) : "";
+      const teamText = team ? `<span style="opacity:.9">Team:</span> ${escapeHtml(team)}` : "";
+
+      addNode(
+        canvas, 0, pos.y1[i],
+        `slot-${slot}`,
+        slot,
+        `Seed ${seed}`,
+        playerText,
+        teamText,
+        { claimed, mine }
+      );
+    }
+
+    // Later rounds from BracketWinners
+    const roundSpecs = [
+      { roundIndex: 1, arr: pos.y2, makeKey: (n)=>`R32-${region.code}${n}`, count: 8 },
+      { roundIndex: 2, arr: pos.y3, makeKey: (n)=>`S16-${region.code}${n}`, count: 4 },
+      { roundIndex: 3, arr: pos.y4, makeKey: (n)=>`E8-${region.code}${n}`,  count: 2 },
+      { roundIndex: 4, arr: pos.y5, makeKey: ()=>`CHAMP-${region.code}`,     count: 1 }
+    ];
+
+    for (const spec of roundSpecs){
+      for (let i=0;i<spec.count;i++){
+        const n = i+1;
+        const key = spec.makeKey(n);
+        const w = winnerBySlotKey.get(key);
+
+        const winnerTeam = w?.winnerTeam ? String(w.winnerTeam) : "";
+        const winnerSeed = (w?.winnerSeed ?? "") !== "" ? String(w.winnerSeed) : "";
+
+        const playerText = winnerTeam ? `<span style="opacity:.9">Winner:</span> ${escapeHtml(winnerTeam)}` : "";
+        const teamText = winnerTeam ? `Advanced` : "";
+
+        addNode(
+          canvas, spec.roundIndex,
+          spec.arr[i] ?? spec.arr[0],
+          `slot-${key}`,
+          key,
+          winnerSeed ? `Seed ${winnerSeed}` : "Winner",
+          playerText,
+          teamText ? escapeHtml(teamText) : "",
+          { claimed: Boolean(winnerTeam), mine: false }
+        );
       }
-    })();
-
-    function escapeHtml(str) {
-      return String(str ?? "").replace(/[&<>"']/g, m => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
-      }[m]));
     }
 
-    // Avoid CORS preflight by sending URL-encoded body (no JSON header)
-    async function api(action, payload = {}) {
-      const formData = new URLSearchParams({ action, ...payload });
+    card.appendChild(canvas);
+    return card;
+  }
 
-      // simple timeout wrapper
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 12000);
+  function applyHighlights_(){
+    document.querySelectorAll(".node.mine").forEach(el => el.classList.remove("mine"));
+    document.querySelectorAll(".node.highlight").forEach(el => el.classList.remove("highlight"));
 
-      try {
-        const res = await fetch(SCRIPT_URL, { method: "POST", body: formData, signal: ctrl.signal });
-        const text = await res.text();
-        if (!text) return { ok:false, error:"Empty response from Apps Script." };
-        try { return JSON.parse(text); }
-        catch { return { ok:false, error:"Non-JSON response from Apps Script: " + text.slice(0,220) }; }
-      } catch (e) {
-        const msg = String(e && e.message ? e.message : e);
-        // Most common: CSP on github.com view
-        if (msg.toLowerCase().includes("failed to fetch")) {
-          return { ok:false, error:"Failed to fetch. If you're viewing on github.com, open via GitHub Pages. Also confirm SCRIPT_URL is correct and deployed." };
-        }
-        return { ok:false, error: msg };
-      } finally {
-        clearTimeout(t);
+    // Highlight the slot from query param
+    if (slotParam) {
+      const el = document.getElementById(`slot-${slotParam}`);
+      if (el) {
+        el.classList.add("highlight");
+        el.scrollIntoView({ behavior:"smooth", block:"center", inline:"center" });
       }
     }
 
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
+    // Re-add mine highlights by checking data-token attribute? (we mark during render)
+    // Render handles mine class based on tokenParam + myPicksOn, so reload is simplest.
+    // But for responsiveness, we just reload the page state if toggled.
+  }
+
+  function setTopUI(balls){
+    const claimed = (balls || []).filter(b => b && b.isClaimed).length;
+    counterEl.innerHTML = `<b>${claimed}</b> of <b>68</b> balls claimed`;
+    updatedEl.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+  }
+
+  async function load(){
+    errEl.style.display = "none";
+    const data = await api("getBracketData");
+
+    if (!data.ok) {
+      errEl.textContent = "Error: " + (data.error || "Unknown");
+      errEl.style.display = "block";
+      return;
     }
 
-    function setStatusCounter() {
-      const claimed = balls.filter(b => b.isClaimed).length;
-      const available = 68 - claimed;
-      statusEl.innerHTML = `<b>${claimed}</b> of <b>68</b> claimed <span style="opacity:.6">•</span> <b>${available}</b> open`;
-      lastUpdatedEl.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+    const balls = data.balls || [];
+    const bracketPicks = data.bracketPicks || [];
+    const bracketWinners = data.bracketWinners || [];
+
+    setTopUI(balls);
+
+    const ballsBySlot = getBallsMap(balls);
+    const picksBySlot = getPicksMap(bracketPicks);
+    const winnerBySlotKey = getWinnerMap(bracketWinners);
+
+    regionsEl.innerHTML = "";
+    for (const r of REGIONS){
+      regionsEl.appendChild(createRegionCard(r, ballsBySlot, picksBySlot, winnerBySlotKey));
     }
 
-    async function loadState() {
-      statusEl.textContent = "Loading balls…";
-      const data = await api("getState");
+    applyHighlights_();
+  }
 
-      if (!data.ok) {
-        statusEl.innerHTML = `<span class="errorText">⚠ ${escapeHtml(data.error || "API error")}</span>`;
-        return;
-      }
-
-      balls = shuffle((data.balls || []).slice());
-      renderGrid();
-      setStatusCounter();
+  (async function init(){
+    if (tokenParam) {
+      myPicksOn = true;
+      myPicksBtn.textContent = "👤 My Picks: ON";
     }
-
-    function renderGrid() {
-      grid.innerHTML = "";
-
-      balls.forEach(b => {
-        const div = document.createElement("div");
-        div.className = "ball" + (b.isClaimed ? " taken" : "");
-        div.dataset.ball = b.ballNumber;
-
-        if (b.isClaimed) {
-          const lock = document.createElement("div");
-          lock.className = "lockOverlay";
-          lock.textContent = "🔒";
-          div.appendChild(lock);
-        }
-
-        div.onclick = (ev) => claimBall(b, ev.currentTarget);
-        grid.appendChild(div);
-      });
-    }
-
-    function showModal({ title, big, line1, line2, metaHtml, isError=false, goHref="" }) {
-      modalTitle.textContent = title || "Result";
-      modalBig.innerHTML = big || "";
-      modalLine1.innerHTML = line1 || "";
-      modalLine2.innerHTML = line2 || "";
-      modalMeta.innerHTML = metaHtml || "";
-
-      if (isError) modalBig.classList.add("errorText");
-      else modalBig.classList.remove("errorText");
-
-      if (goHref) {
-        goBracketBtn.style.display = "inline-flex";
-        goBracketBtn.onclick = () => { window.location.href = goHref; };
-      } else {
-        goBracketBtn.style.display = "none";
-      }
-
-      modalBack.style.display = "flex";
-      modalBack.setAttribute("aria-hidden", "false");
-    }
-
-    function hideModal() {
-      modalBack.style.display = "none";
-      modalBack.setAttribute("aria-hidden", "true");
-    }
-
-    function confettiBurst() {
-      if (typeof confetti !== "function") return;
-      confetti({ particleCount: 120, spread: 75, startVelocity: 45, origin: { y: 0.66 } });
-      setTimeout(() => confetti({ particleCount: 70, spread: 105, startVelocity: 38, origin: { y: 0.62 } }), 140);
-    }
-
-    async function claimBall(ball, el) {
-      if (busy || ball.isClaimed) return;
-
-      const token = tokenEl.value.trim();
-      const name  = playerEl.value.trim();
-
-      if (!name || !token) {
-        showModal({
-          title: "Missing info",
-          big: "Enter your name + token",
-          line1: "Please fill both fields before selecting a ball.",
-          line2: "If you don’t have a token link, ask the organizer.",
-          metaHtml: "",
-          isError: true
-        });
-        return;
-      }
-
-      busy = true;
-      el.classList.add("spinning");
-      await new Promise(r => setTimeout(r, 820));
-
-      const result = await api("claimBall", {
-        token: token,
-        playerName: name,
-        ballNumber: String(ball.ballNumber)
-      });
-
-      await new Promise(r => setTimeout(r, 220));
-      el.classList.remove("spinning");
-
-      if (!result.ok) {
-        showModal({
-          title: "Not claimed",
-          big: escapeHtml(result.error || "Something went wrong"),
-          line1: "Try another available ball.",
-          line2: "",
-          metaHtml: "",
-          isError: true
-        });
-        busy = false;
-        await loadState();
-        return;
-      }
-
-      const c = result.claim || {};
-      confettiBurst();
-
-      // Jump URL: bracket.html?token=...&slot=...&ball=...
-      const goHref = `./bracket.html?token=${encodeURIComponent(token)}&slot=${encodeURIComponent(String(c.bracketSlot || ""))}&ball=${encodeURIComponent(String(c.ballNumber || ""))}`;
-
-      showModal({
-        title: "Locked in!",
-        big: `🏀 Ball #${escapeHtml(String(c.ballNumber))} Claimed`,
-        line1: `<b>Bracket Slot:</b> ${escapeHtml(String(c.bracketSlot))} <span style="opacity:.7">•</span> <b>Seed:</b> ${escapeHtml(String(c.seed))} <span style="opacity:.7">•</span> <b>Region:</b> ${escapeHtml(String(c.region))}`,
-        line2: `Next: open the bracket to see your name placed.`,
-        metaHtml: `<div><b>Time</b> ${escapeHtml(String(c.claimedAt))}</div>`,
-        isError: false,
-        goHref
-      });
-
-      // Auto-go after a short beat (feels like ESPN reveal)
-      setTimeout(() => { window.location.href = goHref; }, 1200);
-
-      busy = false;
-      await loadState();
-    }
-
-    // Auto-fill token from URL ?token=...
-    (function init() {
-      const params = new URLSearchParams(location.search);
-      const t = params.get("token");
-      if (t) tokenEl.value = t;
-      loadState();
-      setInterval(loadState, 12000);
-    })();
-
-    modalBack.addEventListener("click", (e) => { if (e.target === modalBack) hideModal(); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modalBack.style.display === "flex") hideModal(); });
-  </script>
+    await load();
+    setInterval(load, 12000);
+  })();
+</script>
 </body>
 </html>
