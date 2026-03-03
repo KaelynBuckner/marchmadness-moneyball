@@ -19,6 +19,7 @@
       --colGap: 80px;
       --stroke: rgba(255,255,255,.18);
       --strokeHot: rgba(255,140,40,.22);
+      --strokeBlue: rgba(88,170,255,.35);
     }
 
     *{box-sizing:border-box}
@@ -65,6 +66,7 @@
       background: rgba(255,255,255,.07);
       font-size: 13px;
       color: rgba(255,255,255,.86);
+      white-space: nowrap;
     }
     .btn{
       text-decoration:none;
@@ -76,8 +78,14 @@
       color: #fff;
       font-weight: 750;
       transition: transform .12s ease, background .12s ease;
+      cursor:pointer;
+      user-select:none;
     }
     .btn:hover{ background: rgba(255,255,255,.14); transform: translateY(-1px); }
+    .btn.primary{
+      border-color: rgba(88,170,255,.32);
+      background: rgba(88,170,255,.14);
+    }
 
     .regions{
       margin-top: 14px;
@@ -148,9 +156,14 @@
       box-shadow: 0 0 18px rgba(255,140,40,.10), 0 10px 22px rgba(0,0,0,.18);
     }
 
+    .node.mine{
+      outline: 3px solid var(--strokeBlue);
+      box-shadow: 0 0 22px rgba(88,170,255,.18), 0 10px 22px rgba(0,0,0,.18);
+    }
+
     .node.highlight{
-      outline: 3px solid rgba(88,170,255,.35);
-      box-shadow: 0 0 22px rgba(88,170,255,.16), 0 10px 22px rgba(0,0,0,.18);
+      outline: 3px solid rgba(255,255,255,.34);
+      box-shadow: 0 0 22px rgba(255,255,255,.12), 0 10px 22px rgba(0,0,0,.18);
     }
 
     .topRow{
@@ -208,14 +221,19 @@
   <div class="wrap">
     <h1>Money Madness Bracket</h1>
     <div class="sub">
-      Round of 64 shows your <b>claimed players</b> and <b>teams</b> (or TBD). Later rounds auto-fill from <b>BracketWinners</b>.
-      (It will stay blank until there are real winners.)
+      Round of 64 shows your <b>claimed players</b> + <b>teams</b> (or TBD). Later rounds auto-fill from <b>BracketWinners</b>.
     </div>
 
     <div class="topbar">
       <div class="pill" id="counter">Loading…</div>
       <div class="pill" id="updated">Last updated: —</div>
-      <a class="btn" href="./index.html">← Back to Ball Pick</a>
+
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <button class="btn primary" id="myPicksBtn" title="Highlight my picks if token is present">
+          👤 My Picks: OFF
+        </button>
+        <a class="btn" href="./index.html">← Back to Ball Pick</a>
+      </div>
     </div>
 
     <div class="errorBox" id="err"></div>
@@ -247,6 +265,21 @@
   const updatedEl = document.getElementById("updated");
   const errEl = document.getElementById("err");
 
+  const myPicksBtn = document.getElementById("myPicksBtn");
+
+  // Read query params from redirect: ?token=...&slot=...&ball=...
+  const qp = new URLSearchParams(location.search);
+  const tokenParam = (qp.get("token") || "").trim();
+  const slotParam  = (qp.get("slot") || "").trim(); // like E1
+  let myPicksOn = false;
+
+  myPicksBtn.addEventListener("click", () => {
+    myPicksOn = !myPicksOn;
+    myPicksBtn.textContent = `👤 My Picks: ${myPicksOn ? "ON" : "OFF"}`;
+    // Re-apply highlights without refetch
+    applyHighlights_();
+  });
+
   async function api(action, payload = {}) {
     const form = new URLSearchParams({ action, ...payload });
     const res = await fetch(SCRIPT_URL, { method:"POST", body: form });
@@ -267,9 +300,7 @@
     const y1 = [];
     const boxH = 52;
     const gapY = 14;
-    for (let i=0;i<16;i++){
-      y1.push(i*(boxH+gapY));
-    }
+    for (let i=0;i<16;i++) y1.push(i*(boxH+gapY));
     const mid = (a,b)=> (a+b)/2;
     const y2 = []; for (let i=0;i<8;i++) y2.push(mid(y1[i*2], y1[i*2+1]));
     const y3 = []; for (let i=0;i<4;i++) y3.push(mid(y2[i*2], y2[i*2+1]));
@@ -318,12 +349,15 @@
     drawToNext(3, 0, 1, 4, 0);
   }
 
-  function addNode(canvas, roundIndex, y, id, leftLabel, rightLabel, line1, line2, claimed){
+  function addNode(canvas, roundIndex, y, id, leftLabel, rightLabel, line1, line2, flags){
     const node = document.createElement("div");
-    node.className = "node" + (claimed ? " claimed" : "");
+    node.className = "node";
     node.style.left = colX(roundIndex) + "px";
     node.style.top  = (y + 10) + "px";
     node.id = id;
+
+    if (flags?.claimed) node.classList.add("claimed");
+    if (flags?.mine) node.classList.add("mine");
 
     node.innerHTML = `
       <div class="topRow">
@@ -356,7 +390,17 @@
     return map;
   }
 
-  function createRegionCard(region, ballsBySlot, winnerBySlotKey){
+  // BracketPicks map: slotKey (E1) -> {playerName, token, ...}
+  function getPicksMap(bracketPicks){
+    const map = new Map();
+    for (const p of (bracketPicks || [])){
+      if (!p || !p.slotKey) continue;
+      map.set(String(p.slotKey).trim(), p);
+    }
+    return map;
+  }
+
+  function createRegionCard(region, ballsBySlot, picksBySlot, winnerBySlotKey){
     const card = document.createElement("section");
     card.className = "regionCard";
 
@@ -389,15 +433,19 @@
 
     drawLines(svg, pos);
 
-    // R64: pull from Balls using bracketSlot like E1
+    // R64: slot is E1..E16 etc
     for (let i=0;i<16;i++){
       const seed = SEED_ORDER[i];
       const slot = `${region.code}${seed}`; // E1..E16
       const b = ballsBySlot.get(slot);
+      const p = picksBySlot.get(slot);
 
-      const player = b?.claimedBy ? String(b.claimedBy) : "";
+      const player = p?.playerName ? String(p.playerName) : "";
+      const playerToken = p?.token ? String(p.token) : "";
+
       const team = b?.team ? String(b.team) : "";
       const claimed = !!player;
+      const mine = (myPicksOn && tokenParam && playerToken && tokenParam === playerToken);
 
       const line1 = `<b>Player:</b> ${escapeHtml(player || "—")}`;
       const line2 = `<b>Team:</b> ${escapeHtml(team || "TBD")}`;
@@ -407,12 +455,11 @@
         `slot-${slot}`,
         slot, `Seed ${seed}`,
         line1, line2,
-        claimed
+        { claimed, mine }
       );
     }
 
-    // R32/S16/E8/CHAMP: pull from BracketWinners
-    // Slot keys are like R32-E1, S16-E2, E8-E1, CHAMP-E
+    // R32/S16/E8/CHAMP: from BracketWinners
     const roundSpecs = [
       { roundIndex: 1, arr: pos.y2, prefix: "R32", count: 8, makeKey: (n)=>`R32-${region.code}${n}` },
       { roundIndex: 2, arr: pos.y3, prefix: "S16", count: 4, makeKey: (n)=>`S16-${region.code}${n}` },
@@ -429,9 +476,7 @@
         const winnerTeam = w?.winnerTeam ? String(w.winnerTeam) : "";
         const winnerSeed = (w?.winnerSeed ?? "") !== "" ? String(w.winnerSeed) : "";
 
-        const leftLabel = key;
         const rightLabel = (winnerSeed ? `Winner (Seed ${winnerSeed})` : "Winner");
-
         const line1 = winnerTeam ? `<b>Winner:</b> ${escapeHtml(winnerTeam)}` : "";
         const line2 = winnerTeam ? `<b>Status:</b> Advanced` : "";
 
@@ -439,10 +484,10 @@
           canvas, spec.roundIndex,
           spec.arr[i] ?? spec.arr[0],
           `slot-${key}`,
-          leftLabel,
+          key,
           rightLabel,
           line1, line2,
-          Boolean(winnerTeam)
+          { claimed: Boolean(winnerTeam), mine: false }
         );
       }
     }
@@ -451,15 +496,27 @@
     return card;
   }
 
-  function applyHashHighlight(){
-    const raw = location.hash || "";
-    const id = raw.replace("#","").trim();
-    if (!id) return;
-    const el = document.getElementById(id.startsWith("slot-") ? id : `slot-${id}`);
-    if (el) {
-      el.classList.add("highlight");
-      el.scrollIntoView({ behavior:"smooth", block:"center", inline:"center" });
+  function clearTransientHighlights_(){
+    document.querySelectorAll(".node.highlight").forEach(el => el.classList.remove("highlight"));
+    document.querySelectorAll(".node.mine").forEach(el => el.classList.remove("mine"));
+  }
+
+  function applyHighlights_(){
+    // Remove transient classes then reapply
+    document.querySelectorAll(".node.mine").forEach(el => el.classList.remove("mine"));
+    document.querySelectorAll(".node.highlight").forEach(el => el.classList.remove("highlight"));
+
+    // Highlight the slot from query param (like E1)
+    if (slotParam) {
+      const el = document.getElementById(`slot-${slotParam}`);
+      if (el) {
+        el.classList.add("highlight");
+        el.scrollIntoView({ behavior:"smooth", block:"center", inline:"center" });
+      }
     }
+
+    // If My Picks ON, we already added "mine" during render using tokenParam.
+    // (Nothing else needed here.)
   }
 
   function setTopUI(balls){
@@ -470,8 +527,8 @@
 
   async function load(){
     errEl.style.display = "none";
-    const data = await api("getBracketData");
 
+    const data = await api("getBracketData");
     if (!data.ok) {
       errEl.textContent = "Error: " + (data.error || "Unknown");
       errEl.style.display = "block";
@@ -480,31 +537,33 @@
 
     const balls = data.balls || [];
     const bracketWinners = data.bracketWinners || [];
+    const bracketPicks = data.bracketPicks || [];
 
     setTopUI(balls);
 
     const ballsBySlot = getBallsMap(balls);
+    const picksBySlot = getPicksMap(bracketPicks);
     const winnerBySlotKey = getWinnerMap(bracketWinners);
 
     regionsEl.innerHTML = "";
     for (const r of REGIONS){
-      regionsEl.appendChild(createRegionCard(r, ballsBySlot, winnerBySlotKey));
+      regionsEl.appendChild(createRegionCard(r, ballsBySlot, picksBySlot, winnerBySlotKey));
     }
 
-    applyHashHighlight();
+    // Apply highlight from query param after render
+    applyHighlights_();
   }
 
   // Initial + live refresh
   (async function init(){
+    // default My Picks ON if token is present
+    if (tokenParam) {
+      myPicksOn = true;
+      myPicksBtn.textContent = "👤 My Picks: ON";
+    }
     await load();
     setInterval(load, 10000);
   })();
-
-  window.addEventListener("hashchange", () => {
-    // remove old highlights
-    document.querySelectorAll(".node.highlight").forEach(el => el.classList.remove("highlight"));
-    applyHashHighlight();
-  });
 </script>
 </body>
 </html>
