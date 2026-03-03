@@ -14,9 +14,9 @@
       --shadow: 0 18px 55px rgba(0,0,0,.55);
 
       /* Bigger + more readable */
-      --boxW: 290px;
-      --boxH: 62px;
-      --gapY: 16px;
+      --boxW: 320px;
+      --boxH: 90px;
+      --gapY: 24px;
 
       --colGap: 92px;
       --strokeHot: rgba(255,140,40,.28);
@@ -162,9 +162,11 @@
     }
 
     .node{
+      .node{
       position:absolute;
       width: var(--boxW);
-      height: var(--boxH);
+      min-height: var(--boxH);
+      height: auto;
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,.14);
       background: rgba(255,255,255,.08);
@@ -211,11 +213,13 @@
       font-weight: 800;
     }
     .lineText{
-      font-size: 13px;
-      color: rgba(255,255,255,.92);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,.95);
+      white-space: normal;
+      overflow: visible;
+      text-overflow: unset;
+      line-height: 1.2;
     }
     .mutedLine{ color: rgba(255,255,255,.62); }
 
