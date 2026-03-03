@@ -592,7 +592,14 @@
       const c = result.claim || {};
       const slot = normalizeSlot(c.bracketSlot);
       const t = token;
-
+      // After success:
+      const slot = String(c.bracketSlot || "");
+      const t = encodeURIComponent(token);
+      const s = encodeURIComponent(slot);
+      setTimeout(() => {
+      window.location.href = `./bracket.html?token=${t}&slot=${s}`;
+      }, 900);
+      
       confettiBurst();
 
       // Build bracket redirect URL with token + slot (so bracket can highlight + My Picks)
