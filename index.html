@@ -4,19 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Money Madness Ball Pick</title>
-<a href="./bracket.html" style="
-  display:inline-flex;
-  margin-top:12px;
-  padding:10px 14px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.18);
-  background: rgba(255,255,255,.10);
-  color:#fff;
-  font-weight:800;
-  text-decoration:none;
-">
-  📋 View Bracket
-</a>
+
   <!-- Confetti (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
@@ -73,6 +61,24 @@
       font-size: 14px;
       max-width: 820px;
     }
+
+    .actionsCenter{
+      text-align:center;
+      margin-top: 12px;
+    }
+    .bracketLink{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      color:#fff;
+      font-weight:800;
+      text-decoration:none;
+    }
+    .bracketLink:hover{ background: rgba(255,255,255,.14); }
 
     .panel{
       margin-top: 18px;
@@ -360,6 +366,10 @@
         Pick any <b>blank</b> basketball. It spins, then reveals your bracket position. Once claimed, it locks.
       </div>
 
+      <div class="actionsCenter">
+        <a class="bracketLink" href="./bracket.html">📋 View Bracket</a>
+      </div>
+
       <div class="panel">
         <div class="bar">
           <label>
@@ -467,6 +477,13 @@
           return;
         }
 
+        // Optional: honor backend settings if enabled
+        if (data.gameActive === false) {
+          statusEl.innerHTML = `<span class="errorText">Game is not active yet.</span>`;
+        } else if (data.lockClaims === true) {
+          statusEl.innerHTML = `<span class="errorText">Claims are currently locked.</span>`;
+        }
+
         balls = shuffle(data.balls.slice());
         renderGrid();
         setStatusCounter();
@@ -501,11 +518,8 @@
       modalLine1.innerHTML = line1 || "";
       modalLine2.innerHTML = line2 || "";
       modalMeta.innerHTML = metaHtml || "";
-      if (isError) {
-        modalBig.classList.add("errorText");
-      } else {
-        modalBig.classList.remove("errorText");
-      }
+      if (isError) modalBig.classList.add("errorText");
+      else modalBig.classList.remove("errorText");
       modalBack.style.display = "flex";
       modalBack.setAttribute("aria-hidden", "false");
     }
@@ -517,20 +531,15 @@
 
     function confettiBurst() {
       if (typeof confetti !== "function") return;
+      confetti({ particleCount: 110, spread: 70, startVelocity: 42, origin: { y: 0.68 } });
+      setTimeout(() => confetti({ particleCount: 70, spread: 100, startVelocity: 38, origin: { y: 0.62 } }), 140);
+    }
 
-      // Two quick bursts for a premium feel
-      confetti({
-        particleCount: 110,
-        spread: 70,
-        startVelocity: 42,
-        origin: { y: 0.68 }
-      });
-      setTimeout(() => confetti({
-        particleCount: 70,
-        spread: 100,
-        startVelocity: 38,
-        origin: { y: 0.62 }
-      }), 140);
+    function goToBracketAfterPick(claim) {
+      const token = encodeURIComponent(tokenEl.value.trim());
+      const slot  = encodeURIComponent(String(claim.bracketSlot || ""));
+      const ball  = encodeURIComponent(String(claim.ballNumber || ""));
+      window.location.href = `./bracket.html?token=${token}&slot=${slot}&ball=${ball}`;
     }
 
     async function claimBall(ball, el) {
@@ -556,8 +565,6 @@
 
       // Start the 3D spin immediately for the “lottery” effect
       el.classList.add("spinning");
-
-      // Let it spin before calling the backend (feels nicer)
       await new Promise(r => setTimeout(r, 850));
 
       const result = await api("claimBall", {
@@ -566,7 +573,6 @@
         ballNumber: String(ball.ballNumber)
       });
 
-      // Finish spin
       await new Promise(r => setTimeout(r, 250));
       el.classList.remove("spinning");
 
@@ -584,16 +590,14 @@
         return;
       }
 
-      // Success
       const c = result.claim;
-
       confettiBurst();
 
       showModal({
         title: "Ball claimed!",
         big: `🎉 You claimed a ball`,
         line1: `<b>Bracket Position:</b> ${escapeHtml(String(c.bracketSlot))} <span style="opacity:.7">•</span> ${escapeHtml(String(c.region))} <span style="opacity:.7">•</span> Seed ${escapeHtml(String(c.seed))}`,
-        line2: `Locked in successfully.`,
+        line2: `Redirecting you to the live bracket…`,
         metaHtml: `
           <div><b>Ball #</b> ${escapeHtml(String(c.ballNumber))}</div>
           <div><b>Time</b> ${escapeHtml(String(c.claimedAt))}</div>
@@ -602,7 +606,9 @@
       });
 
       busy = false;
-      await loadState();
+
+      // Navigate to bracket shortly after showing the modal
+      setTimeout(() => goToBracketAfterPick(c), 900);
     }
 
     // Small helper to keep modal safe
@@ -619,8 +625,6 @@
       if (t) tokenEl.value = t;
 
       loadState();
-
-      // Auto-refresh board state (so everyone sees claims)
       setInterval(loadState, 10000);
     })();
 
