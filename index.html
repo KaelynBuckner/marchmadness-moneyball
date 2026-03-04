@@ -3,884 +3,1522 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Money Madness Ball Pick</title>
-
-  <!-- Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-
+  <title>Money Madness | Lottery Draw</title>
+  <meta name="theme-color" content="#0b0f1a" />
   <style>
     :root{
-      --bg0:#070b16;
-      --bg1:#0b1226;
-      --text:#ffffff;
-      --muted:rgba(255,255,255,.75);
-      --line:rgba(255,255,255,.12);
-      --card:rgba(255,255,255,.07);
-      --card2:rgba(255,255,255,.10);
+      --bg0:#070a12;
+      --bg1:#0b1020;
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.09);
+      --stroke:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.70);
+      --muted2:rgba(255,255,255,.55);
+      --good:#31d158;
+      --warn:#ffcc00;
+      --bad:#ff453a;
+      --accent:#7dd3fc;
+      --accent2:#a78bfa;
       --shadow: 0 18px 55px rgba(0,0,0,.55);
-      --gap:14px;
-      --ballSize:82px;
-      --maxW:1100px;
-      --accent: rgba(88,170,255,.95);
-      --hot: rgba(255,140,40,.95);
+      --radius: 18px;
+      --radius2: 26px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
 
     *{ box-sizing:border-box; }
+    html,body{ height:100%; }
     body{
       margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-family:var(--font);
       color:var(--text);
       background:
-        radial-gradient(1200px 800px at 15% 10%, rgba(255,140,40,.15), transparent 60%),
-        radial-gradient(900px 650px at 85% 25%, rgba(88,170,255,.12), transparent 55%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
-      min-height:100vh;
+        radial-gradient(1200px 700px at 20% 12%, rgba(125,211,252,.18), rgba(0,0,0,0) 55%),
+        radial-gradient(900px 600px at 80% 20%, rgba(167,139,250,.16), rgba(0,0,0,0) 55%),
+        radial-gradient(1000px 700px at 50% 110%, rgba(255,149,0,.12), rgba(0,0,0,0) 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 55%, #050712);
+      overflow-x:hidden;
     }
 
-    /* ESPN-ish subtle grid overlay */
-    body::before{
-      content:"";
+    .bg-shimmer{
       position:fixed;
-      inset:0;
+      inset:-60px;
       pointer-events:none;
-      background:
-        repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 34px),
-        repeating-linear-gradient(90deg, rgba(255,255,255,.028) 0 1px, transparent 1px 34px);
-      mix-blend-mode: overlay;
-      opacity:.32;
+      background: radial-gradient(closest-side, rgba(255,255,255,.06), rgba(255,255,255,0) 70%);
+      filter: blur(28px);
+      opacity:.35;
+      animation: floaty 10s ease-in-out infinite;
+      mix-blend-mode: screen;
+    }
+    @keyframes floaty{
+      0%{ transform: translate3d(-10px,-6px,0) scale(1); }
+      50%{ transform: translate3d(10px,8px,0) scale(1.03); }
+      100%{ transform: translate3d(-10px,-6px,0) scale(1); }
+    }
+
+    .wrap{
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 22px 18px 40px;
     }
 
     header{
-      padding: 26px 16px 16px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), transparent);
-      position:sticky;
-      top:0;
-      backdrop-filter: blur(10px);
-      z-index: 10;
-    }
-    .wrap{
-      max-width: var(--maxW);
-      margin: 0 auto;
-      padding: 0 16px;
-    }
-
-    .topRow{
       display:flex;
-      justify-content:space-between;
       align-items:center;
-      gap: 12px;
-      flex-wrap:wrap;
+      justify-content:space-between;
+      gap:16px;
+      margin: 8px 0 18px;
     }
 
     .brand{
       display:flex;
-      align-items:baseline;
-      gap: 12px;
-      flex-wrap:wrap;
+      align-items:center;
+      gap:12px;
+      min-width: 0;
     }
 
+    .logo{
+      width:44px;
+      height:44px;
+      border-radius: 14px;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,.35), rgba(255,255,255,0) 55%),
+        linear-gradient(135deg, rgba(125,211,252,.9), rgba(167,139,250,.9));
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .logo::after{
+      content:"";
+      position:absolute;
+      inset:-30px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.25), rgba(255,255,255,0) 55%);
+      transform: rotate(25deg);
+    }
+
+    .titleBlock{ min-width:0; }
     .title{
-      font-size: 40px;
-      font-weight: 950;
-      letter-spacing: .2px;
-      margin: 0;
-      line-height: 1.05;
-    }
-    .liveChip{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.08);
-      font-weight: 900;
-      letter-spacing: .3px;
-      font-size: 12px;
+      font-size: 18px;
+      letter-spacing:.08em;
       text-transform: uppercase;
+      font-weight: 1000;
+      margin:0;
+      line-height:1.1;
       white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
-    .dot{
-      width:8px;height:8px;border-radius:99px;
-      background: rgba(255,80,80,.95);
-      box-shadow:0 0 12px rgba(255,80,80,.35);
-    }
-
-    .btnLink{
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      height: 40px;
-      padding: 0 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.10);
-      color: #fff;
-      font-weight: 850;
-      transition: transform .12s ease, background .12s ease;
-    }
-    .btnLink:hover{ background: rgba(255,255,255,.14); transform: translateY(-1px); }
-
     .subtitle{
-      margin: 12px auto 0;
+      margin: 2px 0 0;
       color: var(--muted);
-      font-size: 14px;
-      max-width: 980px;
-      line-height: 1.35;
-    }
-
-    .panel{
-      margin-top: 14px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 18px;
-      padding: 14px;
-      box-shadow: 0 10px 40px rgba(0,0,0,.25);
-      backdrop-filter: blur(14px);
-    }
-
-    .bar{
-      display:grid;
-      gap: 12px;
-      grid-template-columns: 1fr 1fr;
-      align-items:end;
-    }
-    @media (max-width: 760px){
-      .bar{ grid-template-columns: 1fr; }
-      .title{ font-size: 32px; }
-      :root{ --ballSize: 76px; }
-    }
-
-    label{
-      display:grid;
-      gap:6px;
       font-size: 13px;
-      color: rgba(255,255,255,.88);
-      font-weight: 750;
-    }
-    input{
-      height: 46px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.08);
-      color: #fff;
-      outline: none;
-      font-size: 15px;
-    }
-    input::placeholder{ color: rgba(255,255,255,.55); }
-    input:focus{
-      border-color: rgba(88,170,255,.45);
-      box-shadow: 0 0 0 4px rgba(88,170,255,.12);
-    }
-    .hint{
-      font-size: 12px;
-      color: rgba(255,255,255,.62);
-      margin-top: 2px;
-      font-weight: 600;
+      line-height:1.25;
     }
 
-    .statusLine{
-      margin-top: 12px;
-      font-size: 14px;
-      color: rgba(255,255,255,.85);
+    .pillRow{
       display:flex;
-      justify-content: space-between;
-      align-items:center;
-      gap: 10px;
-      flex-wrap: wrap;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
     }
 
     .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 7px 12px;
+      padding: 10px 12px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.07);
-      font-weight: 800;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      backdrop-filter: blur(10px);
+      display:flex;
+      gap:8px;
+      align-items:center;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      font-size: 13px;
+      color: var(--muted);
     }
-    .small{
-      font-size: 12px;
-      color: rgba(255,255,255,.65);
-      font-weight: 750;
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background: var(--good);
+      box-shadow: 0 0 0 6px rgba(49,209,88,.12);
     }
-
-    .wrapBody{
-      max-width: var(--maxW);
-      margin: 0 auto;
-      padding: 16px 16px 44px;
-    }
+    .dot.bad{ background: var(--bad); box-shadow: 0 0 0 6px rgba(255,69,58,.12); }
+    .dot.warn{ background: var(--warn); box-shadow: 0 0 0 6px rgba(255,204,0,.12); }
 
     .grid{
       display:grid;
-      grid-template-columns: repeat(8, minmax(0, 1fr));
-      gap: var(--gap);
-      padding: 10px 6px 6px;
-      max-width: 980px;
-      margin: 0 auto;
+      grid-template-columns: 1.3fr .7fr;
+      gap: 16px;
+      align-items: start;
     }
-    @media (max-width: 980px){ .grid{ grid-template-columns: repeat(6, 1fr); } }
-    @media (max-width: 640px){ .grid{ grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
 
-    /* ===== Realistic Basketball (blank) ===== */
-    .ball{
-      position: relative;
-      height: var(--ballSize);
-      width: 100%;
-      border-radius: 999px;
-      cursor: pointer;
-      user-select: none;
-
-      transform-style: preserve-3d;
-      perspective: 1100px;
-
-      background:
-        radial-gradient(circle at 28% 22%, rgba(255,255,255,.65), rgba(255,255,255,0) 34%),
-        radial-gradient(circle at 68% 78%, rgba(0,0,0,.35), rgba(0,0,0,0) 50%),
-        radial-gradient(circle at 50% 55%, #ff8a2b, #e85d00 62%, #b54000 100%);
-
-      box-shadow:
-        0 16px 34px rgba(0,0,0,.52),
-        inset 0 10px 20px rgba(255,255,255,.16),
-        inset 0 -16px 22px rgba(0,0,0,.28);
-
-      transition: transform .18s ease, filter .18s ease, box-shadow .18s ease, opacity .18s ease;
-      display:grid;
-      place-items:center;
-      overflow:hidden;
-    }
-
-    /* Pebble grain */
-    .ball::after{
-      content:"";
-      position:absolute;
-      inset:-10%;
-      border-radius:999px;
-      background:
-        radial-gradient(circle, rgba(0,0,0,.22) 1px, transparent 1.4px) 0 0 / 9px 9px;
-      opacity:.22;
-      transform: translateZ(7px);
-      mix-blend-mode: multiply;
-      pointer-events:none;
-    }
-
-    /* Seams */
-    .ball::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      border-radius:999px;
-      background:
-        radial-gradient(circle at 50% 50%, transparent 44%, rgba(25,10,0,.55) 45%, rgba(25,10,0,.55) 47%, transparent 48%),
-        linear-gradient(90deg, transparent 46%, rgba(25,10,0,.55) 47%, rgba(25,10,0,.55) 53%, transparent 54%),
-        linear-gradient(0deg, transparent 46%, rgba(25,10,0,.55) 47%, rgba(25,10,0,.55) 53%, transparent 54%);
-      opacity:.70;
-      transform: translateZ(10px);
-      pointer-events:none;
-    }
-
-    /* Rim light */
-    .ball .rim{
-      position:absolute;
-      inset:2px;
-      border-radius:999px;
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.14),
-        inset 0 0 26px rgba(255,255,255,.08);
-      pointer-events:none;
-      transform: translateZ(12px);
-    }
-
-    .ball:hover{
-      transform: translateY(-4px) rotateX(12deg) rotateY(-14deg);
-      box-shadow:
-        0 22px 46px rgba(0,0,0,.62),
-        0 0 26px rgba(88,170,255,.14),
-        inset 0 10px 22px rgba(255,255,255,.18),
-        inset 0 -16px 22px rgba(0,0,0,.26);
-    }
-
-    .ball.taken{
-      cursor:not-allowed;
-      filter: grayscale(.92) brightness(.72);
-      opacity: .55;
-      transform:none;
-    }
-    .ball.taken:hover{
-      transform:none;
-      box-shadow:
-        0 16px 34px rgba(0,0,0,.52),
-        inset 0 10px 20px rgba(255,255,255,.12),
-        inset 0 -16px 22px rgba(0,0,0,.28);
-    }
-
-    .lockOverlay{
-      position:absolute;
-      inset:0;
-      display:grid;
-      place-items:center;
-      font-size: 22px;
-      transform: translateZ(14px);
-      pointer-events:none;
-      opacity: .95;
-      text-shadow: 0 8px 18px rgba(0,0,0,.55);
-    }
-
-    /* ===== Spin reveal #2: fast spin + slow-mo settle landing ===== */
-    @keyframes spinFast {
-      0%   { transform: rotateX(0deg) rotateY(0deg) scale(1); filter: saturate(1); }
-      18%  { transform: rotateX(210deg) rotateY(260deg) scale(1.06); }
-      55%  { transform: rotateX(520deg) rotateY(640deg) scale(1.06); filter: saturate(1.10); }
-      100% { transform: rotateX(820deg) rotateY(920deg) scale(1.02); filter: saturate(1.02); }
-    }
-    @keyframes settleLand {
-      0%   { transform: rotateX(40deg) rotateY(-18deg) scale(1.02); }
-      45%  { transform: rotateX(10deg) rotateY(8deg) scale(1.00); }
-      75%  { transform: rotateX(-6deg) rotateY(-4deg) scale(0.997); }
-      100% { transform: rotateX(0deg) rotateY(0deg) scale(1.00); }
-    }
-    @keyframes glowPulse {
-      0%,100% { box-shadow: 0 0 0 rgba(88,170,255,0); }
-      50%     { box-shadow: 0 0 28px rgba(88,170,255,.22); }
-    }
-    .ball.spinning{
-      animation:
-        spinFast 1.05s cubic-bezier(.14,.86,.18,1),
-        glowPulse 1.05s ease;
-    }
-    .ball.settling{
-      animation: settleLand .42s cubic-bezier(.12,.9,.2,1);
-    }
-
-    /* ===== Modal ===== */
-    .modalBack{
-      position:fixed;
-      inset:0;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding: 18px;
-      background: rgba(0,0,0,.58);
-      z-index: 50;
-    }
-    .modal{
-      width: min(600px, 100%);
-      border-radius: 20px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.16);
+    .card{
+      border-radius: var(--radius2);
+      border: 1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
       box-shadow: var(--shadow);
-      backdrop-filter: blur(16px);
-      padding: 18px;
+      overflow:hidden;
+      position:relative;
     }
-    .modalTop{
+
+    .cardHeader{
+      padding: 16px 16px 12px;
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
-      gap: 10px;
+      gap:12px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
     }
-    .modalTitle{
+    .cardHeader h2{
       margin:0;
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: .2px;
+      font-size: 16px;
+      font-weight: 1000;
+      letter-spacing:.06em;
+      text-transform: uppercase;
     }
-    .modalBadge{
-      display:inline-flex;
-      align-items:center;
-      gap: 8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.08);
-      font-size: 12px;
-      color: rgba(255,255,255,.85);
-      white-space: nowrap;
-      font-weight: 900;
+    .cardHeader p{
+      margin:4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height:1.35;
     }
-    .modalBig{
-      margin: 12px 0 6px;
-      font-size: 28px;
-      font-weight: 950;
-      letter-spacing: .2px;
-    }
-    .modalLine{
-      margin: 6px 0;
-      color: rgba(255,255,255,.88);
-      line-height: 1.35;
-      font-weight: 650;
-    }
-    .modalMeta{
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255,255,255,.12);
+
+    .cardBody{ padding: 14px 16px 16px; }
+
+    .row{
       display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      color: rgba(255,255,255,.70);
-      font-size: 12px;
-      font-weight: 700;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
     }
+
+    .field{
+      flex: 1 1 240px;
+      min-width: 220px;
+      display:flex;
+      flex-direction:column;
+      gap:7px;
+    }
+
+    label{
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing:.10em;
+      text-transform: uppercase;
+      font-weight: 900;
+    }
+
+    input{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      outline:none;
+      font-size: 14px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    input::placeholder{ color: rgba(255,255,255,.35); }
+
     .btnRow{
       display:flex;
-      gap: 10px;
-      margin-top: 14px;
-      justify-content:flex-end;
-      flex-wrap: wrap;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 12px;
     }
-    button{
-      height: 42px;
-      padding: 0 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.10);
-      color: #fff;
-      font-weight: 900;
+
+    .btn{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 16px;
+      font-weight: 1000;
+      letter-spacing:.03em;
       cursor:pointer;
-      transition: transform .12s ease, background .12s ease;
+      box-shadow: 0 14px 35px rgba(0,0,0,.35);
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      user-select:none;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
     }
-    button:hover{ background: rgba(255,255,255,.14); transform: translateY(-1px); }
-    button.primary{
-      border-color: rgba(88,170,255,.34);
-      background: rgba(88,170,255,.14);
+    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.22); }
+    .btn:active{ transform: translateY(0px) scale(.99); }
+    .btn[disabled]{ opacity:.5; cursor:not-allowed; transform:none !important; }
+
+    .btnPrimary{
+      border-color: rgba(125,211,252,.35);
+      background: linear-gradient(135deg, rgba(125,211,252,.25), rgba(167,139,250,.20));
     }
-    button.primary:hover{
-      background: rgba(88,170,255,.20);
+    .btnDanger{
+      border-color: rgba(255,69,58,.35);
+      background: rgba(255,69,58,.10);
     }
-    .errorText{ color: rgba(255,140,140,.95); font-weight: 900; }
-    .countdown{
-      margin-top:10px;
-      font-size:12px;
+    .btnSmall{
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-weight: 1000;
+      font-size: 13px;
+    }
+
+    .note{
+      margin-top: 10px;
+      color: var(--muted2);
+      font-size: 13px;
+      line-height:1.45;
+    }
+
+    /* Status box */
+    .stat{
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      padding: 12px 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .statTop{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+    }
+    .statLabel{
+      font-size: 12px;
+      letter-spacing:.14em;
+      text-transform: uppercase;
+      font-weight: 1000;
       color: rgba(255,255,255,.70);
-      font-weight: 800;
+    }
+    .statVal{
+      font-size: 22px;
+      font-weight: 1100;
+      letter-spacing:.02em;
+    }
+    .statSub{
+      margin-top: 6px;
+      color: var(--muted2);
+      font-size: 13px;
+      line-height:1.35;
+    }
+    .bar{
+      height: 3px;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(125,211,252,.9), rgba(167,139,250,.9));
+      box-shadow: 0 10px 30px rgba(125,211,252,.18);
+      transition: width .25s ease;
+      margin-top: 10px;
+    }
+    .bar.on{ width: 100%; }
+
+    /* LOTTERY STAGE */
+    .stageWrap{
+      margin-top: 14px;
+      border-radius: calc(var(--radius2) + 6px);
+      border: 1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(650px 420px at 50% 35%, rgba(255,255,255,.06), rgba(0,0,0,0) 65%),
+        radial-gradient(520px 380px at 25% 60%, rgba(125,211,252,.08), rgba(0,0,0,0) 65%),
+        radial-gradient(520px 380px at 75% 60%, rgba(167,139,250,.08), rgba(0,0,0,0) 65%),
+        rgba(0,0,0,.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 24px 75px rgba(0,0,0,.55);
+      overflow:hidden;
+      position:relative;
+      padding: 14px 14px 18px;
+    }
+
+    .stageTopRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 0 4px 10px;
+    }
+
+    .stageTitle{
+      font-weight: 1000;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: rgba(255,255,255,.75);
+    }
+
+    .stageHint{
+      font-size: 12px;
+      color: rgba(255,255,255,.55);
+    }
+
+    .machine{
+      position:relative;
+      width:100%;
+      display:grid;
+      place-items:center;
+      padding: 8px 0 2px;
+    }
+
+    /* “Cage glass” */
+    .cage{
+      position:relative;
+      width: min(520px, 100%);
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,.14), rgba(255,255,255,0) 55%),
+        radial-gradient(circle at 55% 65%, rgba(0,0,0,.35), rgba(0,0,0,0) 60%),
+        rgba(255,255,255,.03);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.08),
+        inset 0 -22px 40px rgba(0,0,0,.40),
+        0 28px 70px rgba(0,0,0,.55);
+      overflow:hidden;
+    }
+
+    /* swirl rings */
+    .swirl{
+      position:absolute;
+      inset: 10%;
+      border-radius: 50%;
+      border: 1px solid rgba(125,211,252,.14);
+      filter: blur(.2px);
+      opacity:.85;
+      pointer-events:none;
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 75%);
+      -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 75%);
+      animation: swirlSpin 1.2s linear infinite;
+      display:none;
+    }
+    .swirl::after{
+      content:"";
+      position:absolute;
+      inset: 14%;
+      border-radius: 50%;
+      border: 1px dashed rgba(167,139,250,.18);
+      animation: swirlSpin 1.85s linear reverse infinite;
+    }
+    @keyframes swirlSpin{
+      to{ transform: rotate(360deg); }
+    }
+
+    /* Canvas for bouncing balls */
+    #cageCanvas{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      display:block;
+    }
+
+    /* 3D hero ball sits above cage center */
+    .hero3d{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      pointer-events:none;
+    }
+    #mmBallCanvas{
+      width: 56%;
+      height: 56%;
+      display:block;
+      filter: drop-shadow(0 20px 45px rgba(0,0,0,.55));
+    }
+
+    /* reveal overlay (ESPN style) */
+    .reveal{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      pointer-events:none;
+      opacity:0;
+      transform: translateY(10px) scale(.98);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .reveal.on{
+      opacity:1;
+      transform: translateY(0) scale(1);
+    }
+    .revealTop{
+      position:absolute;
+      top: 14%;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.28);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 18px 50px rgba(0,0,0,.55);
+      letter-spacing:.18em;
+      text-transform: uppercase;
+      font-weight: 1000;
+      font-size: 12px;
+      color: rgba(255,255,255,.82);
+    }
+    .revealTop .chip{
+      width: 10px; height:10px; border-radius:50%;
+      background: rgba(255,149,0,.95);
+      box-shadow: 0 0 0 6px rgba(255,149,0,.12);
+    }
+    .revealNum{
+      font-size: clamp(64px, 10vw, 108px);
+      font-weight: 1200;
+      letter-spacing:.02em;
+      color:#fff;
+      text-shadow: 0 14px 46px rgba(0,0,0,.65);
+    }
+    .revealBottom{
+      position:absolute;
+      bottom: 12%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.25);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 18px 55px rgba(0,0,0,.55);
+      font-weight: 900;
+      color: rgba(255,255,255,.86);
+      text-align:center;
+      max-width: 86%;
+      line-height:1.25;
+    }
+
+    /* winner ball fly-out (DOM element on top) */
+    .winnerBall{
+      position:absolute;
+      left:50%;
+      top:50%;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      transform: translate(-50%,-50%) scale(.2);
+      opacity:0;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,.35), rgba(255,255,255,0) 45%),
+        radial-gradient(circle at 55% 60%, rgba(0,0,0,.45), rgba(0,0,0,0) 60%),
+        linear-gradient(145deg, #e07b2c, #b85d18);
+      box-shadow:
+        inset -14px -18px 24px rgba(0,0,0,.45),
+        0 18px 55px rgba(0,0,0,.65);
+      display:grid;
+      place-items:center;
+      border: 1px solid rgba(255,255,255,.12);
+      filter: drop-shadow(0 18px 45px rgba(0,0,0,.6));
+    }
+    .winnerBall span{
+      font-weight: 1200;
+      font-size: 26px;
+      color: rgba(255,255,255,.95);
+      text-shadow: 0 10px 30px rgba(0,0,0,.7);
+    }
+
+    /* fly animation states */
+    .winnerBall.fly{
+      animation: flyOut 900ms cubic-bezier(.2,.9,.2,1) forwards;
+    }
+    @keyframes flyOut{
+      0%{ opacity:0; transform: translate(-50%,-50%) scale(.2); }
+      12%{ opacity:1; }
+      55%{ transform: translate(-50%,-62%) scale(1.25); }
+      100%{ opacity:1; transform: translate(-50%,-72%) scale(1.05); }
+    }
+    .winnerBall.pop{
+      animation: popHold 520ms cubic-bezier(.2,.9,.2,1) forwards;
+    }
+    @keyframes popHold{
+      0%{ opacity:1; transform: translate(-50%,-72%) scale(1.05); }
+      60%{ transform: translate(-50%,-72%) scale(1.18); }
+      100%{ opacity:1; transform: translate(-50%,-72%) scale(1.08); }
+    }
+    .winnerBall.hide{
+      animation: fadeAway 180ms ease forwards;
+    }
+    @keyframes fadeAway{
+      to{ opacity:0; transform: translate(-50%,-72%) scale(.95); }
+    }
+
+    /* Right column */
+    .statGrid{ display:grid; grid-template-columns: 1fr; gap: 12px; }
+
+    .ticker{
+      margin-top: 12px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+      background: rgba(0,0,0,.16);
+    }
+    .tickerHead{
+      padding: 10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .tickerHead strong{
+      font-size: 12px;
+      letter-spacing:.14em;
+      text-transform: uppercase;
+    }
+    .log{ max-height: 260px; overflow:auto; }
+    .logItem{
+      padding: 10px 12px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      color: rgba(255,255,255,.82);
+      font-size: 13px;
+    }
+    .logItem small{ color: var(--muted2); }
+
+    .miniBracket{
+      margin-top: 12px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.16);
+      overflow:hidden;
+    }
+    .miniBracketHead{
+      padding: 10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .miniBracketHead strong{
+      font-size: 12px;
+      letter-spacing:.14em;
+      text-transform: uppercase;
+    }
+    .miniList{ padding: 8px 12px 10px; display:grid; gap:8px; }
+    .miniRow{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+      font-size: 13px;
+      color: rgba(255,255,255,.84);
+    }
+    .miniRow b{ font-weight:1000; }
+    .miniRow small{ color: rgba(255,255,255,.55); }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(10,14,26,.86);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+      padding: 10px 14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.6);
+      opacity: 0;
+      pointer-events:none;
+      transition: opacity .15s ease, transform .15s ease;
+      backdrop-filter: blur(12px);
+      max-width: min(720px, calc(100vw - 26px));
+    }
+    .toast.on{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+    .toast .emoji{ filter: drop-shadow(0 10px 25px rgba(0,0,0,.4)); }
+    .toast span{ color: rgba(255,255,255,.88); font-weight: 900; }
+
+    .footerRow{
+      margin-top: 14px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      color: var(--muted2);
+      font-size: 13px;
+    }
+    a{ color: rgba(125,211,252,.92); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+
+    @media (max-width: 420px){
+      .winnerBall{ width: 64px; height: 64px; }
+      .winnerBall span{ font-size: 24px; }
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="wrap">
-      <div class="topRow">
-        <div class="brand">
-          <h1 class="title">Money Madness</h1>
-          <div class="liveChip"><span class="dot"></span> LIVE BOARD</div>
-        </div>
+  <div class="bg-shimmer"></div>
 
-        <a class="btnLink" href="./bracket.html">📋 View Bracket</a>
-      </div>
-
-      <div class="subtitle">
-        Pick any <b>blank</b> basketball. It spins, then “lands” and reveals your bracket position. Once claimed, it locks.
-      </div>
-
-      <div class="panel">
-        <div class="bar">
-          <label>
-            Your name
-            <input id="playerName" placeholder="Type your name (required)" autocomplete="name" />
-            <div class="hint">Use your real name so claims are easy to verify.</div>
-          </label>
-          <label>
-            Invite token
-            <input id="token" placeholder="Auto-filled from your link" autocomplete="off" />
-            <div class="hint">Use your unique invite link so the token fills automatically.</div>
-          </label>
-        </div>
-
-        <div class="statusLine">
-          <div class="pill" id="status">Loading balls…</div>
-          <div class="pill small" id="lastUpdated">Last updated: —</div>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="titleBlock">
+          <p class="title">Money Madness</p>
+          <p class="subtitle">Lottery cage draw • ESPN-style reveal • live updates</p>
         </div>
       </div>
+
+      <div class="pillRow">
+        <div class="pill"><span id="apiDot" class="dot warn"></span><span id="apiText">Checking server…</span></div>
+        <div class="pill"><span class="dot" style="background:rgba(255,149,0,.95); box-shadow:0 0 0 6px rgba(255,149,0,.12)"></span><span id="tokenPill">Token: —</span></div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: machine -->
+      <section class="card">
+        <div class="cardHeader">
+          <div>
+            <h2>Lottery Machine</h2>
+            <p>Hit <strong>Draw Ball</strong>. The cage swirls, balls bounce, and your ball shoots forward when the server confirms it.</p>
+          </div>
+          <button id="btnBracket" class="btn btnSmall" type="button" title="Open live bracket">🏟️ Live Bracket</button>
+        </div>
+
+        <div class="cardBody">
+          <div class="row">
+            <div class="field">
+              <label for="playerName">Player Name</label>
+              <input id="playerName" autocomplete="name" placeholder="Type your name (required)" />
+              <div class="note">Your name saves on this device for this token.</div>
+            </div>
+
+            <div class="field" style="flex:1 1 280px;">
+              <label>Draw Status</label>
+              <div class="stat" style="padding:12px 12px 10px;">
+                <div class="statTop">
+                  <div class="statLabel">Now</div>
+                  <div class="statVal" id="statusText">Ready</div>
+                </div>
+                <div class="bar" id="statusBar"></div>
+                <div class="statSub" id="statusSub">Press draw when you’re ready.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MACHINE -->
+          <div class="stageWrap">
+            <div class="stageTopRow">
+              <div class="stageTitle">Draw Chamber</div>
+              <div class="stageHint" id="stageHint">68 balls • randomized • one-time claims</div>
+            </div>
+
+            <div class="machine">
+              <div class="cage" id="cage">
+                <canvas id="cageCanvas"></canvas>
+                <div class="swirl" id="swirl"></div>
+
+                <!-- hero 3D -->
+                <div class="hero3d">
+                  <canvas id="mmBallCanvas"></canvas>
+                </div>
+
+                <!-- fly-out -->
+                <div class="winnerBall" id="winnerBall"><span id="winnerBallNum">—</span></div>
+
+                <!-- reveal overlay -->
+                <div class="reveal" id="reveal">
+                  <div class="revealTop"><span class="chip"></span><span>OFFICIAL DRAW</span></div>
+                  <div class="revealNum" id="revealNum">—</div>
+                  <div class="revealBottom" id="revealBottom">Locked in. Bracket updates live.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="note" style="margin: 10px 4px 0;">
+              Tip: You can draw again and again (same invite link) until the pool is empty.
+            </div>
+          </div>
+
+          <div class="btnRow">
+            <button id="btnDraw" class="btn btnPrimary" type="button">🏀 Draw Ball</button>
+            <button id="btnDrawAgain" class="btn" type="button" disabled>🔁 Draw Again</button>
+            <button id="btnResetName" class="btn btnDanger" type="button" title="Forget saved name for this token">🧽 Reset Name</button>
+          </div>
+
+          <div class="footerRow">
+            <div>Want the bracket page? <a href="./bracket.html" id="bracketLink">Open bracket</a></div>
+            <div style="opacity:.7;">Lottery Machine v2</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: stats + activity + mini updates -->
+      <aside class="card">
+        <div class="cardHeader">
+          <div>
+            <h2>Game Info</h2>
+            <p>Remaining balls, your last ball, and a mini live pick feed.</p>
+          </div>
+          <button id="btnRefresh" class="btn btnSmall" type="button">↻ Refresh</button>
+        </div>
+
+        <div class="cardBody">
+          <div class="statGrid">
+            <div class="stat">
+              <div class="statTop">
+                <div class="statLabel">Remaining Balls</div>
+                <div class="statVal" id="remainingVal">—</div>
+              </div>
+              <div class="statSub" id="remainingSub">Pulling from server…</div>
+            </div>
+
+            <div class="stat">
+              <div class="statTop">
+                <div class="statLabel">Your Last Ball</div>
+                <div class="statVal" id="lastBallVal">—</div>
+              </div>
+              <div class="statSub" id="lastBallSub">No draw yet.</div>
+            </div>
+          </div>
+
+          <div class="ticker">
+            <div class="tickerHead">
+              <strong>Recent Activity</strong>
+              <span style="color:rgba(255,255,255,.55); font-size:12px;">(this device)</span>
+            </div>
+            <div class="log" id="log"></div>
+          </div>
+
+          <div class="miniBracket">
+            <div class="miniBracketHead">
+              <strong>Mini Live Picks</strong>
+              <span style="color:rgba(255,255,255,.55); font-size:12px;">auto</span>
+            </div>
+            <div class="miniList" id="miniList">
+              <div style="color:rgba(255,255,255,.55); font-size:13px;">Waiting for updates…</div>
+            </div>
+          </div>
+        </div>
+      </aside>
     </div>
-  </header>
-
-  <div class="wrapBody">
-    <div class="grid" id="grid"></div>
   </div>
 
-  <!-- Modal -->
-  <div class="modalBack" id="modalBack" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modalTop">
-        <div><h2 class="modalTitle" id="modalTitle">Result</h2></div>
-        <div class="modalBadge" id="modalBadge">🏀 Money Madness</div>
-      </div>
-
-      <div class="modalBig" id="modalBig"></div>
-      <div class="modalLine" id="modalLine1"></div>
-      <div class="modalLine" id="modalLine2"></div>
-      <div class="countdown" id="countdown"></div>
-
-      <div class="modalMeta" id="modalMeta"></div>
-
-      <div class="btnRow">
-        <button id="closeBtn">Close</button>
-        <button class="primary" id="viewBracketBtn">View Bracket</button>
-      </div>
-    </div>
+  <div class="toast" id="toast">
+    <div class="emoji" id="toastEmoji">🏀</div>
+    <span id="toastText">Hello</span>
   </div>
 
   <script>
-    // =========================
-    // Paste your Apps Script Web App /exec URL here
-    // =========================
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiBXm6hLez-U4w2FF5bUtDfaxLlgLFtAGzp4z24IaBdwSEtHBySIKY9-zrow0rUQw/exec";
+    /**************************************************************
+     * CONFIG
+     **************************************************************/
+    // ✅ Paste your Apps Script /exec URL here
+    const API_URL = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
-    const grid = document.getElementById("grid");
-    const statusEl = document.getElementById("status");
-    const lastUpdatedEl = document.getElementById("lastUpdated");
-    const tokenEl = document.getElementById("token");
-    const playerEl = document.getElementById("playerName");
+    const BRACKET_URL = "./bracket.html";
+    const ACTION_GET_STATE = "getState";
+    const ACTION_CLAIM_BALL = "claimBall";
+    const ACTION_GET_BRACKET = "getBracketData"; // optional feed
 
-    const modalBack = document.getElementById("modalBack");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalBig = document.getElementById("modalBig");
-    const modalLine1 = document.getElementById("modalLine1");
-    const modalLine2 = document.getElementById("modalLine2");
-    const modalMeta = document.getElementById("modalMeta");
-    const countdownEl = document.getElementById("countdown");
+    /**************************************************************
+     * Helpers
+     **************************************************************/
+    const $ = (id) => document.getElementById(id);
 
-    const closeBtn = document.getElementById("closeBtn");
-    const viewBracketBtn = document.getElementById("viewBracketBtn");
+    function getTokenFromUrl(){
+      const u = new URL(location.href);
+      return (u.searchParams.get("token") || "").trim();
+    }
 
-    closeBtn.onclick = () => hideModal();
+    function formEncode(obj){
+      return Object.keys(obj)
+        .map(k => encodeURIComponent(k) + "=" + encodeURIComponent(obj[k] ?? ""))
+        .join("&");
+    }
 
-    let balls = [];
-    let busy = false;
-    let redirectTimer = null;
-    let redirectCountdown = null;
-
-    // Avoid CORS preflight by sending URL-encoded body
-    async function api(action, payload = {}) {
-      const formData = new URLSearchParams({ action, ...payload });
-      const res = await fetch(SCRIPT_URL, { method: "POST", body: formData });
+    async function postAction(action, params){
+      const body = formEncode({ action, ...params });
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+        body
+      });
       const text = await res.text();
-      try { return JSON.parse(text); }
-      catch { return { ok:false, error:"Non-JSON response from Apps Script: " + text.slice(0,200) }; }
+      let json;
+      try { json = JSON.parse(text); } catch(e){ json = { ok:false, error:"Non-JSON response", raw:text }; }
+      return json;
     }
 
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+    function toast(msg, emoji="🏀"){
+      $("toastEmoji").textContent = emoji;
+      $("toastText").textContent = msg;
+      $("toast").classList.add("on");
+      clearTimeout(window.__toastT);
+      window.__toastT = setTimeout(()=> $("toast").classList.remove("on"), 2400);
+    }
+
+    function setApiStatus(state, msg){
+      const dot = $("apiDot");
+      dot.classList.remove("bad","warn");
+      if (state === "warn") dot.classList.add("warn");
+      if (state === "bad") dot.classList.add("bad");
+      $("apiText").textContent = msg;
+    }
+
+    function setStatus(main, sub, loading=false){
+      $("statusText").textContent = main;
+      $("statusSub").textContent = sub || "";
+      $("statusBar").classList.toggle("on", !!loading);
+    }
+
+    function logLine(left, right){
+      const el = document.createElement("div");
+      el.className = "logItem";
+      el.innerHTML = `<div>${left}</div><small>${right}</small>`;
+      $("log").prepend(el);
+    }
+
+    function saveName(token, name){
+      try{ localStorage.setItem("mm_name_" + token, name); }catch(e){}
+    }
+    function loadName(token){
+      try{ return localStorage.getItem("mm_name_" + token) || ""; }catch(e){ return ""; }
+    }
+    function clearName(token){
+      try{ localStorage.removeItem("mm_name_" + token); }catch(e){}
+    }
+
+    /**************************************************************
+     * LOTTERY CAGE (Canvas physics)
+     **************************************************************/
+    const cage = $("cage");
+    const canvas = $("cageCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const state = {
+      w: 0, h: 0, dpr: Math.min(devicePixelRatio || 1, 2),
+      balls: [],
+      running: true,
+      swirl: 0,
+      energy: 0.6,     // base energy
+      boost: 0.0,      // temporary boost during draw
+      selected: null,  // selected ball number
+      lastFrame: performance.now(),
+    };
+
+    function resizeCage(){
+      const rect = cage.getBoundingClientRect();
+      state.w = Math.max(10, rect.width);
+      state.h = Math.max(10, rect.height);
+
+      canvas.width = Math.floor(state.w * state.dpr);
+      canvas.height = Math.floor(state.h * state.dpr);
+      canvas.style.width = state.w + "px";
+      canvas.style.height = state.h + "px";
+      ctx.setTransform(state.dpr,0,0,state.dpr,0,0);
+    }
+
+    function rand(min, max){ return min + Math.random() * (max - min); }
+
+    function initBalls(){
+      state.balls = [];
+      const N = 68;
+
+      const cx = state.w/2, cy = state.h/2;
+      const R = Math.min(state.w, state.h) * 0.46;
+
+      for (let i=1;i<=N;i++){
+        // Random position inside circle
+        let x,y;
+        for (let tries=0; tries<60; tries++){
+          const a = Math.random()*Math.PI*2;
+          const r = Math.sqrt(Math.random()) * (R-18);
+          x = cx + Math.cos(a)*r;
+          y = cy + Math.sin(a)*r;
+          if (x && y) break;
+        }
+
+        const radius = rand(9.2, 12.8);
+        const vx = rand(-1.2, 1.2);
+        const vy = rand(-1.1, 1.1);
+
+        state.balls.push({
+          n: i,
+          x, y, r: radius,
+          vx, vy,
+          hue: rand(22, 30), // basketball-ish
+          taken: false
+        });
       }
-      return array;
     }
 
-    function setStatusCounter() {
-      const claimed = balls.filter(b => b.isClaimed).length;
-      const available = 68 - claimed;
-      statusEl.innerHTML = `<b>${claimed}</b> of <b>68</b> claimed <span style="opacity:.6">•</span> <b>${available}</b> available`;
-      lastUpdatedEl.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+    function circleBoundaryBounce(b){
+      const cx = state.w/2, cy = state.h/2;
+      const R = Math.min(state.w, state.h) * 0.46;
+
+      const dx = b.x - cx;
+      const dy = b.y - cy;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 0.0001;
+      const maxDist = R - b.r - 2;
+
+      if (dist > maxDist){
+        // push back to boundary
+        const nx = dx / dist;
+        const ny = dy / dist;
+        b.x = cx + nx * maxDist;
+        b.y = cy + ny * maxDist;
+
+        // reflect velocity
+        const dot = b.vx*nx + b.vy*ny;
+        b.vx = b.vx - 2*dot*nx;
+        b.vy = b.vy - 2*dot*ny;
+
+        // damping
+        b.vx *= 0.92;
+        b.vy *= 0.92;
+      }
     }
 
-    async function loadState() {
-      try {
-        statusEl.textContent = "Loading balls…";
-        const data = await api("getState");
-        if (!data.ok) {
-          statusEl.innerHTML = `<span class="errorText">API error: ${escapeHtml(data.error || "Unknown error")}</span>`;
+    function ballCollisions(){
+      const arr = state.balls;
+      for (let i=0;i<arr.length;i++){
+        for (let j=i+1;j<arr.length;j++){
+          const a = arr[i], b = arr[j];
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const dist = Math.sqrt(dx*dx + dy*dy) || 0.0001;
+          const minDist = a.r + b.r;
+
+          if (dist < minDist){
+            const nx = dx / dist;
+            const ny = dy / dist;
+            const overlap = (minDist - dist) * 0.5;
+
+            // separate
+            a.x -= nx * overlap; a.y -= ny * overlap;
+            b.x += nx * overlap; b.y += ny * overlap;
+
+            // simple impulse
+            const k = 0.9;
+            const dvx = b.vx - a.vx;
+            const dvy = b.vy - a.vy;
+            const impact = dvx*nx + dvy*ny;
+            if (impact < 0){
+              const impulse = -(1 + k) * impact / 2;
+              a.vx -= impulse*nx; a.vy -= impulse*ny;
+              b.vx += impulse*nx; b.vy += impulse*ny;
+            }
+
+            // slight damp
+            a.vx *= 0.98; a.vy *= 0.98;
+            b.vx *= 0.98; b.vy *= 0.98;
+          }
+        }
+      }
+    }
+
+    function applySwirlForces(dt){
+      const cx = state.w/2, cy = state.h/2;
+      const swirlPower = 0.35 + state.boost * 1.35;
+      const jitter = 0.12 + state.boost * 0.18;
+
+      for (const b of state.balls){
+        if (b.taken) continue;
+
+        const dx = b.x - cx;
+        const dy = b.y - cy;
+        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+
+        // tangential direction around center
+        const tx = -dy / dist;
+        const ty = dx / dist;
+
+        // swirl gets stronger nearer to center
+        const centerFactor = 1 - Math.min(1, dist / (Math.min(state.w, state.h)*0.48));
+        const push = swirlPower * (0.5 + centerFactor);
+
+        b.vx += tx * push * dt * 60;
+        b.vy += ty * push * dt * 60;
+
+        // tiny chaos
+        b.vx += rand(-jitter, jitter) * dt * 60;
+        b.vy += rand(-jitter, jitter) * dt * 60;
+      }
+    }
+
+    function stepPhysics(dt){
+      // ease boost down
+      state.boost *= Math.pow(0.65, dt * 4.5);
+
+      applySwirlForces(dt);
+
+      // integrate
+      for (const b of state.balls){
+        if (b.taken) continue;
+        // gentle drag
+        b.vx *= Math.pow(0.985, dt*60);
+        b.vy *= Math.pow(0.985, dt*60);
+
+        // cap speed (keeps it stable)
+        const sp = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
+        const cap = 3.8 + state.boost*2.2;
+        if (sp > cap){
+          b.vx = b.vx/sp * cap;
+          b.vy = b.vy/sp * cap;
+        }
+
+        b.x += b.vx * dt * 60;
+        b.y += b.vy * dt * 60;
+
+        circleBoundaryBounce(b);
+      }
+
+      ballCollisions();
+    }
+
+    function drawCage(){
+      ctx.clearRect(0,0,state.w,state.h);
+
+      // subtle “glass” vignette
+      const cx = state.w/2, cy = state.h/2;
+      const R = Math.min(state.w, state.h) * 0.46;
+
+      const grad = ctx.createRadialGradient(cx, cy, R*0.1, cx, cy, R*1.1);
+      grad.addColorStop(0, "rgba(255,255,255,0.04)");
+      grad.addColorStop(0.55, "rgba(255,255,255,0.00)");
+      grad.addColorStop(1, "rgba(0,0,0,0.22)");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx,cy,R*1.05,0,Math.PI*2);
+      ctx.fill();
+
+      // balls
+      for (const b of state.balls){
+        if (b.taken) continue;
+
+        // sphere shading
+        const g = ctx.createRadialGradient(b.x - b.r*0.35, b.y - b.r*0.35, b.r*0.3, b.x, b.y, b.r*1.2);
+        g.addColorStop(0, "rgba(255,255,255,0.38)");
+        g.addColorStop(0.35, "rgba(255,255,255,0.06)");
+        g.addColorStop(1, "rgba(0,0,0,0.45)");
+
+        ctx.fillStyle = `hsl(${b.hue} 70% 48%)`;
+        ctx.beginPath();
+        ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+        ctx.fill();
+
+        // faint seams
+        ctx.strokeStyle = "rgba(0,0,0,0.24)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r*0.72, Math.PI*0.15, Math.PI*1.15);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r*0.72, Math.PI*1.15, Math.PI*2.15);
+        ctx.stroke();
+
+        // keep numbers OFF (you said you want blank balls)
+      }
+
+      // cage rim shine
+      ctx.strokeStyle = "rgba(255,255,255,0.10)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R+1, 0, Math.PI*2);
+      ctx.stroke();
+
+      // inner ring
+      ctx.strokeStyle = "rgba(125,211,252,0.06)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R*0.75, 0, Math.PI*2);
+      ctx.stroke();
+
+      // motion hint when boosted
+      if (state.boost > 0.15){
+        ctx.strokeStyle = `rgba(167,139,250,${Math.min(0.22, state.boost*0.2)})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R*0.9, state.swirl, state.swirl + Math.PI*1.4);
+        ctx.stroke();
+        state.swirl += 0.08 + state.boost*0.12;
+      }
+    }
+
+    function loop(t){
+      if (!state.running) return;
+      const dt = Math.min(0.035, (t - state.lastFrame) / 1000);
+      state.lastFrame = t;
+
+      stepPhysics(dt);
+      drawCage();
+      requestAnimationFrame(loop);
+    }
+
+    /**************************************************************
+     * UI + API
+     **************************************************************/
+    const token = getTokenFromUrl();
+    $("tokenPill").textContent = "Token: " + (token ? token : "MISSING");
+    $("btnBracket").addEventListener("click", () => window.open(BRACKET_URL, "_blank"));
+    $("bracketLink").setAttribute("href", BRACKET_URL);
+
+    $("btnResetName").addEventListener("click", () => {
+      if (!token) return;
+      clearName(token);
+      $("playerName").value = "";
+      toast("Name cleared for this token", "🧽");
+    });
+
+    $("btnRefresh").addEventListener("click", () => refreshState(true));
+
+    if (token) {
+      const saved = loadName(token);
+      if (saved) $("playerName").value = saved;
+    }
+
+    function setRemaining(n){
+      if (typeof n === "number"){
+        $("remainingVal").textContent = n;
+        $("remainingSub").textContent = n > 0 ? "Balls still available. Keep drawing!" : "All balls have been selected.";
+        $("stageHint").textContent = `${n} balls remaining • randomized • one-time claims`;
+        $("btnDraw").disabled = n <= 0;
+        $("btnDrawAgain").disabled = n <= 0;
+      }
+    }
+
+    async function refreshState(showToast=false){
+      if (!API_URL || API_URL.includes("PASTE_YOUR")){
+        setApiStatus("bad","Set API_URL in index.html");
+        setStatus("Setup needed","Paste your Apps Script /exec URL into API_URL.", false);
+        return;
+      }
+
+      try{
+        setApiStatus("warn","Connecting…");
+        const st = await postAction(ACTION_GET_STATE, {});
+        if (!st.ok) throw new Error(st.error || "State failed");
+
+        setApiStatus("good","Server online");
+        if (typeof st.remaining === "number") setRemaining(st.remaining);
+        if (showToast) toast("Updated", "↻");
+      }catch(err){
+        console.error(err);
+        setApiStatus("bad","Server not reachable");
+        setStatus("Offline","Check API_URL and deployment access.", false);
+      }
+    }
+
+    async function refreshMiniPicks(){
+      if (!API_URL || API_URL.includes("PASTE_YOUR")) return;
+
+      try{
+        const data = await postAction(ACTION_GET_BRACKET, {});
+        if (!data.ok) return;
+
+        // show latest 6 bracketPicks by updatedAt if available
+        const picks = Array.isArray(data.bracketPicks) ? data.bracketPicks.slice() : [];
+        picks.sort((a,b) => String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")));
+        const top = picks.slice(0, 6);
+
+        const el = $("miniList");
+        el.innerHTML = "";
+        if (!top.length){
+          el.innerHTML = `<div style="color:rgba(255,255,255,.55); font-size:13px;">No picks yet.</div>`;
           return;
         }
-        balls = shuffle((data.balls || []).slice());
-        renderGrid();
-        setStatusCounter();
-      } catch (err) {
-        statusEl.innerHTML = `<span class="errorText">Could not reach API. Check SCRIPT_URL + deployment.</span>`;
+
+        for (const p of top){
+          const name = (p.playerName || "—").toString();
+          const slot = (p.slotKey || "").toString();
+          const bn = (p.ballNumber || "").toString();
+          const team = (p.team || "").toString();
+          const left = `<b>${name}</b> <small>${slot}</small>`;
+          const right = team ? `#${bn} • ${team}` : `#${bn}`;
+          const row = document.createElement("div");
+          row.className = "miniRow";
+          row.innerHTML = `<div>${left}</div><div>${right}</div>`;
+          el.appendChild(row);
+        }
+      }catch(e){
+        // ignore
       }
     }
 
-    function renderGrid() {
-      grid.innerHTML = "";
-      balls.forEach(b => {
-        const div = document.createElement("div");
-        div.className = "ball" + (b.isClaimed ? " taken" : "");
-        div.dataset.ball = b.ballNumber;
+    /**************************************************************
+     * DRAW FLOW: swirl + boost + API + fly-out + reveal
+     **************************************************************/
+    let drawing = false;
 
-        const rim = document.createElement("div");
-        rim.className = "rim";
-        div.appendChild(rim);
+    function startMachine(){
+      $("swirl").style.display = "block";
+      state.boost = 1.0;
+      window.MM?.ball?.startSpin?.();
+    }
 
-        if (b.isClaimed) {
-          const lock = document.createElement("div");
-          lock.className = "lockOverlay";
-          lock.textContent = "🔒";
-          div.appendChild(lock);
+    function stopMachine(){
+      $("swirl").style.display = "none";
+      window.MM?.ball?.stopSpin?.();
+      state.boost = 0.0;
+    }
+
+    function clearReveal(){
+      $("reveal").classList.remove("on");
+      $("revealNum").textContent = "—";
+      $("revealBottom").textContent = "Locked in. Bracket updates live.";
+      const wb = $("winnerBall");
+      wb.classList.remove("fly","pop","hide");
+      wb.style.opacity = 0;
+      $("winnerBallNum").textContent = "—";
+    }
+
+    function flyOutBall(n){
+      const wb = $("winnerBall");
+      $("winnerBallNum").textContent = String(n);
+      wb.classList.remove("hide");
+      wb.style.opacity = 1;
+
+      // restart animation
+      wb.classList.remove("fly","pop");
+      void wb.offsetWidth;
+      wb.classList.add("fly");
+
+      setTimeout(() => {
+        wb.classList.remove("fly");
+        wb.classList.add("pop");
+      }, 900);
+    }
+
+    function showESPNReveal(n, line){
+      $("revealNum").textContent = String(n);
+      $("revealBottom").textContent = line || "Locked in. Bracket updates live.";
+      $("reveal").classList.add("on");
+    }
+
+    $("btnDraw").addEventListener("click", () => drawBall());
+    $("btnDrawAgain").addEventListener("click", () => drawBall());
+
+    async function drawBall(){
+      if (drawing) return;
+      if (!token){
+        toast("Missing token in URL", "⚠️");
+        setStatus("Missing token","Your link must include ?token=MM-XXXX", false);
+        return;
+      }
+
+      const name = ($("playerName").value || "").trim();
+      if (!name){
+        toast("Enter your name first", "✍️");
+        $("playerName").focus();
+        return;
+      }
+      saveName(token, name);
+
+      if (!API_URL || API_URL.includes("PASTE_YOUR")){
+        toast("API not set", "⚠️");
+        setStatus("Setup needed","Paste your Apps Script /exec URL into API_URL.", false);
+        return;
+      }
+
+      drawing = true;
+      $("btnDraw").disabled = true;
+      $("btnDrawAgain").disabled = true;
+
+      clearReveal();
+      setStatus("Spinning…","The cage is mixing the balls.", true);
+
+      // start cage + 3D hero spin
+      startMachine();
+
+      try{
+        // give a little “mix” before request
+        await new Promise(r => setTimeout(r, 420));
+
+        // RANDOM DRAW MODE: omit ballNumber to let server choose
+        const result = await postAction(ACTION_CLAIM_BALL, {
+          token,
+          playerName: name
+        });
+
+        if (!result.ok){
+          stopMachine();
+          setStatus("Not claimed", result.error || "Try again.", false);
+          toast(result.error || "Could not claim ball", "⚠️");
+          await refreshState();
+          drawing = false;
+          return;
         }
 
-        div.onclick = (ev) => claimBall(b, ev.currentTarget);
-        grid.appendChild(div);
-      });
-    }
+        const ballNumber = result.claim?.ballNumber;
+        const slot = result.claim?.bracketSlot ? `Slot ${result.claim.bracketSlot}` : "";
+        const team = result.claim?.team ? `${result.claim.team}` : "";
+        const line = [slot, team].filter(Boolean).join(" • ");
 
-    function showModal({ title, big, line1, line2, metaHtml, isError=false }) {
-      modalTitle.textContent = title || "Result";
-      modalBig.innerHTML = big || "";
-      modalLine1.innerHTML = line1 || "";
-      modalLine2.innerHTML = line2 || "";
-      modalMeta.innerHTML = metaHtml || "";
-      countdownEl.textContent = "";
+        // sync: fly-out the moment server confirms
+        flyOutBall(ballNumber);
 
-      if (isError) modalBig.classList.add("errorText");
-      else modalBig.classList.remove("errorText");
+        // dramatic beat: keep spinning a moment while ball flies
+        await new Promise(r => setTimeout(r, 650));
+        stopMachine();
 
-      modalBack.style.display = "flex";
-      modalBack.setAttribute("aria-hidden", "false");
-    }
+        // show ESPN reveal overlay + lock number
+        showESPNReveal(ballNumber, line || "Locked in. Bracket updates live.");
 
-    function hideModal() {
-      modalBack.style.display = "none";
-      modalBack.setAttribute("aria-hidden", "true");
-      clearRedirect_();
-    }
+        // update side stats
+        $("lastBallVal").textContent = (ballNumber != null ? ballNumber : "—");
+        $("lastBallSub").textContent = `Claimed at ${new Date().toLocaleTimeString()}${slot ? " • "+slot : ""}`;
 
-    function clearRedirect_(){
-      if (redirectTimer) clearTimeout(redirectTimer);
-      if (redirectCountdown) clearInterval(redirectCountdown);
-      redirectTimer = null;
-      redirectCountdown = null;
-      countdownEl.textContent = "";
-    }
+        logLine(`<strong>${name}</strong> drew <strong>#${ballNumber}</strong>`, new Date().toLocaleTimeString());
 
-    function confettiBurst() {
-      if (typeof confetti !== "function") return;
-      confetti({ particleCount: 110, spread: 70, startVelocity: 42, origin: { y: 0.68 } });
-      setTimeout(() => confetti({ particleCount: 70, spread: 100, startVelocity: 38, origin: { y: 0.62 } }), 140);
-    }
+        if (typeof result.remaining === "number") setRemaining(result.remaining);
 
-    async function claimBall(ball, el) {
-      if (busy) return;
-      if (ball.isClaimed) return;
+        setStatus("Locked in!","You can draw again.", false);
+        toast(`You got ball #${ballNumber}!`, "🔥");
 
-      const token = tokenEl.value.trim();
-      const name = playerEl.value.trim();
+        // mini feed refresh (and bracket page will update when opened)
+        refreshMiniPicks();
 
-      if (!name || !token) {
-        showModal({
-          title: "Missing info",
-          big: "Enter your name + token",
-          line1: "Please fill both fields before selecting a ball.",
-          line2: "If you don’t have a token link, ask the organizer.",
-          metaHtml: "",
-          isError: true
-        });
-        return;
+      }catch(err){
+        console.error(err);
+        stopMachine();
+        setStatus("Error","Network/server error. Try again.", false);
+        toast("Server error. Try again.", "⚠️");
+      }finally{
+        drawing = false;
+        $("statusBar").classList.remove("on");
+
+        const remainingNow = Number($("remainingVal").textContent);
+        const canDraw = Number.isFinite(remainingNow) ? remainingNow > 0 : true;
+        $("btnDraw").disabled = !canDraw;
+        $("btnDrawAgain").disabled = !canDraw;
       }
-
-      busy = true;
-
-      // Fast spin first
-      el.classList.add("spinning");
-      await new Promise(r => setTimeout(r, 820));
-
-      const result = await api("claimBall", {
-        token,
-        playerName: name,
-        ballNumber: String(ball.ballNumber)
-      });
-
-      // Finish spin → settle landing
-      el.classList.remove("spinning");
-      el.classList.add("settling");
-      setTimeout(() => el.classList.remove("settling"), 420);
-
-      if (!result.ok) {
-        showModal({
-          title: "Not claimed",
-          big: escapeHtml(result.error || "Something went wrong"),
-          line1: "Try another available ball.",
-          line2: "",
-          metaHtml: "",
-          isError: true
-        });
-        busy = false;
-        await loadState();
-        return;
-      }
-
-      const c = result.claim;
-      confettiBurst();
-
-      const slot = String(c.bracketSlot || "").trim();
-      const bracketUrl = `./bracket.html?token=${encodeURIComponent(token)}&slot=${encodeURIComponent(slot)}&ball=${encodeURIComponent(String(c.ballNumber))}`;
-
-      viewBracketBtn.onclick = () => { window.location.href = bracketUrl; };
-
-      showModal({
-        title: "Ball claimed!",
-        big: `🎉 Locked in`,
-        line1: `<b>Bracket Position:</b> ${escapeHtml(slot)} <span style="opacity:.7">•</span> ${escapeHtml(String(c.region))} <span style="opacity:.7">•</span> Seed ${escapeHtml(String(c.seed))}`,
-        line2: `Taking you to the live bracket…`,
-        metaHtml: `
-          <div><b>Ball #</b> ${escapeHtml(String(c.ballNumber))}</div>
-          <div><b>Time</b> ${escapeHtml(String(c.claimedAt))}</div>
-        `,
-        isError: false
-      });
-
-      // Auto-redirect (clean + predictable)
-      clearRedirect_();
-      let secs = 3;
-      countdownEl.textContent = `Auto-opening bracket in ${secs}s…`;
-      redirectCountdown = setInterval(() => {
-        secs--;
-        countdownEl.textContent = `Auto-opening bracket in ${secs}s…`;
-      }, 1000);
-
-      redirectTimer = setTimeout(() => {
-        window.location.href = bracketUrl;
-      }, 3000);
-
-      busy = false;
-      await loadState();
     }
 
-    function escapeHtml(str) {
-      return String(str ?? "").replace(/[&<>"']/g, m => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
-      }[m]));
-    }
-    <script type="module">
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+    /**************************************************************
+     * Boot
+     **************************************************************/
+    function boot(){
+      resizeCage();
+      initBalls();
+      requestAnimationFrame(loop);
 
-const canvas = document.getElementById("mmBallCanvas");
-const fallback = document.getElementById("mmBallFallback");
-const reveal = document.getElementById("mmBallReveal");
-const revealNum = document.getElementById("mmBallNumber");
-
-let renderer, scene, camera, ball, spinning = false, ready = false;
-
-// ------- Public controls (call these from your draw flow) -------
-window.MM = window.MM || {};
-window.MM.ball = {
-  startSpin(){ if (ready) spinning = true; },
-  stopSpin(){ spinning = false; },
-  hideNumber(){ reveal.classList.remove("is-on"); revealNum.textContent = "—"; },
-  showNumber(n){
-    revealNum.textContent = String(n);
-    reveal.classList.add("is-on");
-  }
-};
-
-// ------- Init -------
-try {
-  // basic WebGL support check
-  const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-  if (!gl) throw new Error("WebGL not available");
-
-  renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-
-  scene = new THREE.Scene();
-
-  camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-  camera.position.set(0, 0, 4);
-
-  // Lights: key + rim + ambient (gives that TV shine)
-  const key = new THREE.DirectionalLight(0xffffff, 1.15);
-  key.position.set(3, 3, 5);
-  scene.add(key);
-
-  const rim = new THREE.DirectionalLight(0xffffff, 0.55);
-  rim.position.set(-4, 2, -2);
-  scene.add(rim);
-
-  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-
-  // Geometry
-  const geometry = new THREE.SphereGeometry(1, 72, 72);
-
-  // Texture
-  const loader = new THREE.TextureLoader();
-  const texture = loader.load(
-    "assets/basketball-texture.jpg",
-    () => { /* loaded */ },
-    undefined,
-    () => { /* error */ }
-  );
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(1.15, 1.0);
-
-  // Material tuning for “leather”
-  const material = new THREE.MeshStandardMaterial({
-    map: texture,
-    roughness: 0.62,
-    metalness: 0.05
-  });
-
-  ball = new THREE.Mesh(geometry, material);
-  scene.add(ball);
-
-  // subtle “broadcast” shadow feel via a fake darkening plane (optional)
-  const shadowGeo = new THREE.PlaneGeometry(3.0, 3.0);
-  const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.18 });
-  const shadow = new THREE.Mesh(shadowGeo, shadowMat);
-  shadow.position.set(0, -1.45, -0.6);
-  shadow.rotation.x = -Math.PI / 2.2;
-  scene.add(shadow);
-
-  function resize() {
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-    const size = Math.min(w, h);
-    renderer.setSize(size, size, false);
-    camera.aspect = 1;
-    camera.updateProjectionMatrix();
-  }
-
-  resize();
-  addEventListener("resize", resize);
-
-  // animation loop
-  let t0 = performance.now();
-  function animate(t) {
-    requestAnimationFrame(animate);
-    const dt = Math.min(0.05, (t - t0) / 1000);
-    t0 = t;
-
-    // baseline slow rotate so it feels alive
-    ball.rotation.y += dt * 0.25;
-
-    // spin mode (during draw)
-    if (spinning) {
-      ball.rotation.y += dt * 7.5;
-      ball.rotation.x += dt * 1.2;
-    } else {
-      // tiny idle wobble
-      ball.rotation.x = Math.sin(t * 0.0012) * 0.06;
+      refreshState(false);
+      refreshMiniPicks();
+      setInterval(refreshMiniPicks, 12000);
     }
 
-    renderer.render(scene, camera);
-  }
-  requestAnimationFrame(animate);
-
-  ready = true;
-  fallback.style.display = "none";
-} catch (err) {
-  console.warn("3D ball fallback:", err);
-  fallback.style.display = "grid";
-}
-</script>
-    // Auto-fill token from URL ?token=...
-    (function init() {
-      const params = new URLSearchParams(location.search);
-      const t = params.get("token");
-      if (t) tokenEl.value = t;
-      loadState();
-      setInterval(loadState, 10000);
-    })();
-
-    modalBack.addEventListener("click", (e) => {
-      if (e.target === modalBack) hideModal();
+    addEventListener("resize", () => {
+      resizeCage();
+      // keep balls in bounds after resize
+      initBalls();
     });
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modalBack.style.display === "flex") hideModal();
-    });
+    boot();
+  </script>
+
+  <!-- ==========================================================
+       TRUE 3D HERO BALL (Three.js)
+       Uses assets/basketball-texture.jpg
+       ========================================================== -->
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+
+    const canvas = document.getElementById("mmBallCanvas");
+    let renderer, scene, camera, ball;
+    let spinning = false;
+    let ready = false;
+
+    window.MM = window.MM || {};
+    window.MM.ball = {
+      startSpin(){ if (ready) spinning = true; },
+      stopSpin(){ spinning = false; }
+    };
+
+    try{
+      const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      if (!gl) throw new Error("WebGL not available");
+
+      renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+      camera.position.set(0, 0, 4);
+
+      // broadcast lighting
+      const key = new THREE.DirectionalLight(0xffffff, 1.25);
+      key.position.set(3.2, 3.0, 5.0);
+      scene.add(key);
+
+      const fill = new THREE.DirectionalLight(0xffffff, 0.55);
+      fill.position.set(-3.5, 1.6, 2.0);
+      scene.add(fill);
+
+      const rim = new THREE.DirectionalLight(0xffffff, 0.45);
+      rim.position.set(-4.0, 2.0, -2.0);
+      scene.add(rim);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.30));
+
+      const geometry = new THREE.SphereGeometry(1, 72, 72);
+
+      const loader = new THREE.TextureLoader();
+      const texture = loader.load("assets/basketball-texture.jpg");
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(1.15, 1.0);
+
+      const material = new THREE.MeshStandardMaterial({
+        map: texture,
+        roughness: 0.62,
+        metalness: 0.05
+      });
+
+      ball = new THREE.Mesh(geometry, material);
+      scene.add(ball);
+
+      function resize(){
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        const size = Math.min(w, h);
+        renderer.setSize(size, size, false);
+        camera.aspect = 1;
+        camera.updateProjectionMatrix();
+      }
+      resize();
+      addEventListener("resize", resize);
+
+      let t0 = performance.now();
+      function animate(t){
+        requestAnimationFrame(animate);
+        const dt = Math.min(0.05, (t - t0)/1000);
+        t0 = t;
+
+        // idle movement
+        ball.rotation.y += dt * 0.32;
+        if (spinning){
+          ball.rotation.y += dt * 8.2;
+          ball.rotation.x += dt * 1.25;
+        } else {
+          ball.rotation.x = Math.sin(t * 0.0012) * 0.06;
+        }
+
+        renderer.render(scene, camera);
+      }
+      requestAnimationFrame(animate);
+
+      ready = true;
+    }catch(err){
+      // If WebGL fails, just do nothing; cage still runs.
+      console.warn("Hero 3D ball unavailable:", err);
+      window.MM.ball.startSpin = () => {};
+      window.MM.ball.stopSpin = () => {};
+    }
   </script>
 </body>
 </html>
