@@ -1,766 +1,115 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Money Madness Ball Pick</title>
-
-  <!-- Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>March Madness Moneyball</title>
   <style>
-    :root{
-      --bg0:#070b16;
-      --bg1:#0b1226;
-      --text:#ffffff;
-      --muted:rgba(255,255,255,.75);
-      --line:rgba(255,255,255,.12);
-      --card:rgba(255,255,255,.07);
-      --card2:rgba(255,255,255,.10);
-      --shadow: 0 18px 55px rgba(0,0,0,.55);
-      --gap:14px;
-      --ballSize:82px;
-      --maxW:1100px;
-      --accent: rgba(88,170,255,.95);
-      --hot: rgba(255,140,40,.95);
-    }
-
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(1200px 800px at 15% 10%, rgba(255,140,40,.15), transparent 60%),
-        radial-gradient(900px 650px at 85% 25%, rgba(88,170,255,.12), transparent 55%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
-      min-height:100vh;
-    }
-
-    /* ESPN-ish subtle grid overlay */
-    body::before{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      background:
-        repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 34px),
-        repeating-linear-gradient(90deg, rgba(255,255,255,.028) 0 1px, transparent 1px 34px);
-      mix-blend-mode: overlay;
-      opacity:.32;
-    }
-
-    header{
-      padding: 26px 16px 16px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), transparent);
-      position:sticky;
-      top:0;
-      backdrop-filter: blur(10px);
-      z-index: 10;
-    }
-    .wrap{
-      max-width: var(--maxW);
-      margin: 0 auto;
-      padding: 0 16px;
-    }
-
-    .topRow{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap: 12px;
-      flex-wrap:wrap;
-    }
-
-    .brand{
-      display:flex;
-      align-items:baseline;
-      gap: 12px;
-      flex-wrap:wrap;
-    }
-
-    .title{
-      font-size: 40px;
-      font-weight: 950;
-      letter-spacing: .2px;
-      margin: 0;
-      line-height: 1.05;
-    }
-    .liveChip{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.08);
-      font-weight: 900;
-      letter-spacing: .3px;
-      font-size: 12px;
-      text-transform: uppercase;
-      white-space:nowrap;
-    }
-    .dot{
-      width:8px;height:8px;border-radius:99px;
-      background: rgba(255,80,80,.95);
-      box-shadow:0 0 12px rgba(255,80,80,.35);
-    }
-
-    .btnLink{
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      height: 40px;
-      padding: 0 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.10);
-      color: #fff;
-      font-weight: 850;
-      transition: transform .12s ease, background .12s ease;
-    }
-    .btnLink:hover{ background: rgba(255,255,255,.14); transform: translateY(-1px); }
-
-    .subtitle{
-      margin: 12px auto 0;
-      color: var(--muted);
-      font-size: 14px;
-      max-width: 980px;
-      line-height: 1.35;
-    }
-
-    .panel{
-      margin-top: 14px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 18px;
-      padding: 14px;
-      box-shadow: 0 10px 40px rgba(0,0,0,.25);
-      backdrop-filter: blur(14px);
-    }
-
-    .bar{
-      display:grid;
-      gap: 12px;
-      grid-template-columns: 1fr 1fr;
-      align-items:end;
-    }
-    @media (max-width: 760px){
-      .bar{ grid-template-columns: 1fr; }
-      .title{ font-size: 32px; }
-      :root{ --ballSize: 76px; }
-    }
-
-    label{
-      display:grid;
-      gap:6px;
-      font-size: 13px;
-      color: rgba(255,255,255,.88);
-      font-weight: 750;
-    }
-    input{
-      height: 46px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.08);
-      color: #fff;
-      outline: none;
-      font-size: 15px;
-    }
-    input::placeholder{ color: rgba(255,255,255,.55); }
-    input:focus{
-      border-color: rgba(88,170,255,.45);
-      box-shadow: 0 0 0 4px rgba(88,170,255,.12);
-    }
-    .hint{
-      font-size: 12px;
-      color: rgba(255,255,255,.62);
-      margin-top: 2px;
-      font-weight: 600;
-    }
-
-    .statusLine{
-      margin-top: 12px;
-      font-size: 14px;
-      color: rgba(255,255,255,.85);
-      display:flex;
-      justify-content: space-between;
-      align-items:center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.07);
-      font-weight: 800;
-    }
-    .small{
-      font-size: 12px;
-      color: rgba(255,255,255,.65);
-      font-weight: 750;
-    }
-
-    .wrapBody{
-      max-width: var(--maxW);
-      margin: 0 auto;
-      padding: 16px 16px 44px;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(8, minmax(0, 1fr));
-      gap: var(--gap);
-      padding: 10px 6px 6px;
-      max-width: 980px;
-      margin: 0 auto;
-    }
-    @media (max-width: 980px){ .grid{ grid-template-columns: repeat(6, 1fr); } }
-    @media (max-width: 640px){ .grid{ grid-template-columns: repeat(4, 1fr); } }
-
-    /* ===== Realistic Basketball (blank) ===== */
-    .ball{
-      position: relative;
-      height: var(--ballSize);
-      width: 100%;
-      border-radius: 999px;
-      cursor: pointer;
-      user-select: none;
-
-      transform-style: preserve-3d;
-      perspective: 1100px;
-
-      background:
-        radial-gradient(circle at 28% 22%, rgba(255,255,255,.65), rgba(255,255,255,0) 34%),
-        radial-gradient(circle at 68% 78%, rgba(0,0,0,.35), rgba(0,0,0,0) 50%),
-        radial-gradient(circle at 50% 55%, #ff8a2b, #e85d00 62%, #b54000 100%);
-
-      box-shadow:
-        0 16px 34px rgba(0,0,0,.52),
-        inset 0 10px 20px rgba(255,255,255,.16),
-        inset 0 -16px 22px rgba(0,0,0,.28);
-
-      transition: transform .18s ease, filter .18s ease, box-shadow .18s ease, opacity .18s ease;
-      display:grid;
-      place-items:center;
-      overflow:hidden;
-    }
-
-    /* Pebble grain */
-    .ball::after{
-      content:"";
-      position:absolute;
-      inset:-10%;
-      border-radius:999px;
-      background:
-        radial-gradient(circle, rgba(0,0,0,.22) 1px, transparent 1.4px) 0 0 / 9px 9px;
-      opacity:.22;
-      transform: translateZ(7px);
-      mix-blend-mode: multiply;
-      pointer-events:none;
-    }
-
-    /* Seams */
-    .ball::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      border-radius:999px;
-      background:
-        radial-gradient(circle at 50% 50%, transparent 44%, rgba(25,10,0,.55) 45%, rgba(25,10,0,.55) 47%, transparent 48%),
-        linear-gradient(90deg, transparent 46%, rgba(25,10,0,.55) 47%, rgba(25,10,0,.55) 53%, transparent 54%),
-        linear-gradient(0deg, transparent 46%, rgba(25,10,0,.55) 47%, rgba(25,10,0,.55) 53%, transparent 54%);
-      opacity:.70;
-      transform: translateZ(10px);
-      pointer-events:none;
-    }
-
-    /* Rim light */
-    .ball .rim{
-      position:absolute;
-      inset:2px;
-      border-radius:999px;
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.14),
-        inset 0 0 26px rgba(255,255,255,.08);
-      pointer-events:none;
-      transform: translateZ(12px);
-    }
-
-    .ball:hover{
-      transform: translateY(-4px) rotateX(12deg) rotateY(-14deg);
-      box-shadow:
-        0 22px 46px rgba(0,0,0,.62),
-        0 0 26px rgba(88,170,255,.14),
-        inset 0 10px 22px rgba(255,255,255,.18),
-        inset 0 -16px 22px rgba(0,0,0,.26);
-    }
-
-    .ball.taken{
-      cursor:not-allowed;
-      filter: grayscale(.92) brightness(.72);
-      opacity: .55;
-      transform:none;
-    }
-    .ball.taken:hover{
-      transform:none;
-      box-shadow:
-        0 16px 34px rgba(0,0,0,.52),
-        inset 0 10px 20px rgba(255,255,255,.12),
-        inset 0 -16px 22px rgba(0,0,0,.28);
-    }
-
-    .lockOverlay{
-      position:absolute;
-      inset:0;
-      display:grid;
-      place-items:center;
-      font-size: 22px;
-      transform: translateZ(14px);
-      pointer-events:none;
-      opacity: .95;
-      text-shadow: 0 8px 18px rgba(0,0,0,.55);
-    }
-
-    /* ===== Spin reveal #2: fast spin + slow-mo settle landing ===== */
-    @keyframes spinFast {
-      0%   { transform: rotateX(0deg) rotateY(0deg) scale(1); filter: saturate(1); }
-      18%  { transform: rotateX(210deg) rotateY(260deg) scale(1.06); }
-      55%  { transform: rotateX(520deg) rotateY(640deg) scale(1.06); filter: saturate(1.10); }
-      100% { transform: rotateX(820deg) rotateY(920deg) scale(1.02); filter: saturate(1.02); }
-    }
-    @keyframes settleLand {
-      0%   { transform: rotateX(40deg) rotateY(-18deg) scale(1.02); }
-      45%  { transform: rotateX(10deg) rotateY(8deg) scale(1.00); }
-      75%  { transform: rotateX(-6deg) rotateY(-4deg) scale(0.997); }
-      100% { transform: rotateX(0deg) rotateY(0deg) scale(1.00); }
-    }
-    @keyframes glowPulse {
-      0%,100% { box-shadow: 0 0 0 rgba(88,170,255,0); }
-      50%     { box-shadow: 0 0 28px rgba(88,170,255,.22); }
-    }
-    .ball.spinning{
-      animation:
-        spinFast 1.05s cubic-bezier(.14,.86,.18,1),
-        glowPulse 1.05s ease;
-    }
-    .ball.settling{
-      animation: settleLand .42s cubic-bezier(.12,.9,.2,1);
-    }
-
-    /* ===== Modal ===== */
-    .modalBack{
-      position:fixed;
-      inset:0;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding: 18px;
-      background: rgba(0,0,0,.58);
-      z-index: 50;
-    }
-    .modal{
-      width: min(600px, 100%);
-      border-radius: 20px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.16);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(16px);
-      padding: 18px;
-    }
-    .modalTop{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap: 10px;
-    }
-    .modalTitle{
-      margin:0;
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: .2px;
-    }
-    .modalBadge{
-      display:inline-flex;
-      align-items:center;
-      gap: 8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.08);
-      font-size: 12px;
-      color: rgba(255,255,255,.85);
-      white-space: nowrap;
-      font-weight: 900;
-    }
-    .modalBig{
-      margin: 12px 0 6px;
-      font-size: 28px;
-      font-weight: 950;
-      letter-spacing: .2px;
-    }
-    .modalLine{
-      margin: 6px 0;
-      color: rgba(255,255,255,.88);
-      line-height: 1.35;
-      font-weight: 650;
-    }
-    .modalMeta{
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255,255,255,.12);
-      display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      color: rgba(255,255,255,.70);
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .btnRow{
-      display:flex;
-      gap: 10px;
-      margin-top: 14px;
-      justify-content:flex-end;
-      flex-wrap: wrap;
-    }
-    button{
-      height: 42px;
-      padding: 0 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.10);
-      color: #fff;
-      font-weight: 900;
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:#0b1220; color:#e8eefc; margin:0; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 28px 18px 60px; }
+    .card { background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); border-radius:16px; padding:18px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+    h1 { margin:0 0 8px; font-size: 22px; letter-spacing:.2px; }
+    .muted { opacity:.8; font-size: 13px; }
+    label { display:block; margin: 12px 0 6px; font-size: 13px; opacity:.9; }
+    input { width:100%; padding: 12px 12px; border-radius: 12px; border:1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.25); color:#fff; }
+    button { margin-top:14px; width:100%; padding: 12px; border-radius: 12px; border:0; background:#3b82f6; color:#fff; font-weight:700; cursor:pointer; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .grid { margin-top:16px; display:grid; grid-template-columns: repeat(6, 1fr); gap:10px; }
+    .ball { user-select:none; border-radius: 14px; padding: 10px 0; text-align:center; font-weight:800;
+      background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.10);
       cursor:pointer;
-      transition: transform .12s ease, background .12s ease;
     }
-    button:hover{ background: rgba(255,255,255,.14); transform: translateY(-1px); }
-    button.primary{
-      border-color: rgba(88,170,255,.34);
-      background: rgba(88,170,255,.14);
-    }
-    button.primary:hover{
-      background: rgba(88,170,255,.20);
-    }
-    .errorText{ color: rgba(255,140,140,.95); font-weight: 900; }
-    .countdown{
-      margin-top:10px;
-      font-size:12px;
-      color: rgba(255,255,255,.70);
-      font-weight: 800;
-    }
+    .ball.taken { opacity:.35; cursor:not-allowed; text-decoration: line-through; }
+    .toprow { display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:14px; }
+    .link { color:#93c5fd; text-decoration:none; font-weight:600; }
+    .status { margin-top:12px; font-size: 13px; opacity:.9; }
+    @media (max-width:720px){ .grid{ grid-template-columns: repeat(4, 1fr);} }
   </style>
 </head>
-
 <body>
-  <header>
-    <div class="wrap">
-      <div class="topRow">
-        <div class="brand">
-          <h1 class="title">Money Madness</h1>
-          <div class="liveChip"><span class="dot"></span> LIVE BOARD</div>
-        </div>
+  <div class="wrap">
+    <div class="card">
+      <h1>March Madness Moneyball</h1>
+      <div class="muted">Enter your token + name, then click an available ball.</div>
 
-        <a class="btnLink" href="./bracket.html">📋 View Bracket</a>
+      <label>Token</label>
+      <input id="token" placeholder="MM-XXXXXX" />
+
+      <label>Name</label>
+      <input id="name" placeholder="Your name" />
+
+      <div class="toprow">
+        <a class="link" id="bracketLink" href="?page=bracket" target="_top">View Live Bracket</a>
+        <div class="muted" id="counts"></div>
       </div>
 
-      <div class="subtitle">
-        Pick any <b>blank</b> basketball. It spins, then “lands” and reveals your bracket position. Once claimed, it locks.
-      </div>
-
-      <div class="panel">
-        <div class="bar">
-          <label>
-            Your name
-            <input id="playerName" placeholder="Type your name (required)" autocomplete="name" />
-            <div class="hint">Use your real name so claims are easy to verify.</div>
-          </label>
-          <label>
-            Invite token
-            <input id="token" placeholder="Auto-filled from your link" autocomplete="off" />
-            <div class="hint">Use your unique invite link so the token fills automatically.</div>
-          </label>
-        </div>
-
-        <div class="statusLine">
-          <div class="pill" id="status">Loading balls…</div>
-          <div class="pill small" id="lastUpdated">Last updated: —</div>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <div class="wrapBody">
-    <div class="grid" id="grid"></div>
-  </div>
-
-  <!-- Modal -->
-  <div class="modalBack" id="modalBack" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modalTop">
-        <div><h2 class="modalTitle" id="modalTitle">Result</h2></div>
-        <div class="modalBadge" id="modalBadge">🏀 Money Madness</div>
-      </div>
-
-      <div class="modalBig" id="modalBig"></div>
-      <div class="modalLine" id="modalLine1"></div>
-      <div class="modalLine" id="modalLine2"></div>
-      <div class="countdown" id="countdown"></div>
-
-      <div class="modalMeta" id="modalMeta"></div>
-
-      <div class="btnRow">
-        <button id="closeBtn">Close</button>
-        <button class="primary" id="viewBracketBtn">View Bracket</button>
-      </div>
+      <div class="grid" id="grid"></div>
+      <div class="status" id="status"></div>
     </div>
   </div>
 
-  <script>
-    // =========================
-    // Paste your Apps Script Web App /exec URL here
-    // =========================
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiBXm6hLez-U4w2FF5bUtDfaxLlgLFtAGzp4z24IaBdwSEtHBySIKY9-zrow0rUQw/exec";
+<script>
+  const tokenEl = document.getElementById("token");
+  const nameEl  = document.getElementById("name");
+  const gridEl  = document.getElementById("grid");
+  const statusEl= document.getElementById("status");
+  const countsEl= document.getElementById("counts");
 
-    const grid = document.getElementById("grid");
-    const statusEl = document.getElementById("status");
-    const lastUpdatedEl = document.getElementById("lastUpdated");
-    const tokenEl = document.getElementById("token");
-    const playerEl = document.getElementById("playerName");
+  // Pull token from URL ?token=...
+  (function init(){
+    const params = new URLSearchParams(location.search);
+    const t = params.get("token");
+    if (t) tokenEl.value = t;
+    refresh();
+    setInterval(refresh, 10000);
+  })();
 
-    const modalBack = document.getElementById("modalBack");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalBig = document.getElementById("modalBig");
-    const modalLine1 = document.getElementById("modalLine1");
-    const modalLine2 = document.getElementById("modalLine2");
-    const modalMeta = document.getElementById("modalMeta");
-    const countdownEl = document.getElementById("countdown");
-
-    const closeBtn = document.getElementById("closeBtn");
-    const viewBracketBtn = document.getElementById("viewBracketBtn");
-
-    closeBtn.onclick = () => hideModal();
-
-    let balls = [];
-    let busy = false;
-    let redirectTimer = null;
-    let redirectCountdown = null;
-
-    // Avoid CORS preflight by sending URL-encoded body
-    async function api(action, payload = {}) {
-      const formData = new URLSearchParams({ action, ...payload });
-      const res = await fetch(SCRIPT_URL, { method: "POST", body: formData });
-      const text = await res.text();
-      try { return JSON.parse(text); }
-      catch { return { ok:false, error:"Non-JSON response from Apps Script: " + text.slice(0,200) }; }
-    }
-
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
-    function setStatusCounter() {
-      const claimed = balls.filter(b => b.isClaimed).length;
-      const available = 68 - claimed;
-      statusEl.innerHTML = `<b>${claimed}</b> of <b>68</b> claimed <span style="opacity:.6">•</span> <b>${available}</b> available`;
-      lastUpdatedEl.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
-    }
-
-    async function loadState() {
-      try {
-        statusEl.textContent = "Loading balls…";
-        const data = await api("getState");
-        if (!data.ok) {
-          statusEl.innerHTML = `<span class="errorText">API error: ${escapeHtml(data.error || "Unknown error")}</span>`;
-          return;
-        }
-        balls = shuffle((data.balls || []).slice());
-        renderGrid();
-        setStatusCounter();
-      } catch (err) {
-        statusEl.innerHTML = `<span class="errorText">Could not reach API. Check SCRIPT_URL + deployment.</span>`;
-      }
-    }
-
-    function renderGrid() {
-      grid.innerHTML = "";
-      balls.forEach(b => {
-        const div = document.createElement("div");
-        div.className = "ball" + (b.isClaimed ? " taken" : "");
-        div.dataset.ball = b.ballNumber;
-
-        const rim = document.createElement("div");
-        rim.className = "rim";
-        div.appendChild(rim);
-
-        if (b.isClaimed) {
-          const lock = document.createElement("div");
-          lock.className = "lockOverlay";
-          lock.textContent = "🔒";
-          div.appendChild(lock);
-        }
-
-        div.onclick = (ev) => claimBall(b, ev.currentTarget);
-        grid.appendChild(div);
-      });
-    }
-
-    function showModal({ title, big, line1, line2, metaHtml, isError=false }) {
-      modalTitle.textContent = title || "Result";
-      modalBig.innerHTML = big || "";
-      modalLine1.innerHTML = line1 || "";
-      modalLine2.innerHTML = line2 || "";
-      modalMeta.innerHTML = metaHtml || "";
-      countdownEl.textContent = "";
-
-      if (isError) modalBig.classList.add("errorText");
-      else modalBig.classList.remove("errorText");
-
-      modalBack.style.display = "flex";
-      modalBack.setAttribute("aria-hidden", "false");
-    }
-
-    function hideModal() {
-      modalBack.style.display = "none";
-      modalBack.setAttribute("aria-hidden", "true");
-      clearRedirect_();
-    }
-
-    function clearRedirect_(){
-      if (redirectTimer) clearTimeout(redirectTimer);
-      if (redirectCountdown) clearInterval(redirectCountdown);
-      redirectTimer = null;
-      redirectCountdown = null;
-      countdownEl.textContent = "";
-    }
-
-    function confettiBurst() {
-      if (typeof confetti !== "function") return;
-      confetti({ particleCount: 110, spread: 70, startVelocity: 42, origin: { y: 0.68 } });
-      setTimeout(() => confetti({ particleCount: 70, spread: 100, startVelocity: 38, origin: { y: 0.62 } }), 140);
-    }
-
-    async function claimBall(ball, el) {
-      if (busy) return;
-      if (ball.isClaimed) return;
-
-      const token = tokenEl.value.trim();
-      const name = playerEl.value.trim();
-
-      if (!name || !token) {
-        showModal({
-          title: "Missing info",
-          big: "Enter your name + token",
-          line1: "Please fill both fields before selecting a ball.",
-          line2: "If you don’t have a token link, ask the organizer.",
-          metaHtml: "",
-          isError: true
-        });
-        return;
-      }
-
-      busy = true;
-
-      // Fast spin first
-      el.classList.add("spinning");
-      await new Promise(r => setTimeout(r, 820));
-
-      const result = await api("claimBall", {
-        token,
-        playerName: name,
-        ballNumber: String(ball.ballNumber)
-      });
-
-      // Finish spin → settle landing
-      el.classList.remove("spinning");
-      el.classList.add("settling");
-      setTimeout(() => el.classList.remove("settling"), 420);
-
-      if (!result.ok) {
-        showModal({
-          title: "Not claimed",
-          big: escapeHtml(result.error || "Something went wrong"),
-          line1: "Try another available ball.",
-          line2: "",
-          metaHtml: "",
-          isError: true
-        });
-        busy = false;
-        await loadState();
-        return;
-      }
-
-      const c = result.claim;
-      confettiBurst();
-
-      const slot = String(c.bracketSlot || "").trim();
-      const bracketUrl = `./bracket.html?token=${encodeURIComponent(token)}&slot=${encodeURIComponent(slot)}&ball=${encodeURIComponent(String(c.ballNumber))}`;
-
-      viewBracketBtn.onclick = () => { window.location.href = bracketUrl; };
-
-      showModal({
-        title: "Ball claimed!",
-        big: `🎉 Locked in`,
-        line1: `<b>Bracket Position:</b> ${escapeHtml(slot)} <span style="opacity:.7">•</span> ${escapeHtml(String(c.region))} <span style="opacity:.7">•</span> Seed ${escapeHtml(String(c.seed))}`,
-        line2: `Taking you to the live bracket…`,
-        metaHtml: `
-          <div><b>Ball #</b> ${escapeHtml(String(c.ballNumber))}</div>
-          <div><b>Time</b> ${escapeHtml(String(c.claimedAt))}</div>
-        `,
-        isError: false
-      });
-
-      // Auto-redirect (clean + predictable)
-      clearRedirect_();
-      let secs = 3;
-      countdownEl.textContent = `Auto-opening bracket in ${secs}s…`;
-      redirectCountdown = setInterval(() => {
-        secs--;
-        countdownEl.textContent = `Auto-opening bracket in ${secs}s…`;
-      }, 1000);
-
-      redirectTimer = setTimeout(() => {
-        window.location.href = bracketUrl;
-      }, 3000);
-
-      busy = false;
-      await loadState();
-    }
-
-    function escapeHtml(str) {
-      return String(str ?? "").replace(/[&<>"']/g, m => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
-      }[m]));
-    }
-
-    // Auto-fill token from URL ?token=...
-    (function init() {
-      const params = new URLSearchParams(location.search);
-      const t = params.get("token");
-      if (t) tokenEl.value = t;
-      loadState();
-      setInterval(loadState, 10000);
-    })();
-
-    modalBack.addEventListener("click", (e) => {
-      if (e.target === modalBack) hideModal();
+  async function api(payload){
+    const res = await fetch(location.href, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
     });
+    return res.json();
+  }
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modalBack.style.display === "flex") hideModal();
+  async function refresh(){
+    const st = await api({ action:"getState" });
+    if(!st.ok){ statusEl.textContent = st.error || "Error"; return; }
+    renderBalls(st.balls);
+    const taken = st.balls.filter(b=>!b.available).length;
+    countsEl.textContent = `${taken}/68 taken`;
+  }
+
+  function renderBalls(balls){
+    gridEl.innerHTML = "";
+    balls.forEach(b=>{
+      const div = document.createElement("div");
+      div.className = "ball" + (b.available ? "" : " taken");
+      // IMPORTANT: Ball numbers hidden (blank)
+      div.textContent = "●";
+      div.title = b.available ? "Available" : "Taken";
+      if(b.available){
+        div.addEventListener("click", ()=> pick(b.ballNumber));
+      }
+      gridEl.appendChild(div);
     });
-  </script>
+  }
+
+  async function pick(ballNumber){
+    statusEl.textContent = "Saving...";
+    const token = tokenEl.value.trim();
+    const name = nameEl.value.trim();
+
+    const out = await api({ action:"pickBall", token, name, ballNumber });
+    if(!out.ok){
+      statusEl.textContent = out.error || "Error";
+      await refresh();
+      return;
+    }
+    statusEl.textContent = `Saved! You picked ball #${ballNumber}.`;
+    await refresh();
+  }
+</script>
 </body>
 </html>
