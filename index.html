@@ -1,151 +1,162 @@
-/************************************************
- MARCH MADNESS MONEYBALL — CLEAN BACKEND
-************************************************/
+<!DOCTYPE html>
+<html>
+<head>
 
-const SHEET_NAME = "Picks";
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-/************************************************
- SERVE PAGES
-************************************************/
+<style>
 
-function doGet(e) {
-
-  const page = e?.parameter?.page || "index";
-
-  if (page === "bracket") {
-    return HtmlService.createHtmlOutputFromFile("bracket")
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-  }
-
-  return HtmlService.createHtmlOutputFromFile("index")
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+body{
+background:#0c1220;
+font-family:Arial;
+color:white;
+text-align:center;
+padding:30px;
 }
 
-
-/************************************************
- API ROUTER
-************************************************/
-
-function doPost(e) {
-
-  const data = JSON.parse(e.postData.contents);
-
-  const action = data.action;
-
-  if (action === "getState") return json(getState());
-  if (action === "pickBall") return json(pickBall(data));
-
-  return json({ok:false,error:"Unknown action"});
+h1{
+font-size:32px;
+margin-bottom:10px;
 }
 
-
-/************************************************
- GET STATE
-************************************************/
-
-function getState(){
-
-  const sheet = getSheet();
-
-  const rows = sheet.getDataRange().getValues().slice(1);
-
-  const picks = rows.map(r => ({
-    name:r[1],
-    token:r[2],
-    ball:r[3]
-  }));
-
-  const used = picks.map(p=>p.ball);
-
-  const balls = [];
-
-  for(let i=1;i<=68;i++){
-
-    balls.push({
-      number:i,
-      available:!used.includes(i)
-    });
-
-  }
-
-  return {ok:true,balls,picks};
+input{
+padding:10px;
+margin:8px;
+border-radius:8px;
+border:none;
+width:200px;
 }
 
+.grid{
+display:grid;
+grid-template-columns:repeat(10,1fr);
+gap:10px;
+margin-top:30px;
+}
 
-/************************************************
- SAVE PICK
-************************************************/
+.ball{
 
-function pickBall(data){
-
-  const token = data.token;
-  const name = data.name;
-  const ball = Number(data.ball);
-
-  const sheet = getSheet();
-
-  const rows = sheet.getDataRange().getValues();
-
-  for(let i=1;i<rows.length;i++){
-
-    if(rows[i][2] === token){
-      return {ok:false,error:"Token already used"};
-    }
-
-    if(rows[i][3] === ball){
-      return {ok:false,error:"Ball already taken"};
-    }
-
-  }
-
-  sheet.appendRow([
-    new Date(),
-    name,
-    token,
-    ball
-  ]);
-
-  return {ok:true};
+background:orange;
+border-radius:50%;
+width:60px;
+height:60px;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+font-weight:bold;
+color:black;
 
 }
 
+.taken{
+background:#444;
+cursor:not-allowed;
+}
 
-/************************************************
- GET SHEET
-************************************************/
+</style>
 
-function getSheet(){
+</head>
 
-  const ss = SpreadsheetApp.getActive();
+<body>
 
-  let sheet = ss.getSheetByName(SHEET_NAME);
+<h1>March Madness Moneyball</h1>
 
-  if(!sheet){
+<input id="name" placeholder="Your Name">
 
-    sheet = ss.insertSheet(SHEET_NAME);
+<br>
 
-    sheet.appendRow([
-      "Timestamp",
-      "Name",
-      "Token",
-      "Ball"
-    ]);
+<input id="token" placeholder="Your Token">
 
-  }
+<div class="grid" id="balls"></div>
 
-  return sheet;
+<br><br>
+
+<a href="?page=bracket" style="color:white;">View Live Bracket</a>
+
+<script>
+
+const grid=document.getElementById("balls");
+
+const nameInput=document.getElementById("name");
+const tokenInput=document.getElementById("token");
+
+async function api(data){
+
+const res=await fetch(location.href,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(data)
+});
+
+return res.json();
 
 }
 
+async function load(){
 
-/************************************************
- JSON RESPONSE
-************************************************/
+const state=await api({action:"getState"});
 
-function json(obj){
+grid.innerHTML="";
 
-  return ContentService
-    .createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
+state.balls.forEach(b=>{
+
+const div=document.createElement("div");
+
+div.className="ball";
+
+if(!b.available) div.classList.add("taken");
+
+div.innerHTML="";
+
+if(b.available){
+
+div.onclick=()=>pick(b.number);
 
 }
+
+grid.appendChild(div);
+
+});
+
+}
+
+async function pick(number){
+
+const name=nameInput.value;
+const token=tokenInput.value;
+
+if(!name || !token){
+
+alert("Enter name and token");
+
+return;
+
+}
+
+const res=await api({
+action:"pickBall",
+name:name,
+token:token,
+ball:number
+});
+
+if(!res.ok){
+
+alert(res.error);
+return;
+
+}
+
+alert("Ball selected!");
+
+load();
+
+}
+
+load();
+
+</script>
+
+</body>
+</html>
