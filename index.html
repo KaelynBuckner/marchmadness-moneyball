@@ -744,7 +744,127 @@
         "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
       }[m]));
     }
+    <script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
+const canvas = document.getElementById("mmBallCanvas");
+const fallback = document.getElementById("mmBallFallback");
+const reveal = document.getElementById("mmBallReveal");
+const revealNum = document.getElementById("mmBallNumber");
+
+let renderer, scene, camera, ball, spinning = false, ready = false;
+
+// ------- Public controls (call these from your draw flow) -------
+window.MM = window.MM || {};
+window.MM.ball = {
+  startSpin(){ if (ready) spinning = true; },
+  stopSpin(){ spinning = false; },
+  hideNumber(){ reveal.classList.remove("is-on"); revealNum.textContent = "—"; },
+  showNumber(n){
+    revealNum.textContent = String(n);
+    reveal.classList.add("is-on");
+  }
+};
+
+// ------- Init -------
+try {
+  // basic WebGL support check
+  const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+  if (!gl) throw new Error("WebGL not available");
+
+  renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+  scene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+  camera.position.set(0, 0, 4);
+
+  // Lights: key + rim + ambient (gives that TV shine)
+  const key = new THREE.DirectionalLight(0xffffff, 1.15);
+  key.position.set(3, 3, 5);
+  scene.add(key);
+
+  const rim = new THREE.DirectionalLight(0xffffff, 0.55);
+  rim.position.set(-4, 2, -2);
+  scene.add(rim);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+
+  // Geometry
+  const geometry = new THREE.SphereGeometry(1, 72, 72);
+
+  // Texture
+  const loader = new THREE.TextureLoader();
+  const texture = loader.load(
+    "assets/basketball-texture.jpg",
+    () => { /* loaded */ },
+    undefined,
+    () => { /* error */ }
+  );
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(1.15, 1.0);
+
+  // Material tuning for “leather”
+  const material = new THREE.MeshStandardMaterial({
+    map: texture,
+    roughness: 0.62,
+    metalness: 0.05
+  });
+
+  ball = new THREE.Mesh(geometry, material);
+  scene.add(ball);
+
+  // subtle “broadcast” shadow feel via a fake darkening plane (optional)
+  const shadowGeo = new THREE.PlaneGeometry(3.0, 3.0);
+  const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.18 });
+  const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+  shadow.position.set(0, -1.45, -0.6);
+  shadow.rotation.x = -Math.PI / 2.2;
+  scene.add(shadow);
+
+  function resize() {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    const size = Math.min(w, h);
+    renderer.setSize(size, size, false);
+    camera.aspect = 1;
+    camera.updateProjectionMatrix();
+  }
+
+  resize();
+  addEventListener("resize", resize);
+
+  // animation loop
+  let t0 = performance.now();
+  function animate(t) {
+    requestAnimationFrame(animate);
+    const dt = Math.min(0.05, (t - t0) / 1000);
+    t0 = t;
+
+    // baseline slow rotate so it feels alive
+    ball.rotation.y += dt * 0.25;
+
+    // spin mode (during draw)
+    if (spinning) {
+      ball.rotation.y += dt * 7.5;
+      ball.rotation.x += dt * 1.2;
+    } else {
+      // tiny idle wobble
+      ball.rotation.x = Math.sin(t * 0.0012) * 0.06;
+    }
+
+    renderer.render(scene, camera);
+  }
+  requestAnimationFrame(animate);
+
+  ready = true;
+  fallback.style.display = "none";
+} catch (err) {
+  console.warn("3D ball fallback:", err);
+  fallback.style.display = "grid";
+}
+</script>
     // Auto-fill token from URL ?token=...
     (function init() {
       const params = new URLSearchParams(location.search);
