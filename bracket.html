@@ -1,73 +1,92 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
+
 <head>
-  <base target="_top">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Live Bracket</title>
-  <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:#0b1220; color:#e8eefc; margin:0; }
-    .wrap { max-width: 980px; margin: 0 auto; padding: 28px 18px 60px; }
-    .card { background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); border-radius:16px; padding:18px; }
-    h1 { margin:0 0 8px; font-size: 22px; }
-    .muted { opacity:.75; font-size: 13px; }
-    table { width:100%; border-collapse: collapse; margin-top: 14px; }
-    th, td { text-align:left; padding:10px; border-bottom: 1px solid rgba(255,255,255,.10); font-size: 13px; }
-    a { color:#93c5fd; text-decoration:none; font-weight:600; }
-  </style>
+
+<style>
+
+body{
+background:#0c1220;
+color:white;
+font-family:Arial;
+padding:40px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+td,th{
+padding:10px;
+border-bottom:1px solid #333;
+}
+
+</style>
+
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
-        <div>
-          <h1>Live Bracket (Baseline)</h1>
-          <div class="muted">This page proves your web app is working. We’ll replace this with the real bracket next.</div>
-        </div>
-        <a href="?page=index" target="_top">Back to Ball Pick</a>
-      </div>
 
-      <table>
-        <thead>
-          <tr><th>Name</th><th>Token</th><th>Ball #</th></tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
+<h1>Live Picks</h1>
 
-      <div class="muted" id="status" style="margin-top:10px;"></div>
-    </div>
-  </div>
+<table>
+
+<thead>
+<tr>
+<th>Name</th>
+<th>Token</th>
+<th>Ball</th>
+</tr>
+</thead>
+
+<tbody id="rows"></tbody>
+
+</table>
 
 <script>
-  const rowsEl = document.getElementById("rows");
-  const statusEl = document.getElementById("status");
 
-  async function api(payload){
-    const res = await fetch(location.href, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(payload)
-    });
-    return res.json();
-  }
+async function api(data){
 
-  async function refresh(){
-    const st = await api({ action:"getState" });
-    if(!st.ok){ statusEl.textContent = st.error || "Error"; return; }
-    rowsEl.innerHTML = "";
-    st.picks.forEach(p=>{
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.token)}</td><td>${p.ballNumber}</td>`;
-      rowsEl.appendChild(tr);
-    });
-    statusEl.textContent = `Loaded ${st.picks.length} picks.`;
-  }
+const res=await fetch(location.href,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(data)
+});
 
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
+return res.json();
 
-  refresh();
-  setInterval(refresh, 10000);
+}
+
+async function load(){
+
+const state=await api({action:"getState"});
+
+const tbody=document.getElementById("rows");
+
+tbody.innerHTML="";
+
+state.picks.forEach(p=>{
+
+const tr=document.createElement("tr");
+
+tr.innerHTML=`
+<td>${p.name}</td>
+<td>${p.token}</td>
+<td>${p.ball}</td>
+`;
+
+tbody.appendChild(tr);
+
+});
+
+}
+
+load();
+
+setInterval(load,10000);
+
 </script>
+
 </body>
 </html>
