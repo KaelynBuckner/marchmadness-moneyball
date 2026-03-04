@@ -1,596 +1,73 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Money Madness Bracket</title>
-
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live Bracket</title>
   <style>
-    :root{
-      --bg0:#070b16; --bg1:#0b1226; --text:#fff;
-      --muted:rgba(255,255,255,.72);
-      --line:rgba(255,255,255,.12);
-      --card:rgba(255,255,255,.07);
-      --shadow: 0 18px 55px rgba(0,0,0,.55);
-
-      /* Bigger + more readable nodes */
-      --boxW: 310px;
-      --boxH: 68px;
-      --gapY: 14px;
-
-      --colGap: 74px;
-      --strokeHot: rgba(255,140,40,.25);
-      --strokeBlue: rgba(88,170,255,.35);
-    }
-
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(1200px 800px at 15% 10%, rgba(255,140,40,.14), transparent 60%),
-        radial-gradient(900px 650px at 85% 25%, rgba(88,170,255,.10), transparent 55%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
-      min-height:100vh;
-    }
-
-    /* subtle ESPN-ish grid */
-    body::before{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      background:
-        repeating-linear-gradient(0deg, rgba(255,255,255,.030) 0 1px, transparent 1px 34px),
-        repeating-linear-gradient(90deg, rgba(255,255,255,.022) 0 1px, transparent 1px 34px);
-      mix-blend-mode: overlay;
-      opacity:.30;
-    }
-
-    header{
-      padding: 20px 16px 12px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), transparent);
-      position:sticky;
-      top:0;
-      backdrop-filter: blur(10px);
-      z-index: 10;
-    }
-    .wrap{ max-width: 1600px; margin:0 auto; padding: 16px; }
-
-    .headRow{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap: 12px;
-      flex-wrap:wrap;
-    }
-
-    h1{
-      margin:0;
-      font-size: 34px;
-      font-weight: 950;
-      letter-spacing:.2px;
-    }
-    .sub{
-      margin: 8px auto 0;
-      text-align:left;
-      color:var(--muted);
-      font-size: 13px;
-      max-width: 1200px;
-      line-height:1.4;
-    }
-
-    .topbar{
-      margin-top: 14px;
-      display:flex; gap:10px; justify-content: space-between; align-items:center; flex-wrap:wrap;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 10px 12px;
-      box-shadow: 0 10px 40px rgba(0,0,0,.25);
-      backdrop-filter: blur(14px);
-    }
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.07);
-      font-size: 13px;
-      color: rgba(255,255,255,.86);
-      white-space: nowrap;
-      font-weight: 900;
-    }
-
-    .btn{
-      text-decoration:none;
-      display:inline-flex; align-items:center; justify-content:center;
-      height: 38px; padding: 0 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.10);
-      color: #fff;
-      font-weight: 900;
-      transition: transform .12s ease, background .12s ease;
-      cursor:pointer;
-      user-select:none;
-    }
-    .btn:hover{ background: rgba(255,255,255,.14); transform: translateY(-1px); }
-    .btn.primary{
-      border-color: rgba(88,170,255,.32);
-      background: rgba(88,170,255,.14);
-    }
-    .btn.primary:hover{ background: rgba(88,170,255,.20); }
-
-    .regions{
-      margin-top: 14px;
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 14px;
-    }
-    @media (max-width: 1200px){ .regions{ grid-template-columns: 1fr; } }
-
-    .regionCard{
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 12px;
-      box-shadow: 0 10px 40px rgba(0,0,0,.20);
-      backdrop-filter: blur(14px);
-      overflow:auto;
-    }
-
-    .regionHead{
-      display:flex;
-      justify-content:space-between;
-      align-items:baseline;
-      gap:10px;
-      margin-bottom: 8px;
-    }
-    .regionHead h2{
-      margin:0;
-      font-size: 16px;
-      font-weight: 950;
-      letter-spacing:.2px;
-    }
-    .small{ color: var(--muted); font-size: 12px; font-weight: 800; }
-
-    .bracketCanvas{
-      position:relative;
-      min-width: calc(var(--boxW) * 5 + var(--colGap) * 4 + 30px);
-      padding: 10px 10px 16px;
-    }
-
-    .lines{
-      position:absolute;
-      inset: 0;
-      width:100%;
-      height:100%;
-      pointer-events:none;
-      opacity:.9;
-    }
-
-    .node{
-      position:absolute;
-      width: var(--boxW);
-      height: var(--boxH);
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.065);
-      padding: 9px 10px;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      gap: 4px;
-      overflow:hidden;
-      box-shadow: 0 10px 22px rgba(0,0,0,.18);
-    }
-
-    .node.claimed{
-      outline: 2px solid var(--strokeHot);
-      box-shadow: 0 0 18px rgba(255,140,40,.10), 0 10px 22px rgba(0,0,0,.18);
-    }
-    .node.mine{
-      outline: 3px solid var(--strokeBlue);
-      box-shadow: 0 0 22px rgba(88,170,255,.18), 0 10px 22px rgba(0,0,0,.18);
-    }
-    .node.highlight{
-      outline: 3px solid rgba(255,255,255,.30);
-      box-shadow: 0 0 22px rgba(255,255,255,.12), 0 10px 22px rgba(0,0,0,.18);
-    }
-
-    .topRow{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:baseline;
-    }
-    .slotCode{
-      font-weight: 950;
-      font-size: 12px;
-      letter-spacing:.2px;
-    }
-    .seed{
-      font-size: 12px;
-      color: rgba(255,255,255,.72);
-      font-weight: 850;
-    }
-
-    /* Make text readable + prevent ugly cutoff:
-       2-line clamp, smaller font, allows wrap */
-    .lineText{
-      font-size: 12px;
-      color: rgba(255,255,255,.92);
-      font-weight: 700;
-      line-height: 1.15;
-
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
-      overflow:hidden;
-      word-break: break-word;
-    }
-    .mutedLine{ color: rgba(255,255,255,.62); font-weight: 650; }
-
-    .roundLabel{
-      position:absolute;
-      top: 0px;
-      transform: translateY(-24px);
-      font-size: 11px;
-      color: rgba(255,255,255,.62);
-      font-weight: 950;
-      letter-spacing:.18px;
-      text-transform: uppercase;
-    }
-
-    .errorBox{
-      margin-top: 12px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,120,120,.30);
-      background: rgba(255,120,120,.10);
-      color: rgba(255,220,220,.95);
-      font-weight: 900;
-      display:none;
-    }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:#0b1220; color:#e8eefc; margin:0; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 28px 18px 60px; }
+    .card { background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); border-radius:16px; padding:18px; }
+    h1 { margin:0 0 8px; font-size: 22px; }
+    .muted { opacity:.75; font-size: 13px; }
+    table { width:100%; border-collapse: collapse; margin-top: 14px; }
+    th, td { text-align:left; padding:10px; border-bottom: 1px solid rgba(255,255,255,.10); font-size: 13px; }
+    a { color:#93c5fd; text-decoration:none; font-weight:600; }
   </style>
 </head>
-
 <body>
-<header>
   <div class="wrap">
-    <div class="headRow">
-      <h1>Money Madness Bracket</h1>
-      <div class="pill">📺 ESPN-style LIVE</div>
-    </div>
-
-    <div class="sub">
-      Round of 64 shows <b>claimed players</b> + <b>teams</b> (or TBD).
-      Later rounds auto-fill from <b>BracketWinners</b> when real games finish.
-    </div>
-
-    <div class="topbar">
-      <div class="pill" id="counter">Loading…</div>
-      <div class="pill" id="updated">Last updated: —</div>
-
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-        <button class="btn primary" id="myPicksBtn" title="Highlight my picks if token is present">
-          👤 My Picks: OFF
-        </button>
-        <a class="btn" href="./index.html">← Back to Ball Pick</a>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div>
+          <h1>Live Bracket (Baseline)</h1>
+          <div class="muted">This page proves your web app is working. We’ll replace this with the real bracket next.</div>
+        </div>
+        <a href="?page=index" target="_top">Back to Ball Pick</a>
       </div>
+
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Token</th><th>Ball #</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+
+      <div class="muted" id="status" style="margin-top:10px;"></div>
     </div>
-
-    <div class="errorBox" id="err"></div>
   </div>
-</header>
-
-<main class="wrap">
-  <div class="regions" id="regions"></div>
-</main>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiBXm6hLez-U4w2FF5bUtDfaxLlgLFtAGzp4z24IaBdwSEtHBySIKY9-zrow0rUQw/exec";
+  const rowsEl = document.getElementById("rows");
+  const statusEl = document.getElementById("status");
 
-  const SEED_ORDER = [1,16,8,9,5,12,4,13,6,11,3,14,7,10,2,15];
-
-  const REGIONS = [
-    { name:"East", code:"E" },
-    { name:"West", code:"W" },
-    { name:"South", code:"S" },
-    { name:"Midwest", code:"M" }
-  ];
-
-  const labels = ["Round of 64","Round of 32","Sweet 16","Elite 8","Regional Champ"];
-
-  const regionsEl = document.getElementById("regions");
-  const counterEl = document.getElementById("counter");
-  const updatedEl = document.getElementById("updated");
-  const errEl = document.getElementById("err");
-  const myPicksBtn = document.getElementById("myPicksBtn");
-
-  const qp = new URLSearchParams(location.search);
-  const tokenParam = (qp.get("token") || "").trim();
-  const slotParam  = (qp.get("slot") || "").trim();
-  let myPicksOn = false;
-
-  myPicksBtn.addEventListener("click", () => {
-    myPicksOn = !myPicksOn;
-    myPicksBtn.textContent = `👤 My Picks: ${myPicksOn ? "ON" : "OFF"}`;
-    applyHighlights_();
-  });
-
-  async function api(action, payload = {}) {
-    const form = new URLSearchParams({ action, ...payload });
-    const res = await fetch(SCRIPT_URL, { method:"POST", body: form });
-    const text = await res.text();
-    try { return JSON.parse(text); }
-    catch { return { ok:false, error: "Non-JSON response: " + text.slice(0,200) }; }
-  }
-
-  function escapeHtml(str){
-    return String(str ?? "").replace(/[&<>"']/g, m => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
-    }[m]));
-  }
-
-  function buildPositions(){
-    const y1 = [];
-    const boxH = 68;
-    const gapY = 14;
-    for (let i=0;i<16;i++) y1.push(i*(boxH+gapY));
-    const mid = (a,b)=> (a+b)/2;
-    const y2 = []; for (let i=0;i<8;i++) y2.push(mid(y1[i*2], y1[i*2+1]));
-    const y3 = []; for (let i=0;i<4;i++) y3.push(mid(y2[i*2], y2[i*2+1]));
-    const y4 = []; for (let i=0;i<2;i++) y4.push(mid(y3[i*2], y3[i*2+1]));
-    const y5 = [ mid(y4[0], y4[1]) ];
-    return { y1,y2,y3,y4,y5, totalH: y1[15] + boxH };
-  }
-
-  function colX(roundIndex){
-    const boxW = 310;
-    const colGap = 74;
-    return roundIndex*(boxW + colGap);
-  }
-
-  function drawLines(svg, pos){
-    function drawToNext(roundFrom, idxFromA, idxFromB, roundTo, idxTo){
-      const boxW = 310;
-      const xFrom = colX(roundFrom) + boxW;
-      const xMid  = colX(roundFrom) + boxW + 26;
-      const xTo   = colX(roundTo);
-
-      const yArrFrom = [pos.y1, pos.y2, pos.y3, pos.y4][roundFrom];
-      const yArrTo   = [pos.y2, pos.y3, pos.y4, pos.y5][roundFrom];
-
-      const yA = yArrFrom[idxFromA] + 34;
-      const yB = yArrFrom[idxFromB] + 34;
-      const yT = yArrTo[idxTo] + 34;
-
-      const path = document.createElementNS("http://www.w3.org/2000/svg","path");
-      const d = [
-        `M ${xFrom} ${yA} L ${xMid} ${yA}`,
-        `M ${xFrom} ${yB} L ${xMid} ${yB}`,
-        `M ${xMid} ${yA} L ${xMid} ${yB}`,
-        `M ${xMid} ${yT} L ${xTo} ${yT}`
-      ].join(" ");
-      path.setAttribute("d", d);
-      path.setAttribute("fill","none");
-      path.setAttribute("stroke","rgba(255,255,255,.18)");
-      path.setAttribute("stroke-width","2");
-      path.setAttribute("stroke-linecap","round");
-      svg.appendChild(path);
-    }
-
-    for (let i=0;i<8;i++) drawToNext(0, i*2, i*2+1, 1, i);
-    for (let i=0;i<4;i++) drawToNext(1, i*2, i*2+1, 2, i);
-    for (let i=0;i<2;i++) drawToNext(2, i*2, i*2+1, 3, i);
-    drawToNext(3, 0, 1, 4, 0);
-  }
-
-  function addNode(canvas, roundIndex, y, id, leftLabel, rightLabel, line1, line2, flags){
-    const node = document.createElement("div");
-    node.className = "node";
-    node.style.left = colX(roundIndex) + "px";
-    node.style.top  = (y + 10) + "px";
-    node.id = id;
-
-    if (flags?.claimed) node.classList.add("claimed");
-    if (flags?.mine) node.classList.add("mine");
-
-    node.innerHTML = `
-      <div class="topRow">
-        <div class="slotCode">${escapeHtml(leftLabel)}</div>
-        <div class="seed">${escapeHtml(rightLabel)}</div>
-      </div>
-      <div class="lineText ${line1 ? "" : "mutedLine"}">${line1 ? line1 : "Awaiting…"}</div>
-      <div class="lineText ${line2 ? "" : "mutedLine"}">${line2 ? line2 : "Awaiting…"}</div>
-    `;
-
-    canvas.appendChild(node);
-    return node;
-  }
-
-  function getWinnerMap(bracketWinners){
-    const map = new Map();
-    for (const w of (bracketWinners || [])){
-      if (!w || !w.slotKey) continue;
-      map.set(String(w.slotKey).trim(), w);
-    }
-    return map;
-  }
-
-  function getBallsMap(balls){
-    const map = new Map();
-    for (const b of (balls || [])){
-      if (!b || !b.bracketSlot) continue;
-      map.set(String(b.bracketSlot).trim(), b);
-    }
-    return map;
-  }
-
-  function getPicksMap(bracketPicks){
-    const map = new Map();
-    for (const p of (bracketPicks || [])){
-      if (!p || !p.slotKey) continue;
-      map.set(String(p.slotKey).trim(), p);
-    }
-    return map;
-  }
-
-  function createRegionCard(region, ballsBySlot, picksBySlot, winnerBySlotKey){
-    const card = document.createElement("section");
-    card.className = "regionCard";
-
-    const head = document.createElement("div");
-    head.className = "regionHead";
-    head.innerHTML = `<h2>${region.name}</h2><div class="small">R64 → Regional Champ</div>`;
-    card.appendChild(head);
-
-    const canvas = document.createElement("div");
-    canvas.className = "bracketCanvas";
-
-    labels.forEach((txt, i)=>{
-      const lab = document.createElement("div");
-      lab.className = "roundLabel";
-      lab.style.left = (colX(i) + 4) + "px";
-      lab.textContent = txt;
-      canvas.appendChild(lab);
+  async function api(payload){
+    const res = await fetch(location.href, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
     });
-
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.classList.add("lines");
-    svg.setAttribute("xmlns","http://www.w3.org/2000/svg");
-    canvas.appendChild(svg);
-
-    const pos = buildPositions();
-    const totalHeight = pos.totalH + 10;
-    canvas.style.height = (totalHeight + 20) + "px";
-    svg.setAttribute("viewBox", `0 0 ${colX(4) + 310} ${totalHeight + 20}`);
-    svg.setAttribute("preserveAspectRatio", "none");
-
-    drawLines(svg, pos);
-
-    // R64
-    for (let i=0;i<16;i++){
-      const seed = SEED_ORDER[i];
-      const slot = `${region.code}${seed}`; // E1..E16
-      const b = ballsBySlot.get(slot);
-      const p = picksBySlot.get(slot);
-
-      const player = p?.playerName ? String(p.playerName) : "";
-      const playerToken = p?.token ? String(p.token) : "";
-
-      const team = b?.team ? String(b.team) : "";
-      const claimed = !!player;
-      const mine = (myPicksOn && tokenParam && playerToken && tokenParam === playerToken);
-
-      const line1 = player ? `<b>Player:</b> ${escapeHtml(player)}` : "";
-      const line2 = team ? `<b>Team:</b> ${escapeHtml(team)}` : `<b>Team:</b> TBD`;
-
-      addNode(
-        canvas, 0, pos.y1[i],
-        `slot-${slot}`,
-        slot, `Seed ${seed}`,
-        line1, line2,
-        { claimed, mine }
-      );
-    }
-
-    // R32/S16/E8/CHAMP from BracketWinners
-    const roundSpecs = [
-      { roundIndex: 1, arr: pos.y2, count: 8, makeKey: (n)=>`R32-${region.code}${n}` },
-      { roundIndex: 2, arr: pos.y3, count: 4, makeKey: (n)=>`S16-${region.code}${n}` },
-      { roundIndex: 3, arr: pos.y4, count: 2, makeKey: (n)=>`E8-${region.code}${n}` },
-      { roundIndex: 4, arr: pos.y5, count: 1, makeKey: ()=>`CHAMP-${region.code}` }
-    ];
-
-    for (const spec of roundSpecs){
-      for (let i=0;i<spec.count;i++){
-        const n = i+1;
-        const key = spec.makeKey(n);
-        const w = winnerBySlotKey.get(key);
-
-        const winnerTeam = w?.winnerTeam ? String(w.winnerTeam) : "";
-        const winnerSeed = (w?.winnerSeed ?? "") !== "" ? String(w.winnerSeed) : "";
-
-        const rightLabel = (winnerSeed ? `Winner (Seed ${winnerSeed})` : "Winner");
-        const line1 = winnerTeam ? `<b>Winner:</b> ${escapeHtml(winnerTeam)}` : "";
-        const line2 = winnerTeam ? `<b>Status:</b> Advanced` : "";
-
-        addNode(
-          canvas, spec.roundIndex,
-          spec.arr[i] ?? spec.arr[0],
-          `slot-${key}`,
-          key,
-          rightLabel,
-          line1, line2,
-          { claimed: Boolean(winnerTeam), mine: false }
-        );
-      }
-    }
-
-    card.appendChild(canvas);
-    return card;
+    return res.json();
   }
 
-  function applyHighlights_(){
-    document.querySelectorAll(".node.mine").forEach(el => el.classList.remove("mine"));
-    document.querySelectorAll(".node.highlight").forEach(el => el.classList.remove("highlight"));
-
-    if (slotParam) {
-      const el = document.getElementById(`slot-${slotParam}`);
-      if (el) {
-        el.classList.add("highlight");
-        el.scrollIntoView({ behavior:"smooth", block:"center", inline:"center" });
-      }
-    }
+  async function refresh(){
+    const st = await api({ action:"getState" });
+    if(!st.ok){ statusEl.textContent = st.error || "Error"; return; }
+    rowsEl.innerHTML = "";
+    st.picks.forEach(p=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.token)}</td><td>${p.ballNumber}</td>`;
+      rowsEl.appendChild(tr);
+    });
+    statusEl.textContent = `Loaded ${st.picks.length} picks.`;
   }
 
-  function setTopUI(balls){
-    const claimed = (balls || []).filter(b => b && b.isClaimed).length;
-    counterEl.innerHTML = `<b>${claimed}</b> of <b>68</b> balls claimed`;
-    updatedEl.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
-  async function load(){
-    errEl.style.display = "none";
-
-    const data = await api("getBracketData");
-    if (!data.ok) {
-      errEl.textContent = "Error: " + (data.error || "Unknown");
-      errEl.style.display = "block";
-      return;
-    }
-
-    const balls = data.balls || [];
-    const bracketWinners = data.bracketWinners || [];
-    const bracketPicks = data.bracketPicks || [];
-
-    setTopUI(balls);
-
-    const ballsBySlot = getBallsMap(balls);
-    const picksBySlot = getPicksMap(bracketPicks);
-    const winnerBySlotKey = getWinnerMap(bracketWinners);
-
-    regionsEl.innerHTML = "";
-    for (const r of REGIONS){
-      regionsEl.appendChild(createRegionCard(r, ballsBySlot, picksBySlot, winnerBySlotKey));
-    }
-
-    applyHighlights_();
-  }
-
-  (async function init(){
-    if (tokenParam) {
-      myPicksOn = true;
-      myPicksBtn.textContent = "👤 My Picks: ON";
-    }
-    await load();
-    setInterval(load, 10000);
-  })();
+  refresh();
+  setInterval(refresh, 10000);
 </script>
 </body>
 </html>
