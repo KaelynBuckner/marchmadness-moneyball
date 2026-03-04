@@ -1,556 +1,766 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Money Madness | Live Bracket</title>
-  <meta name="theme-color" content="#0b0f1a" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Money Madness Ball Pick</title>
+
+  <!-- Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
   <style>
     :root{
-      --bg0:#070a12;
-      --bg1:#0b1020;
-      --card:rgba(255,255,255,.06);
-      --stroke:rgba(255,255,255,.12);
-      --text:rgba(255,255,255,.92);
-      --muted:rgba(255,255,255,.70);
-      --muted2:rgba(255,255,255,.55);
-      --good:#31d158;
-      --warn:#ffcc00;
-      --bad:#ff453a;
-      --accent:#7dd3fc;
-      --accent2:#a78bfa;
+      --bg0:#070b16;
+      --bg1:#0b1226;
+      --text:#ffffff;
+      --muted:rgba(255,255,255,.75);
+      --line:rgba(255,255,255,.12);
+      --card:rgba(255,255,255,.07);
+      --card2:rgba(255,255,255,.10);
       --shadow: 0 18px 55px rgba(0,0,0,.55);
-      --radius: 18px;
-      --radius2: 26px;
-      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --gap:14px;
+      --ballSize:82px;
+      --maxW:1100px;
+      --accent: rgba(88,170,255,.95);
+      --hot: rgba(255,140,40,.95);
     }
+
     *{ box-sizing:border-box; }
-    html,body{ height:100%; }
     body{
       margin:0;
-      font-family:var(--font);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
       background:
-        radial-gradient(1200px 700px at 20% 12%, rgba(125,211,252,.18), rgba(0,0,0,0) 55%),
-        radial-gradient(900px 600px at 80% 20%, rgba(167,139,250,.16), rgba(0,0,0,0) 55%),
-        radial-gradient(1000px 700px at 50% 110%, rgba(255,149,0,.12), rgba(0,0,0,0) 60%),
-        linear-gradient(180deg, var(--bg0), var(--bg1) 55%, #050712);
-      overflow-x:hidden;
-    }
-    .bg-shimmer{
-      position:fixed; inset:-60px; pointer-events:none;
-      background: radial-gradient(closest-side, rgba(255,255,255,.06), rgba(255,255,255,0) 70%);
-      filter: blur(28px);
-      opacity:.35;
-      animation: floaty 10s ease-in-out infinite;
-      mix-blend-mode: screen;
-    }
-    @keyframes floaty{
-      0%{ transform: translate3d(-10px,-6px,0) scale(1); }
-      50%{ transform: translate3d(10px,8px,0) scale(1.03); }
-      100%{ transform: translate3d(-10px,-6px,0) scale(1); }
+        radial-gradient(1200px 800px at 15% 10%, rgba(255,140,40,.15), transparent 60%),
+        radial-gradient(900px 650px at 85% 25%, rgba(88,170,255,.12), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100vh;
     }
 
-    .wrap{ max-width: 1200px; margin: 0 auto; padding: 22px 18px 40px; }
-    header{
-      display:flex; align-items:center; justify-content:space-between; gap:16px;
-      margin: 8px 0 18px;
-    }
-    .brand{ display:flex; align-items:center; gap:12px; min-width:0; }
-    .logo{
-      width:44px; height:44px; border-radius: 14px;
+    /* ESPN-ish subtle grid overlay */
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
       background:
-        radial-gradient(circle at 30% 25%, rgba(255,255,255,.35), rgba(255,255,255,0) 55%),
-        linear-gradient(135deg, rgba(125,211,252,.9), rgba(167,139,250,.9));
-      box-shadow: 0 18px 40px rgba(0,0,0,.35);
-      position:relative; overflow:hidden;
+        repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 34px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.028) 0 1px, transparent 1px 34px);
+      mix-blend-mode: overlay;
+      opacity:.32;
     }
-    .logo::after{
-      content:""; position:absolute; inset:-30px;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.25), rgba(255,255,255,0) 55%);
-      transform: rotate(25deg);
-    }
-    .titleBlock{ min-width:0; }
-    .title{
-      font-size: 18px; letter-spacing:.08em; text-transform: uppercase;
-      font-weight: 1000; margin:0; line-height:1.1;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    .subtitle{ margin: 2px 0 0; color: var(--muted); font-size: 13px; line-height:1.25; }
 
-    .pillRow{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
-    .pill{
-      padding: 10px 12px; border-radius: 999px;
-      border: 1px solid var(--stroke);
-      background: rgba(255,255,255,.05);
+    header{
+      padding: 26px 16px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), transparent);
+      position:sticky;
+      top:0;
       backdrop-filter: blur(10px);
-      display:flex; gap:8px; align-items:center;
-      box-shadow: 0 10px 30px rgba(0,0,0,.25);
-      font-size: 13px; color: var(--muted);
+      z-index: 10;
     }
-    .dot{ width:8px;height:8px;border-radius:50%; background: var(--warn); box-shadow: 0 0 0 6px rgba(255,204,0,.12); }
-    .dot.good{ background: var(--good); box-shadow: 0 0 0 6px rgba(49,209,88,.12); }
-    .dot.bad{ background: var(--bad); box-shadow: 0 0 0 6px rgba(255,69,58,.12); }
+    .wrap{
+      max-width: var(--maxW);
+      margin: 0 auto;
+      padding: 0 16px;
+    }
 
-    .btn{
-      border: 1px solid rgba(255,255,255,.14);
+    .topRow{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 12px;
+      flex-wrap:wrap;
+    }
+
+    .brand{
+      display:flex;
+      align-items:baseline;
+      gap: 12px;
+      flex-wrap:wrap;
+    }
+
+    .title{
+      font-size: 40px;
+      font-weight: 950;
+      letter-spacing: .2px;
+      margin: 0;
+      line-height: 1.05;
+    }
+    .liveChip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.08);
+      font-weight: 900;
+      letter-spacing: .3px;
+      font-size: 12px;
+      text-transform: uppercase;
+      white-space:nowrap;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:99px;
+      background: rgba(255,80,80,.95);
+      box-shadow:0 0 12px rgba(255,80,80,.35);
+    }
+
+    .btnLink{
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      height: 40px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.10);
+      color: #fff;
+      font-weight: 850;
+      transition: transform .12s ease, background .12s ease;
+    }
+    .btnLink:hover{ background: rgba(255,255,255,.14); transform: translateY(-1px); }
+
+    .subtitle{
+      margin: 12px auto 0;
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 980px;
+      line-height: 1.35;
+    }
+
+    .panel{
+      margin-top: 14px;
       background: rgba(255,255,255,.06);
-      color: var(--text);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.25);
+      backdrop-filter: blur(14px);
+    }
+
+    .bar{
+      display:grid;
+      gap: 12px;
+      grid-template-columns: 1fr 1fr;
+      align-items:end;
+    }
+    @media (max-width: 760px){
+      .bar{ grid-template-columns: 1fr; }
+      .title{ font-size: 32px; }
+      :root{ --ballSize: 76px; }
+    }
+
+    label{
+      display:grid;
+      gap:6px;
+      font-size: 13px;
+      color: rgba(255,255,255,.88);
+      font-weight: 750;
+    }
+    input{
+      height: 46px;
       padding: 10px 12px;
       border-radius: 14px;
-      font-weight: 1000;
-      letter-spacing:.03em;
-      cursor:pointer;
-      box-shadow: 0 14px 35px rgba(0,0,0,.35);
-      transition: transform .12s ease, background .12s ease, border-color .12s ease;
-      user-select:none;
-      display:inline-flex; align-items:center; gap:10px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      outline: none;
+      font-size: 15px;
     }
-    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.22); }
+    input::placeholder{ color: rgba(255,255,255,.55); }
+    input:focus{
+      border-color: rgba(88,170,255,.45);
+      box-shadow: 0 0 0 4px rgba(88,170,255,.12);
+    }
+    .hint{
+      font-size: 12px;
+      color: rgba(255,255,255,.62);
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    .statusLine{
+      margin-top: 12px;
+      font-size: 14px;
+      color: rgba(255,255,255,.85);
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.07);
+      font-weight: 800;
+    }
+    .small{
+      font-size: 12px;
+      color: rgba(255,255,255,.65);
+      font-weight: 750;
+    }
+
+    .wrapBody{
+      max-width: var(--maxW);
+      margin: 0 auto;
+      padding: 16px 16px 44px;
+    }
 
     .grid{
       display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      align-items:start;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: var(--gap);
+      padding: 10px 6px 6px;
+      max-width: 980px;
+      margin: 0 auto;
     }
-    @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
+    @media (max-width: 980px){ .grid{ grid-template-columns: repeat(6, 1fr); } }
+    @media (max-width: 640px){ .grid{ grid-template-columns: repeat(4, 1fr); } }
 
-    .card{
-      border-radius: var(--radius2);
-      border: 1px solid var(--stroke);
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .cardHeader{
-      padding: 14px 14px 10px;
-      display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-    }
-    .cardHeader h2{
-      margin:0;
-      font-size: 14px;
-      font-weight: 1100;
-      letter-spacing:.10em;
-      text-transform: uppercase;
-    }
-    .cardHeader p{
-      margin:4px 0 0;
-      color: var(--muted2);
-      font-size: 12px;
-      line-height:1.3;
-    }
-    .cardBody{ padding: 12px 14px 14px; }
+    /* ===== Realistic Basketball (blank) ===== */
+    .ball{
+      position: relative;
+      height: var(--ballSize);
+      width: 100%;
+      border-radius: 999px;
+      cursor: pointer;
+      user-select: none;
 
-    .slots{
+      transform-style: preserve-3d;
+      perspective: 1100px;
+
+      background:
+        radial-gradient(circle at 28% 22%, rgba(255,255,255,.65), rgba(255,255,255,0) 34%),
+        radial-gradient(circle at 68% 78%, rgba(0,0,0,.35), rgba(0,0,0,0) 50%),
+        radial-gradient(circle at 50% 55%, #ff8a2b, #e85d00 62%, #b54000 100%);
+
+      box-shadow:
+        0 16px 34px rgba(0,0,0,.52),
+        inset 0 10px 20px rgba(255,255,255,.16),
+        inset 0 -16px 22px rgba(0,0,0,.28);
+
+      transition: transform .18s ease, filter .18s ease, box-shadow .18s ease, opacity .18s ease;
       display:grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-
-    .slot{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding: 10px 10px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.16);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
-      position:relative;
+      place-items:center;
       overflow:hidden;
     }
 
-    .slot.flash::before{
+    /* Pebble grain */
+    .ball::after{
+      content:"";
+      position:absolute;
+      inset:-10%;
+      border-radius:999px;
+      background:
+        radial-gradient(circle, rgba(0,0,0,.22) 1px, transparent 1.4px) 0 0 / 9px 9px;
+      opacity:.22;
+      transform: translateZ(7px);
+      mix-blend-mode: multiply;
+      pointer-events:none;
+    }
+
+    /* Seams */
+    .ball::before{
       content:"";
       position:absolute;
       inset:0;
-      background: radial-gradient(520px 120px at 10% 50%, rgba(125,211,252,.18), rgba(0,0,0,0) 60%),
-                  radial-gradient(520px 120px at 90% 50%, rgba(167,139,250,.14), rgba(0,0,0,0) 60%);
-      opacity: 0;
-      animation: flash 700ms ease;
+      border-radius:999px;
+      background:
+        radial-gradient(circle at 50% 50%, transparent 44%, rgba(25,10,0,.55) 45%, rgba(25,10,0,.55) 47%, transparent 48%),
+        linear-gradient(90deg, transparent 46%, rgba(25,10,0,.55) 47%, rgba(25,10,0,.55) 53%, transparent 54%),
+        linear-gradient(0deg, transparent 46%, rgba(25,10,0,.55) 47%, rgba(25,10,0,.55) 53%, transparent 54%);
+      opacity:.70;
+      transform: translateZ(10px);
       pointer-events:none;
     }
-    @keyframes flash{
-      0%{ opacity:0; transform: translateY(6px); }
-      35%{ opacity:1; transform: translateY(0); }
-      100%{ opacity:0; transform: translateY(-2px); }
+
+    /* Rim light */
+    .ball .rim{
+      position:absolute;
+      inset:2px;
+      border-radius:999px;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.14),
+        inset 0 0 26px rgba(255,255,255,.08);
+      pointer-events:none;
+      transform: translateZ(12px);
     }
 
-    .left{
-      display:flex; flex-direction:column; gap:4px;
-      min-width: 0;
+    .ball:hover{
+      transform: translateY(-4px) rotateX(12deg) rotateY(-14deg);
+      box-shadow:
+        0 22px 46px rgba(0,0,0,.62),
+        0 0 26px rgba(88,170,255,.14),
+        inset 0 10px 22px rgba(255,255,255,.18),
+        inset 0 -16px 22px rgba(0,0,0,.26);
     }
-    .slotKey{
-      font-size: 11px;
-      letter-spacing:.14em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,.60);
+
+    .ball.taken{
+      cursor:not-allowed;
+      filter: grayscale(.92) brightness(.72);
+      opacity: .55;
+      transform:none;
+    }
+    .ball.taken:hover{
+      transform:none;
+      box-shadow:
+        0 16px 34px rgba(0,0,0,.52),
+        inset 0 10px 20px rgba(255,255,255,.12),
+        inset 0 -16px 22px rgba(0,0,0,.28);
+    }
+
+    .lockOverlay{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      font-size: 22px;
+      transform: translateZ(14px);
+      pointer-events:none;
+      opacity: .95;
+      text-shadow: 0 8px 18px rgba(0,0,0,.55);
+    }
+
+    /* ===== Spin reveal #2: fast spin + slow-mo settle landing ===== */
+    @keyframes spinFast {
+      0%   { transform: rotateX(0deg) rotateY(0deg) scale(1); filter: saturate(1); }
+      18%  { transform: rotateX(210deg) rotateY(260deg) scale(1.06); }
+      55%  { transform: rotateX(520deg) rotateY(640deg) scale(1.06); filter: saturate(1.10); }
+      100% { transform: rotateX(820deg) rotateY(920deg) scale(1.02); filter: saturate(1.02); }
+    }
+    @keyframes settleLand {
+      0%   { transform: rotateX(40deg) rotateY(-18deg) scale(1.02); }
+      45%  { transform: rotateX(10deg) rotateY(8deg) scale(1.00); }
+      75%  { transform: rotateX(-6deg) rotateY(-4deg) scale(0.997); }
+      100% { transform: rotateX(0deg) rotateY(0deg) scale(1.00); }
+    }
+    @keyframes glowPulse {
+      0%,100% { box-shadow: 0 0 0 rgba(88,170,255,0); }
+      50%     { box-shadow: 0 0 28px rgba(88,170,255,.22); }
+    }
+    .ball.spinning{
+      animation:
+        spinFast 1.05s cubic-bezier(.14,.86,.18,1),
+        glowPulse 1.05s ease;
+    }
+    .ball.settling{
+      animation: settleLand .42s cubic-bezier(.12,.9,.2,1);
+    }
+
+    /* ===== Modal ===== */
+    .modalBack{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      background: rgba(0,0,0,.58);
+      z-index: 50;
+    }
+    .modal{
+      width: min(600px, 100%);
+      border-radius: 20px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      padding: 18px;
+    }
+    .modalTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .modalTitle{
+      margin:0;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+    .modalBadge{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      font-size: 12px;
+      color: rgba(255,255,255,.85);
+      white-space: nowrap;
       font-weight: 900;
     }
-    .mainText{
-      font-size: 13px;
-      font-weight: 1000;
-      color: rgba(255,255,255,.90);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      max-width: 100%;
+    .modalBig{
+      margin: 12px 0 6px;
+      font-size: 28px;
+      font-weight: 950;
+      letter-spacing: .2px;
     }
-    .subText{
-      font-size: 12px;
-      color: rgba(255,255,255,.60);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+    .modalLine{
+      margin: 6px 0;
+      color: rgba(255,255,255,.88);
+      line-height: 1.35;
+      font-weight: 650;
     }
-
-    .right{
-      display:flex; flex-direction:column; align-items:flex-end; gap:6px;
-      flex: 0 0 auto;
-      text-align:right;
-    }
-    .pillMini{
-      padding: 6px 9px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-      font-size: 12px;
-      font-weight: 1000;
-      color: rgba(255,255,255,.82);
-      letter-spacing:.02em;
-    }
-    .pillMini.dim{ color: rgba(255,255,255,.55); }
-
-    .lowerGrid{
-      margin-top: 14px;
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-
-    .smallCard{
-      border-radius: var(--radius2);
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.16);
-      overflow:hidden;
-    }
-    .smallHead{
-      padding: 12px 14px;
-      display:flex; justify-content:space-between; align-items:center;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-    }
-    .smallHead strong{
-      font-size: 12px;
-      letter-spacing:.14em;
-      text-transform: uppercase;
-    }
-    .smallBody{ padding: 12px 14px; color: rgba(255,255,255,.78); font-size: 13px; line-height:1.35; }
-
-    .winnersList{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-    .winnerRow{
+    .modalMeta{
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,.12);
       display:flex;
-      justify-content:space-between;
-      gap:12px;
-      padding: 10px 10px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      font-size: 13px;
-      color: rgba(255,255,255,.86);
+      gap: 10px;
+      flex-wrap: wrap;
+      color: rgba(255,255,255,.70);
+      font-size: 12px;
+      font-weight: 700;
     }
-    .winnerRow b{ font-weight: 1100; }
-    .winnerRow small{ color: rgba(255,255,255,.55); }
-
-    .footerRow{
-      margin-top: 14px;
+    .btnRow{
       display:flex;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-      color: rgba(255,255,255,.55);
-      font-size: 13px;
+      gap: 10px;
+      margin-top: 14px;
+      justify-content:flex-end;
+      flex-wrap: wrap;
     }
-    a{ color: rgba(125,211,252,.92); text-decoration:none; }
-    a:hover{ text-decoration:underline; }
+    button{
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.10);
+      color: #fff;
+      font-weight: 900;
+      cursor:pointer;
+      transition: transform .12s ease, background .12s ease;
+    }
+    button:hover{ background: rgba(255,255,255,.14); transform: translateY(-1px); }
+    button.primary{
+      border-color: rgba(88,170,255,.34);
+      background: rgba(88,170,255,.14);
+    }
+    button.primary:hover{
+      background: rgba(88,170,255,.20);
+    }
+    .errorText{ color: rgba(255,140,140,.95); font-weight: 900; }
+    .countdown{
+      margin-top:10px;
+      font-size:12px;
+      color: rgba(255,255,255,.70);
+      font-weight: 800;
+    }
   </style>
 </head>
 
 <body>
-  <div class="bg-shimmer"></div>
-
-  <div class="wrap">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div class="titleBlock">
-          <p class="title">Money Madness</p>
-          <p class="subtitle">Live bracket updates • names won’t cut off • smooth animations</p>
+  <header>
+    <div class="wrap">
+      <div class="topRow">
+        <div class="brand">
+          <h1 class="title">Money Madness</h1>
+          <div class="liveChip"><span class="dot"></span> LIVE BOARD</div>
         </div>
+
+        <a class="btnLink" href="./bracket.html">📋 View Bracket</a>
       </div>
 
-      <div class="pillRow">
-        <div class="pill"><span id="apiDot" class="dot"></span><span id="apiText">Connecting…</span></div>
-        <button id="btnHome" class="btn" type="button">🏀 Back to Draw</button>
-        <button id="btnRefresh" class="btn" type="button">↻ Refresh</button>
+      <div class="subtitle">
+        Pick any <b>blank</b> basketball. It spins, then “lands” and reveals your bracket position. Once claimed, it locks.
       </div>
-    </header>
 
-    <div class="grid">
-      <section class="card" id="eastCard">
-        <div class="cardHeader">
-          <div>
-            <h2>East (E1–E16)</h2>
-            <p>Shows who owns each first-round slot.</p>
-          </div>
-          <div class="pillMini" id="eastCount">— / 16</div>
+      <div class="panel">
+        <div class="bar">
+          <label>
+            Your name
+            <input id="playerName" placeholder="Type your name (required)" autocomplete="name" />
+            <div class="hint">Use your real name so claims are easy to verify.</div>
+          </label>
+          <label>
+            Invite token
+            <input id="token" placeholder="Auto-filled from your link" autocomplete="off" />
+            <div class="hint">Use your unique invite link so the token fills automatically.</div>
+          </label>
         </div>
-        <div class="cardBody"><div class="slots" id="eastSlots"></div></div>
-      </section>
 
-      <section class="card" id="westCard">
-        <div class="cardHeader">
-          <div>
-            <h2>West (W1–W16)</h2>
-            <p>Auto-updates from BracketPicks sheet.</p>
-          </div>
-          <div class="pillMini" id="westCount">— / 16</div>
-        </div>
-        <div class="cardBody"><div class="slots" id="westSlots"></div></div>
-      </section>
-
-      <section class="card" id="southCard">
-        <div class="cardHeader">
-          <div>
-            <h2>South (S1–S16)</h2>
-            <p>Slot text is clamped and tooltip-safe.</p>
-          </div>
-          <div class="pillMini" id="southCount">— / 16</div>
-        </div>
-        <div class="cardBody"><div class="slots" id="southSlots"></div></div>
-      </section>
-
-      <section class="card" id="midCard">
-        <div class="cardHeader">
-          <div>
-            <h2>Midwest (M1–M16)</h2>
-            <p>Live updates animate when changes arrive.</p>
-          </div>
-          <div class="pillMini" id="midCount">— / 16</div>
-        </div>
-        <div class="cardBody"><div class="slots" id="midSlots"></div></div>
-      </section>
-    </div>
-
-    <div class="lowerGrid">
-      <div class="smallCard">
-        <div class="smallHead">
-          <strong>Auto-Advanced Winners</strong>
-          <span style="color:rgba(255,255,255,.55); font-size:12px;">from BracketWinners</span>
-        </div>
-        <div class="smallBody">
-          <div class="winnersList" id="winnersList"></div>
+        <div class="statusLine">
+          <div class="pill" id="status">Loading balls…</div>
+          <div class="pill small" id="lastUpdated">Last updated: —</div>
         </div>
       </div>
     </div>
+  </header>
 
-    <div class="footerRow">
-      <div>Tip: leave this page open — it updates every 10 seconds automatically.</div>
-      <div style="opacity:.8;">Live Bracket v2</div>
+  <div class="wrapBody">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modalBack" id="modalBack" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modalTop">
+        <div><h2 class="modalTitle" id="modalTitle">Result</h2></div>
+        <div class="modalBadge" id="modalBadge">🏀 Money Madness</div>
+      </div>
+
+      <div class="modalBig" id="modalBig"></div>
+      <div class="modalLine" id="modalLine1"></div>
+      <div class="modalLine" id="modalLine2"></div>
+      <div class="countdown" id="countdown"></div>
+
+      <div class="modalMeta" id="modalMeta"></div>
+
+      <div class="btnRow">
+        <button id="closeBtn">Close</button>
+        <button class="primary" id="viewBracketBtn">View Bracket</button>
+      </div>
     </div>
   </div>
 
   <script>
-    /**************************************************************
-     * CONFIG — SET THIS
-     **************************************************************/
-    const API_URL = "https://script.google.com/macros/s/AKfycbxT7SBtZXm3S9KDvDv_1OqAHHhLYcWwrW-roK97iV7sy86DUKGvEk_EYi1d5Rti11Q/exec"; // <-- paste /exec here
-    const HOME_URL = "./index.html";
-    const ACTION_GET_BRACKET = "getBracketData";
+    // =========================
+    // Paste your Apps Script Web App /exec URL here
+    // =========================
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiBXm6hLez-U4w2FF5bUtDfaxLlgLFtAGzp4z24IaBdwSEtHBySIKY9-zrow0rUQw/exec";
 
-    /**************************************************************
-     * Helpers
-     **************************************************************/
-    const $ = (id) => document.getElementById(id);
+    const grid = document.getElementById("grid");
+    const statusEl = document.getElementById("status");
+    const lastUpdatedEl = document.getElementById("lastUpdated");
+    const tokenEl = document.getElementById("token");
+    const playerEl = document.getElementById("playerName");
 
-    function formEncode(obj){
-      return Object.keys(obj)
-        .map(k => encodeURIComponent(k) + "=" + encodeURIComponent(obj[k] ?? ""))
-        .join("&");
-    }
+    const modalBack = document.getElementById("modalBack");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalBig = document.getElementById("modalBig");
+    const modalLine1 = document.getElementById("modalLine1");
+    const modalLine2 = document.getElementById("modalLine2");
+    const modalMeta = document.getElementById("modalMeta");
+    const countdownEl = document.getElementById("countdown");
 
-    async function postAction(action, params){
-      const body = formEncode({ action, ...params });
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-        body
-      });
+    const closeBtn = document.getElementById("closeBtn");
+    const viewBracketBtn = document.getElementById("viewBracketBtn");
+
+    closeBtn.onclick = () => hideModal();
+
+    let balls = [];
+    let busy = false;
+    let redirectTimer = null;
+    let redirectCountdown = null;
+
+    // Avoid CORS preflight by sending URL-encoded body
+    async function api(action, payload = {}) {
+      const formData = new URLSearchParams({ action, ...payload });
+      const res = await fetch(SCRIPT_URL, { method: "POST", body: formData });
       const text = await res.text();
       try { return JSON.parse(text); }
-      catch { return { ok:false, error:"Non-JSON response", raw:text }; }
+      catch { return { ok:false, error:"Non-JSON response from Apps Script: " + text.slice(0,200) }; }
     }
 
-    function setApi(kind, msg){
-      const dot = $("apiDot");
-      dot.classList.remove("good","bad");
-      if (kind === "good") dot.classList.add("good");
-      if (kind === "bad") dot.classList.add("bad");
-      $("apiText").textContent = msg;
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
     }
 
-    function slotId(regionLetter, n){ return `${regionLetter}${n}`; }
-
-    // Builds E1..E16, W1..W16, S1..S16, M1..M16
-    function buildSlotList(region){
-      const out = [];
-      for (let i=1;i<=16;i++) out.push(slotId(region, i));
-      return out;
+    function setStatusCounter() {
+      const claimed = balls.filter(b => b.isClaimed).length;
+      const available = 68 - claimed;
+      statusEl.innerHTML = `<b>${claimed}</b> of <b>68</b> claimed <span style="opacity:.6">•</span> <b>${available}</b> available`;
+      lastUpdatedEl.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
     }
 
-    function normalizeSlotKey(s){
-      return String(s||"").trim().toUpperCase().replace(/\s+/g,"");
+    async function loadState() {
+      try {
+        statusEl.textContent = "Loading balls…";
+        const data = await api("getState");
+        if (!data.ok) {
+          statusEl.innerHTML = `<span class="errorText">API error: ${escapeHtml(data.error || "Unknown error")}</span>`;
+          return;
+        }
+        balls = shuffle((data.balls || []).slice());
+        renderGrid();
+        setStatusCounter();
+      } catch (err) {
+        statusEl.innerHTML = `<span class="errorText">Could not reach API. Check SCRIPT_URL + deployment.</span>`;
+      }
     }
 
-    function makeSlotRow(slotKey, data){
-      const div = document.createElement("div");
-      div.className = "slot";
-      div.dataset.key = slotKey;
+    function renderGrid() {
+      grid.innerHTML = "";
+      balls.forEach(b => {
+        const div = document.createElement("div");
+        div.className = "ball" + (b.isClaimed ? " taken" : "");
+        div.dataset.ball = b.ballNumber;
 
-      const who = data?.playerName ? String(data.playerName) : "—";
-      const team = data?.team ? String(data.team) : "";
-      const seed = (data?.seed ?? "");
-      const ballNumber = (data?.ballNumber ?? "");
-      const sub = team
-        ? `${seed ? `Seed ${seed}` : ""}${seed && ballNumber ? " • " : ""}${ballNumber ? `Ball #${ballNumber}` : ""} • ${team}`
-        : `${ballNumber ? `Ball #${ballNumber}` : "Unclaimed"}`;
+        const rim = document.createElement("div");
+        rim.className = "rim";
+        div.appendChild(rim);
 
-      const left = document.createElement("div");
-      left.className = "left";
-      left.innerHTML = `
-        <div class="slotKey">${slotKey}</div>
-        <div class="mainText" title="${who}">${who}</div>
-        <div class="subText" title="${sub}">${sub}</div>
-      `;
-
-      const right = document.createElement("div");
-      right.className = "right";
-      const pill = document.createElement("div");
-      pill.className = "pillMini " + (data?.playerName ? "" : "dim");
-      pill.textContent = data?.playerName ? "CLAIMED" : "OPEN";
-      right.appendChild(pill);
-
-      div.appendChild(left);
-      div.appendChild(right);
-      return div;
-    }
-
-    // diff + animate updates
-    function applyRegion(regionSlotsEl, regionCountEl, slotKeys, mapNew, mapPrev){
-      let claimed = 0;
-
-      regionSlotsEl.innerHTML = "";
-      for (const k of slotKeys){
-        const v = mapNew.get(k) || null;
-        if (v?.playerName) claimed++;
-
-        const row = makeSlotRow(k, v);
-
-        // animate if changed
-        const prev = mapPrev.get(k);
-        const changed = JSON.stringify(prev || {}) !== JSON.stringify(v || {});
-        if (changed && (prev || v)) {
-          row.classList.add("flash");
+        if (b.isClaimed) {
+          const lock = document.createElement("div");
+          lock.className = "lockOverlay";
+          lock.textContent = "🔒";
+          div.appendChild(lock);
         }
 
-        regionSlotsEl.appendChild(row);
-      }
-
-      regionCountEl.textContent = `${claimed} / 16`;
+        div.onclick = (ev) => claimBall(b, ev.currentTarget);
+        grid.appendChild(div);
+      });
     }
 
-    function renderWinners(listEl, winners){
-      // winners: [{slotKey, round, regionCode, winnerTeam, winnerSeed, updatedAt}, ...]
-      listEl.innerHTML = "";
-      const top = (Array.isArray(winners) ? winners.slice() : [])
-        .sort((a,b) => String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")))
-        .slice(0, 14);
+    function showModal({ title, big, line1, line2, metaHtml, isError=false }) {
+      modalTitle.textContent = title || "Result";
+      modalBig.innerHTML = big || "";
+      modalLine1.innerHTML = line1 || "";
+      modalLine2.innerHTML = line2 || "";
+      modalMeta.innerHTML = metaHtml || "";
+      countdownEl.textContent = "";
 
-      if (!top.length){
-        listEl.innerHTML = `<div style="color:rgba(255,255,255,.55); font-size:13px;">No winners posted yet.</div>`;
+      if (isError) modalBig.classList.add("errorText");
+      else modalBig.classList.remove("errorText");
+
+      modalBack.style.display = "flex";
+      modalBack.setAttribute("aria-hidden", "false");
+    }
+
+    function hideModal() {
+      modalBack.style.display = "none";
+      modalBack.setAttribute("aria-hidden", "true");
+      clearRedirect_();
+    }
+
+    function clearRedirect_(){
+      if (redirectTimer) clearTimeout(redirectTimer);
+      if (redirectCountdown) clearInterval(redirectCountdown);
+      redirectTimer = null;
+      redirectCountdown = null;
+      countdownEl.textContent = "";
+    }
+
+    function confettiBurst() {
+      if (typeof confetti !== "function") return;
+      confetti({ particleCount: 110, spread: 70, startVelocity: 42, origin: { y: 0.68 } });
+      setTimeout(() => confetti({ particleCount: 70, spread: 100, startVelocity: 38, origin: { y: 0.62 } }), 140);
+    }
+
+    async function claimBall(ball, el) {
+      if (busy) return;
+      if (ball.isClaimed) return;
+
+      const token = tokenEl.value.trim();
+      const name = playerEl.value.trim();
+
+      if (!name || !token) {
+        showModal({
+          title: "Missing info",
+          big: "Enter your name + token",
+          line1: "Please fill both fields before selecting a ball.",
+          line2: "If you don’t have a token link, ask the organizer.",
+          metaHtml: "",
+          isError: true
+        });
         return;
       }
 
-      for (const w of top){
-        const row = document.createElement("div");
-        row.className = "winnerRow";
-        row.innerHTML = `
-          <div><b>${w.slotKey || "—"}</b> <small>${w.round || ""}</small></div>
-          <div>${w.winnerTeam ? `${w.winnerTeam} (Seed ${w.winnerSeed || "—"})` : "—"}</div>
-        `;
-        listEl.appendChild(row);
-      }
-    }
+      busy = true;
 
-    /**************************************************************
-     * Live updates
-     **************************************************************/
-    let prevMap = new Map();
+      // Fast spin first
+      el.classList.add("spinning");
+      await new Promise(r => setTimeout(r, 820));
 
-    async function loadBracket(){
-      if (!API_URL || API_URL.includes("PASTE_YOUR")){
-        setApi("bad","Set API_URL in bracket.html");
+      const result = await api("claimBall", {
+        token,
+        playerName: name,
+        ballNumber: String(ball.ballNumber)
+      });
+
+      // Finish spin → settle landing
+      el.classList.remove("spinning");
+      el.classList.add("settling");
+      setTimeout(() => el.classList.remove("settling"), 420);
+
+      if (!result.ok) {
+        showModal({
+          title: "Not claimed",
+          big: escapeHtml(result.error || "Something went wrong"),
+          line1: "Try another available ball.",
+          line2: "",
+          metaHtml: "",
+          isError: true
+        });
+        busy = false;
+        await loadState();
         return;
       }
 
-      try{
-        setApi("", "Updating…");
-        const data = await postAction(ACTION_GET_BRACKET, {});
-        if (!data.ok) throw new Error(data.error || "getBracketData failed");
+      const c = result.claim;
+      confettiBurst();
 
-        setApi("good", "Live ✅");
+      const slot = String(c.bracketSlot || "").trim();
+      const bracketUrl = `./bracket.html?token=${encodeURIComponent(token)}&slot=${encodeURIComponent(slot)}&ball=${encodeURIComponent(String(c.ballNumber))}`;
 
-        // bracketPicks map keyed by slotKey (E1.., W1..)
-        const picks = Array.isArray(data.bracketPicks) ? data.bracketPicks : [];
-        const newMap = new Map();
-        for (const p of picks){
-          const key = normalizeSlotKey(p.slotKey);
-          newMap.set(key, {
-            playerName: p.playerName || "",
-            team: p.team || "",
-            seed: p.seed || "",
-            ballNumber: p.ballNumber || ""
-          });
-        }
+      viewBracketBtn.onclick = () => { window.location.href = bracketUrl; };
 
-        applyRegion($("eastSlots"), $("eastCount"), buildSlotList("E"), newMap, prevMap);
-        applyRegion($("westSlots"), $("westCount"), buildSlotList("W"), newMap, prevMap);
-        applyRegion($("southSlots"), $("southCount"), buildSlotList("S"), newMap, prevMap);
-        applyRegion($("midSlots"), $("midCount"), buildSlotList("M"), newMap, prevMap);
+      showModal({
+        title: "Ball claimed!",
+        big: `🎉 Locked in`,
+        line1: `<b>Bracket Position:</b> ${escapeHtml(slot)} <span style="opacity:.7">•</span> ${escapeHtml(String(c.region))} <span style="opacity:.7">•</span> Seed ${escapeHtml(String(c.seed))}`,
+        line2: `Taking you to the live bracket…`,
+        metaHtml: `
+          <div><b>Ball #</b> ${escapeHtml(String(c.ballNumber))}</div>
+          <div><b>Time</b> ${escapeHtml(String(c.claimedAt))}</div>
+        `,
+        isError: false
+      });
 
-        // winners panel (optional)
-        renderWinners($("winnersList"), data.bracketWinners || []);
+      // Auto-redirect (clean + predictable)
+      clearRedirect_();
+      let secs = 3;
+      countdownEl.textContent = `Auto-opening bracket in ${secs}s…`;
+      redirectCountdown = setInterval(() => {
+        secs--;
+        countdownEl.textContent = `Auto-opening bracket in ${secs}s…`;
+      }, 1000);
 
-        prevMap = newMap;
+      redirectTimer = setTimeout(() => {
+        window.location.href = bracketUrl;
+      }, 3000);
 
-      }catch(err){
-        console.error(err);
-        setApi("bad", "Offline / error");
-      }
+      busy = false;
+      await loadState();
     }
 
-    $("btnHome").addEventListener("click", () => location.href = HOME_URL);
-    $("btnRefresh").addEventListener("click", loadBracket);
+    function escapeHtml(str) {
+      return String(str ?? "").replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+      }[m]));
+    }
 
-    // Boot
-    loadBracket();
-    setInterval(loadBracket, 10000);
+    // Auto-fill token from URL ?token=...
+    (function init() {
+      const params = new URLSearchParams(location.search);
+      const t = params.get("token");
+      if (t) tokenEl.value = t;
+      loadState();
+      setInterval(loadState, 10000);
+    })();
+
+    modalBack.addEventListener("click", (e) => {
+      if (e.target === modalBack) hideModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modalBack.style.display === "flex") hideModal();
+    });
   </script>
 </body>
 </html>
