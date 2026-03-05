@@ -7,14 +7,11 @@
 
   <style>
     :root{
-      --bg1:#070a12;
-      --bg2:#0b1833;
+      --bg1:#070a12; --bg2:#0b1833;
       --glass:rgba(255,255,255,.07);
       --border:rgba(255,255,255,.14);
       --text:#eef3ff;
       --muted:rgba(238,243,255,.72);
-      --btn:rgba(255,255,255,.10);
-      --btn2:#ffffff;
       --accent:#ff3b30;
       --blue:#4aa3ff;
     }
@@ -40,7 +37,7 @@
       padding:10px 14px; border-radius:999px;
       border:1px solid rgba(255,255,255,.16);
       background:rgba(0,0,0,.25);
-      font-weight:800;
+      font-weight:900;
     }
     .dot{ width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 12px rgba(255,60,50,.75); }
     .sub{ margin:14px 0 20px; color:var(--muted); font-size:16px; }
@@ -71,7 +68,7 @@
     }
     @media (max-width:900px){ .formRow{ grid-template-columns:1fr; } h1{font-size:36px;} }
 
-    .field label{ display:block; font-size:14px; color:var(--muted); margin:0 0 8px; font-weight:800; }
+    .field label{ display:block; font-size:14px; color:var(--muted); margin:0 0 8px; font-weight:900; }
     .field input{
       width:100%;
       padding:14px 14px;
@@ -82,7 +79,7 @@
       outline:none;
       font-size:16px;
     }
-    .help{ margin-top:10px; color:rgba(238,243,255,.55); font-size:13px; font-weight:600; }
+    .help{ margin-top:10px; color:rgba(238,243,255,.55); font-size:13px; font-weight:700; }
     .metaRow{
       display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
       margin-top:14px;
@@ -92,8 +89,8 @@
       border-radius:999px;
       border:1px solid rgba(255,255,255,.14);
       background:rgba(255,255,255,.06);
-      color:rgba(238,243,255,.80);
-      font-weight:800;
+      color:rgba(238,243,255,.85);
+      font-weight:900;
       font-size:13px;
     }
 
@@ -126,25 +123,21 @@
       cursor:pointer;
       user-select:none;
       font-weight:900;
-      letter-spacing:.2px;
       color:rgba(0,0,0,.75);
-      transform: translateZ(0);
       transition: transform .10s ease, filter .15s ease, opacity .15s ease;
     }
     .ball:hover{ transform: translateY(-1px) scale(1.01); filter:brightness(1.05); }
-    .ball.taken{
-      cursor:not-allowed;
-      opacity:.28;
-      filter:saturate(.6) brightness(.85);
-    }
-    .ball span{
-      font-size:18px;
-      line-height:1;
-      transform: translateY(-1px);
-      color: rgba(0,0,0,.55);
-    }
+    .ball.taken{ cursor:not-allowed; opacity:.28; filter:saturate(.6) brightness(.85); }
+    .ball span{ font-size:18px; line-height:1; transform: translateY(-1px); color: rgba(0,0,0,.55); }
 
-    .status{ margin-top:12px; color:rgba(238,243,255,.75); font-size:13px; font-weight:700; min-height:18px; }
+    .status{
+      margin-top:12px;
+      color:rgba(238,243,255,.80);
+      font-size:13px;
+      font-weight:800;
+      min-height:18px;
+      white-space:pre-wrap;
+    }
 
     /* Modal */
     .modalBack{
@@ -164,7 +157,7 @@
       padding:18px;
     }
     .modal h2{ margin:0 0 6px; font-size:18px; }
-    .modal p{ margin:0; color:var(--muted); font-weight:600; }
+    .modal p{ margin:0; color:var(--muted); font-weight:700; }
     .actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
     .btn{
       padding:12px 14px;
@@ -190,7 +183,6 @@
         <h1>Money Madness</h1>
         <div class="pill"><span class="dot"></span> LIVE BOARD</div>
       </div>
-
       <a class="btnLink" href="?page=bracket" target="_top">📋 View Bracket</a>
     </div>
 
@@ -227,7 +219,7 @@
   <!-- Modal -->
   <div class="modalBack" id="modalBack" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
-      <h2 id="modalTitle">Confirm your pick</h2>
+      <h2>Confirm your pick</h2>
       <p id="modalText">—</p>
       <div class="actions">
         <button class="btn" id="btnCancel">Cancel</button>
@@ -236,9 +228,7 @@
     </div>
   </div>
 
-  <!-- ✅ IMPORTANT: All JS stays inside this script tag -->
   <script>
-    // Elements
     const nameEl = document.getElementById("name");
     const tokenEl = document.getElementById("token");
     const gridEl = document.getElementById("grid");
@@ -264,8 +254,7 @@
     }
 
     function nowStamp(){
-      const d = new Date();
-      return d.toLocaleString();
+      return new Date().toLocaleString();
     }
 
     function showModal(ballNumber){
@@ -287,18 +276,15 @@
         const div = document.createElement("div");
         div.className = "ball" + (b.available ? "" : " taken");
 
-        // Blank look (no numbers shown)
         const s = document.createElement("span");
-        s.textContent = "●";
+        s.textContent = "●"; // blank look
         div.appendChild(s);
 
         if (b.available){
           div.addEventListener("click", () => {
             if (busy) return;
-
             const name = nameEl.value.trim();
             const token = tokenEl.value.trim();
-
             if (!name || !token){
               statusEl.textContent = "Enter your name and token first.";
               return;
@@ -306,7 +292,6 @@
             showModal(b.ballNumber);
           });
         }
-
         gridEl.appendChild(div);
       });
     }
@@ -314,8 +299,10 @@
     async function loadState(){
       try{
         const st = await api({ action:"getState" });
+
         if(!st.ok){
-          statusEl.textContent = st.error || "Error loading balls.";
+          countChip.textContent = "Error";
+          statusEl.textContent = "API ERROR: " + (st.error || "Unknown");
           return;
         }
 
@@ -325,8 +312,10 @@
 
         renderBalls(st.balls);
         statusEl.textContent = "";
+
       }catch(err){
-        statusEl.textContent = String(err);
+        countChip.textContent = "Error";
+        statusEl.textContent = "LOAD ERROR: " + String(err);
       }
     }
 
@@ -348,7 +337,7 @@
         });
 
         if(!out.ok){
-          statusEl.textContent = out.error || "Could not save pick.";
+          statusEl.textContent = "SAVE ERROR: " + (out.error || "Unknown");
           hideModal();
           await loadState();
           return;
@@ -359,7 +348,7 @@
         await loadState();
 
       }catch(err){
-        statusEl.textContent = String(err);
+        statusEl.textContent = "SAVE ERROR: " + String(err);
         hideModal();
       }finally{
         busy = false;
@@ -367,7 +356,7 @@
       }
     }
 
-    // ✅ Auto-fill token from URL ?token=...
+    // Auto-fill token from URL ?token=...
     (function init(){
       const params = new URLSearchParams(location.search);
       const t = params.get("token");
@@ -377,12 +366,12 @@
       setInterval(loadState, 10000);
     })();
 
-    // ✅ Close modal by clicking outside
+    // Close modal by clicking outside
     modalBack.addEventListener("click", (e) => {
       if (e.target === modalBack) hideModal();
     });
 
-    // ✅ ESC closes modal
+    // ESC closes modal
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && modalBack.style.display === "flex") hideModal();
     });
