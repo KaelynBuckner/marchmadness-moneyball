@@ -1,22 +1,20 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Money Madness — Pick Your Ball</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Money Madness — Live Bracket</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <style>
     :root{
       --bg1:#07162f; --bg2:#0e2a55;
       --stroke:rgba(255,255,255,.10);
       --text:#eaf2ff; --muted:#9db7e6;
-      --blue:#2a66ff; --orange:#ff7a00; --orange2:#ff9d2f;
-      --good:#30d158; --bad:#ff453a;
+      --blue:#2a66ff; --orange:#ff7a00;
       --radius:18px; --shadow:0 18px 50px rgba(0,0,0,.45);
     }
     *{box-sizing:border-box}
@@ -28,7 +26,7 @@
         radial-gradient(900px 700px at 90% 20%, rgba(255,122,0,.22), transparent 55%),
         linear-gradient(135deg, var(--bg1), var(--bg2));
     }
-    .wrap{max-width:1100px;margin:0 auto;padding:18px}
+    .wrap{max-width:1600px;margin:0 auto;padding:18px}
     .topbar{
       display:flex;gap:14px;align-items:center;justify-content:space-between;
       padding:14px 16px;border:1px solid var(--stroke);
@@ -41,85 +39,105 @@
     .mark:after{content:"";position:absolute;inset:-30%;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), transparent 55%);transform:rotate(20deg)}
     .brand h1{margin:0;font-family:Oswald,Inter,sans-serif;letter-spacing:.6px;font-size:22px;line-height:1}
     .sub{margin-top:2px;color:var(--muted);font-size:12px;font-weight:800}
-    .score{display:flex;gap:10px;align-items:center;justify-content:center;flex:1}
-    .pill{display:flex;gap:10px;align-items:center;padding:10px 12px;background:rgba(0,0,0,.22);border:1px solid var(--stroke);border-radius:999px;min-width:150px;justify-content:center}
-    .pill span{color:var(--muted);font-size:12px;font-weight:900}
-    .pill b{font-family:Oswald,Inter,sans-serif;letter-spacing:.4px}
+
     .btn{
       border:none;border-radius:14px;padding:11px 14px;color:white;font-weight:900;cursor:pointer;
       background:linear-gradient(135deg,var(--orange),#ff4d00);
       box-shadow:0 12px 26px rgba(255,122,0,.22);
+      user-select:none;
     }
     .btn.secondary{background:rgba(255,255,255,.06);border:1px solid var(--stroke);box-shadow:none}
-    .btn:disabled{opacity:.55;cursor:not-allowed}
+    .pill{display:flex;gap:10px;align-items:center;padding:10px 12px;background:rgba(0,0,0,.22);border:1px solid var(--stroke);border-radius:999px;justify-content:center}
+    .pill span{color:var(--muted);font-size:12px;font-weight:900}
+    .pill b{font-family:Oswald,Inter,sans-serif;letter-spacing:.4px}
 
-    /* ✅ single column (no side bracket/activity while picking) */
-    .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
-
-    .card{border:1px solid var(--stroke);background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-    .head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08)}
-    .head h2{margin:0;font-family:Oswald,Inter,sans-serif;font-size:18px;letter-spacing:.4px}
-    .body{padding:16px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    input{
-      flex:1;min-width:220px;border-radius:14px;padding:12px;border:1px solid rgba(255,255,255,.14);
-      background:rgba(0,0,0,.22);color:var(--text);outline:none;font-weight:800
-    }
-    .hint{color:var(--muted);font-size:12px;font-weight:800;margin-top:10px;line-height:1.35}
-    .meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 12px}
-    .tag{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:999px;background:rgba(0,0,0,.22);border:1px solid var(--stroke);font-size:12px;font-weight:900;color:var(--muted)}
-    .tag b{color:var(--text)}
-    .ballGrid{display:grid;grid-template-columns:repeat(auto-fill,74px);gap:14px;justify-content:center}
-
-    /* ✅ more 3D / realistic look */
-    .ball{
-      width:74px;height:74px;border-radius:50%;
-      position:relative;cursor:pointer;
-      transform-style:preserve-3d;perspective:900px;
-      background:
-        radial-gradient(circle at 26% 24%, rgba(255,255,255,.60), transparent 28%),
-        radial-gradient(circle at 70% 78%, rgba(0,0,0,.45), transparent 38%),
-        radial-gradient(circle at 35% 35%, var(--orange2), var(--orange));
-      box-shadow:
-        inset -18px -18px 22px rgba(0,0,0,.55),
-        inset 10px 12px 18px rgba(255,255,255,.20),
-        0 16px 24px rgba(0,0,0,.55);
-      border:1px solid rgba(255,255,255,.12);
+    /* Zoom canvas */
+    .viewer{
+      margin-top:16px;
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
       overflow:hidden;
-      transition: transform .14s ease, filter .14s ease, opacity .2s ease;
+      height: calc(100vh - 130px);
+      position:relative;
     }
-    .ball:before{
-      content:"";position:absolute;inset:-25%;
-      background:
-        radial-gradient(circle at 30% 30%, rgba(255,255,255,.40), transparent 45%),
-        repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,.14) 0 1px, transparent 1px 6px);
-      opacity:.35; transform:rotate(18deg); pointer-events:none;
-      filter:contrast(1.05);
-    }
-    .ball:after{
-      content:""; position:absolute; inset:8%;
-      border-radius:50%;
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,.10);
+    .viewerHint{
+      position:absolute; left:14px; bottom:14px;
+      padding:10px 12px;border-radius:14px;
+      background:rgba(0,0,0,.38);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--muted); font-weight:900; font-size:12px;
+      backdrop-filter: blur(10px);
       pointer-events:none;
-      mix-blend-mode:overlay;
     }
-    .seamH{position:absolute;left:-10%;right:-10%;height:4px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.78);box-shadow:0 1px 0 rgba(255,255,255,.10) inset}
-    .seamV{position:absolute;top:-10%;bottom:-10%;width:4px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.78);box-shadow:0 1px 0 rgba(255,255,255,.10) inset}
+    .viewport{
+      width:100%; height:100%;
+      overflow:hidden;
+      cursor:grab;
+      touch-action:none; /* better pan/zoom on mobile */
+    }
+    .viewport.dragging{cursor:grabbing}
+    .content{
+      transform-origin: 0 0;
+      will-change: transform;
+      padding:16px;
+      /* Make it “big” so zooming out shows the full tournament area */
+      min-width: 1500px;
+    }
 
-    @keyframes idleSpin{0%{transform:rotateY(0) rotateX(14deg)}100%{transform:rotateY(360deg) rotateX(14deg)}}
-    .ball.idle{animation:idleSpin 5.2s linear infinite}
-    .ball:hover{filter:brightness(1.06);transform:translateY(-2px) scale(1.02);animation-play-state:paused}
-    @keyframes pickSpin{0%{transform:rotateY(0) rotateX(0) scale(1)}55%{transform:rotateY(560deg) rotateX(240deg) scale(1.06)}100%{transform:rotateY(920deg) rotateX(360deg) scale(1)}}
-    .ball.spin{animation:pickSpin 1.45s cubic-bezier(.2,.9,.1,1)}
-    .ball.disabled{opacity:.40;cursor:not-allowed;filter:grayscale(.2);animation:none;transform:none}
+    .bracketGrid{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:16px;
+    }
+    @media (max-width:1100px){
+      .bracketGrid{grid-template-columns:1fr;}
+      .content{min-width: 900px;}
+    }
 
-    .num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Oswald,Inter,sans-serif;font-size:26px;font-weight:900;letter-spacing:.6px;text-shadow:0 6px 18px rgba(0,0,0,.55)}
+    .regionCard{
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border-radius:var(--radius);
+      overflow:hidden;
+    }
+    .regionHead{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .regionHead h2{margin:0;font-family:Oswald,Inter,sans-serif;letter-spacing:.5px}
+    .regionBody{padding:14px 16px}
 
-    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-    .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;background:rgba(0,0,0,.22);border:1px solid var(--stroke);font-weight:900;font-size:12px}
-    .dot{width:10px;height:10px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 3px rgba(255,122,0,.18)}
-    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14);padding:12px 14px;border-radius:14px;box-shadow:var(--shadow);font-weight:900;display:none;z-index:999;backdrop-filter:blur(10px)}
-    .toast.show{display:block}
+    .roundTitle{
+      color:var(--muted);
+      font-size:12px;font-weight:900;
+      margin:10px 0 8px;
+      letter-spacing:.5px;
+      text-transform:uppercase;
+    }
+    .games{display:grid; gap:10px}
+    .game{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.22);
+      border-radius:14px;
+      padding:10px;
+    }
+    .line{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:10px;
+      padding:7px 8px;
+      border-radius:10px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+      margin-bottom:7px;
+    }
+    .line:last-child{margin-bottom:0}
+    .left{display:flex;align-items:center;gap:10px;min-width:0}
+    .seed{font-family:Oswald,Inter,sans-serif;width:28px;text-align:center;opacity:.9}
+    .team{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .owner{color:var(--muted);font-size:12px;font-weight:900;white-space:nowrap;margin-left:10px;opacity:.95}
+    .score{font-family:Oswald,Inter,sans-serif;opacity:.9;min-width:22px;text-align:right}
   </style>
 </head>
 <body>
@@ -128,74 +146,37 @@
       <div class="brand">
         <div class="mark"></div>
         <div>
-          <h1>MONEY MADNESS</h1>
-          <div class="sub">Realistic ball draw • ESPN vibe</div>
+          <h1>LIVE BRACKET</h1>
+          <div class="sub">Zoom + pan • Teams + owners update automatically</div>
         </div>
       </div>
-      <div class="score">
-        <div class="pill"><span>BALLS LEFT</span><b id="ballsLeft">—</b></div>
-        <div class="pill"><span>YOUR PICKS</span><b id="yourPicksCount">0</b></div>
-        <div class="pill"><span>MAX</span><b id="maxPicks">—</b></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center;">
-        <button class="btn secondary" id="openBracket">Live Bracket</button>
-        <button class="btn" id="refreshBtn">Refresh</button>
+
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+        <div class="pill"><span>LAST UPDATE</span><b id="lastUpdate">—</b></div>
+        <button class="btn secondary" id="pollBtn">Poll Now</button>
+        <button class="btn secondary" id="zoomOut">−</button>
+        <button class="btn secondary" id="zoomIn">+</button>
+        <button class="btn secondary" id="zoomReset">Reset</button>
+        <button class="btn" onclick="location.href='index.html'">Pick Page</button>
       </div>
     </div>
 
-    <div class="grid">
-      <div class="card">
-        <div class="head">
-          <h2>Enter Name + Pick</h2>
-          <div class="hint" style="margin:0">Token auto-fills from your link. Name saves automatically.</div>
-        </div>
-        <div class="body">
-          <div class="row">
-            <input id="token" placeholder="Token (MM-XXXXX…)" autocomplete="off" spellcheck="false">
-            <input id="name" placeholder="Your name" autocomplete="name" spellcheck="false">
-            <button class="btn" id="saveBtn" title="Optional (name auto-saves)">Save</button>
-          </div>
-          <div class="hint">Invite links auto-fill token using <b>?token=MM-XXXXX</b></div>
-
-          <div class="meta">
-            <div class="tag">Status: <b id="statusTag">Not loaded</b></div>
-            <div class="tag">Player: <b id="playerTag">—</b></div>
-          </div>
-
-          <div class="ballGrid" id="ballGrid"></div>
-          <div class="chips" id="pickedList"></div>
+    <div class="viewer">
+      <div class="viewport" id="viewport">
+        <div class="content" id="content">
+          <div class="bracketGrid" id="bracketGrid"></div>
         </div>
       </div>
+      <div class="viewerHint">Drag to pan • Ctrl+Scroll to zoom • Buttons to zoom/reset</div>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
-
-  <audio id="sndClick" preload="auto" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
-  <audio id="sndCheer" preload="auto" src="https://actions.google.com/sounds/v1/crowds/medium_crowd_cheer.ogg"></audio>
-  <audio id="sndBuzz" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-
   <script>
-    // ✅ Your Web App URL (JSONP)
     const API = "https://script.google.com/macros/s/AKfycbzplqX-cV6Fk80vHyCFrk3kxO4ZJIj7PkahyP-TZ37krUn1mhH5mM0AfywGFMbWVuQ/exec";
-
-    const BALL_COUNT = 68;
-    const POLL_MS = 8000;
+    const POLL_MS = 10000;
 
     const el = (id)=>document.getElementById(id);
-    const toastEl = el("toast");
-    const snd = { click: el("sndClick"), cheer: el("sndCheer"), buzz: el("sndBuzz") };
-    let maxPicksAllowed = 4;
-    let locked = false;
 
-    function toast(msg){
-      toastEl.textContent = msg;
-      toastEl.classList.add("show");
-      setTimeout(()=>toastEl.classList.remove("show"), 2400);
-    }
-    function confettiBurst(){
-      try{ confetti({ particleCount: 140, spread: 70, origin:{ y:0.75 } }); }catch{}
-    }
     function escapeHtml(s){
       return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
     }
@@ -215,195 +196,195 @@
         document.head.appendChild(script);
       });
     }
-    function setStatus(text, good=true){
-      el("statusTag").textContent = text;
-      el("statusTag").style.color = good ? "var(--good)" : "var(--bad)";
+
+    function normTeam(t){ return String(t||"").trim().toLowerCase(); }
+    function groupBy(arr, keyFn){
+      const m = new Map();
+      arr.forEach(x => {
+        const k = keyFn(x);
+        if (!m.has(k)) m.set(k, []);
+        m.get(k).push(x);
+      });
+      return m;
     }
 
-    function makeBall(){
-      const d = document.createElement("div");
-      d.className = "ball idle";
-      d.innerHTML = `<div class="seamH"></div><div class="seamV"></div>`;
-      d.addEventListener("click", () => onBallClick(d));
-      return d;
+    function renderRegion(regionName, gamesByRound, ownedMap){
+      const card = document.createElement("div");
+      card.className = "regionCard";
+
+      const head = document.createElement("div");
+      head.className = "regionHead";
+      head.innerHTML = `<h2>${escapeHtml(regionName || "Region")}</h2>`;
+      card.appendChild(head);
+
+      const body = document.createElement("div");
+      body.className = "regionBody";
+
+      const roundOrder = [1,2,3,4];
+      const roundLabel = {1:"Round of 64",2:"Round of 32",3:"Sweet 16",4:"Elite 8"};
+
+      roundOrder.forEach(r => {
+        const list = gamesByRound.get(r) || [];
+        if (!list.length) return;
+
+        const title = document.createElement("div");
+        title.className = "roundTitle";
+        title.textContent = roundLabel[r] || ("Round " + r);
+        body.appendChild(title);
+
+        const gamesWrap = document.createElement("div");
+        gamesWrap.className = "games";
+
+        list.forEach(g => {
+          const homeTeam = g.homeTeam || "TBD";
+          const awayTeam = g.awayTeam || "TBD";
+          const hs = (g.homeScore ?? "");
+          const as = (g.awayScore ?? "");
+
+          const homeOwner = ownedMap.get(normTeam(homeTeam));
+          const awayOwner = ownedMap.get(normTeam(awayTeam));
+
+          const game = document.createElement("div");
+          game.className = "game";
+          game.innerHTML = `
+            <div class="line">
+              <div class="left">
+                <div class="seed">${escapeHtml(g.homeSeed || "")}</div>
+                <div class="team">${escapeHtml(homeTeam)}</div>
+                ${homeOwner ? `<div class="owner">— ${escapeHtml(homeOwner.playerName)} (${escapeHtml(homeOwner.slotKey)})</div>` : ``}
+              </div>
+              <div class="score">${escapeHtml(String(hs))}</div>
+            </div>
+            <div class="line">
+              <div class="left">
+                <div class="seed">${escapeHtml(g.awaySeed || "")}</div>
+                <div class="team">${escapeHtml(awayTeam)}</div>
+                ${awayOwner ? `<div class="owner">— ${escapeHtml(awayOwner.playerName)} (${escapeHtml(awayOwner.slotKey)})</div>` : ``}
+              </div>
+              <div class="score">${escapeHtml(String(as))}</div>
+            </div>
+          `;
+          gamesWrap.appendChild(game);
+        });
+
+        body.appendChild(gamesWrap);
+      });
+
+      card.appendChild(body);
+      return card;
     }
-    function buildRack(){
-      const grid = el("ballGrid");
+
+    async function loadBracket(){
+      const data = await jsonp(API, { action:"getBracket" });
+      if (!data || !data.ok) throw new Error(data?.error || "Failed to load bracket");
+
+      el("lastUpdate").textContent = data.updatedAt || "—";
+
+      const ownedMap = new Map();
+      (data.picks || []).forEach(p => {
+        const t = normTeam(p.team);
+        if (!t) return;
+        ownedMap.set(t, { playerName:p.playerName, slotKey:p.slotKey, ballNumber:p.ballNumber });
+      });
+
+      const games = (data.tournamentGames || []).map(g => ({
+        bracket: g.bracket || "",
+        round: Number(g.round || 0),
+        homeTeam: g.homeTeam || "TBD",
+        awayTeam: g.awayTeam || "TBD",
+        homeSeed: g.homeSeed || "",
+        awaySeed: g.awaySeed || "",
+        homeScore: g.homeScore,
+        awayScore: g.awayScore
+      })).filter(g => g.round >= 1 && g.round <= 4);
+
+      const byRegion = groupBy(games, g => (g.bracket || "Region"));
+      const grid = el("bracketGrid");
       grid.innerHTML = "";
-      for(let i=0;i<BALL_COUNT;i++) grid.appendChild(makeBall());
-    }
 
-    function lockUI(v){
-      locked = v;
-      el("saveBtn").disabled = v;
-      el("refreshBtn").disabled = v;
-      el("token").disabled = v;
-      el("name").disabled = v;
-      document.querySelectorAll(".ball").forEach(b => {
-        if(v) b.classList.add("disabled");
-        else if(!b.dataset.picked) b.classList.remove("disabled");
+      Array.from(byRegion.keys()).sort().forEach(region => {
+        const gamesInRegion = byRegion.get(region) || [];
+        const byRound = groupBy(gamesInRegion, g => g.round);
+        grid.appendChild(renderRegion(region, byRound, ownedMap));
       });
     }
 
-    function renderPicked(picks){
-      const box = el("pickedList");
-      box.innerHTML = "";
-      (picks || []).forEach(p => {
-        const c = document.createElement("div");
-        c.className = "chip";
-        c.innerHTML = `<span class="dot"></span> Ball <b>${p.ballNumber}</b> • Slot <b>${escapeHtml(p.slotKey||"")}</b>`;
-        box.appendChild(c);
-      });
-      el("yourPicksCount").textContent = String((picks||[]).length);
+    /* ===== Zoom + Pan ===== */
+    const viewport = el("viewport");
+    const content = el("content");
+
+    let scale = 1;
+    let tx = 0, ty = 0;
+    let dragging = false;
+    let startX = 0, startY = 0;
+    let startTx = 0, startTy = 0;
+
+    function applyTransform(){
+      content.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    }
+    function clampScale(s){
+      return Math.max(0.35, Math.min(2.5, s));
+    }
+    function zoomTo(newScale, cx, cy){
+      newScale = clampScale(newScale);
+      // zoom around cursor point
+      const prev = scale;
+      if (newScale === prev) return;
+
+      const rect = viewport.getBoundingClientRect();
+      const x = (cx ?? (rect.left + rect.width/2)) - rect.left;
+      const y = (cy ?? (rect.top + rect.height/2)) - rect.top;
+
+      const worldX = (x - tx) / prev;
+      const worldY = (y - ty) / prev;
+
+      scale = newScale;
+      tx = x - worldX * scale;
+      ty = y - worldY * scale;
+
+      applyTransform();
+    }
+    function resetView(){
+      scale = 1;
+      tx = 0; ty = 0;
+      applyTransform();
     }
 
-    // ✅ token auto-fill supports ?token=, ?t=, and #token=
-    function autoFillTokenFromUrl(){
-      const params = new URLSearchParams(location.search);
-      let t = (params.get("token") || params.get("t") || "").trim();
-      if (!t && location.hash) {
-        const hp = new URLSearchParams(location.hash.replace(/^#/, ""));
-        t = (hp.get("token") || hp.get("t") || "").trim();
-      }
-      if (t) el("token").value = t;
-    }
+    viewport.addEventListener("mousedown", (e)=>{
+      dragging = true;
+      viewport.classList.add("dragging");
+      startX = e.clientX; startY = e.clientY;
+      startTx = tx; startTy = ty;
+    });
+    window.addEventListener("mousemove", (e)=>{
+      if(!dragging) return;
+      tx = startTx + (e.clientX - startX);
+      ty = startTy + (e.clientY - startY);
+      applyTransform();
+    });
+    window.addEventListener("mouseup", ()=>{
+      dragging = false;
+      viewport.classList.remove("dragging");
+    });
 
-    // ✅ name saves automatically (backend supports setname + setName)
-    async function saveName(silent=false){
-      const token = el("token").value.trim();
-      const name  = el("name").value.trim();
+    // Ctrl+wheel zoom
+    viewport.addEventListener("wheel", (e)=>{
+      if(!e.ctrlKey) return; // keep normal scroll unless ctrl pressed
+      e.preventDefault();
+      const delta = -e.deltaY;
+      const factor = delta > 0 ? 1.08 : 0.92;
+      zoomTo(scale * factor, e.clientX, e.clientY);
+    }, { passive:false });
 
-      if(!token){ if(!silent) toast("Paste your token first."); return false; }
-      if(!name){  if(!silent) toast("Type your name first."); return false; }
-
-      try{
-        // Use lowercase action to match older backends; Code.gs supports both.
-        const res = await jsonp(API, { action:"setname", token, name });
-        if(!res || !res.ok){
-          if(!silent) toast(res?.error || "Name save failed");
-          return false;
-        }
-        el("playerTag").textContent = name;
-        return true;
-      }catch(e){
-        if(!silent) toast("API error saving name.");
-        return false;
-      }
-    }
-
-    async function loadState(){
-      const token = el("token").value.trim();
-      if(!token){ setStatus("Not loaded", false); return; }
-
-      setStatus("Loading…", true);
-      try{
-        const data = await jsonp(API, { action:"getState", token });
-        if(!data || !data.ok){
-          setStatus(data?.error || "Load failed", false);
-          toast(data?.error || "Load failed");
-          return;
-        }
-        maxPicksAllowed = Number(data.maxPicksPerToken || 4);
-        el("maxPicks").textContent = String(maxPicksAllowed);
-        el("ballsLeft").textContent = String(data.ballsRemaining ?? "—");
-
-        const typed = el("name").value.trim();
-        const backendName = (data.playerName || "").trim();
-        if (!typed && backendName) el("name").value = backendName;
-
-        el("playerTag").textContent = typed || backendName || "—";
-        renderPicked(data.yourPicks || []);
-        setStatus("Ready", true);
-      }catch(e){
-        setStatus("API error", false);
-        toast("API error.");
-      }
-    }
-
-    async function onBallClick(ballEl){
-      if(locked) return;
-
-      const token = el("token").value.trim();
-      if(!token){ toast("Paste your token first."); return; }
-
-      // ✅ ensure name saved BEFORE picking (prevents Missing name)
-      const okName = await saveName(true);
-      if(!okName){
-        snd.buzz?.play?.();
-        toast("Type your name first.");
-        return;
-      }
-
-      const currentCount = Number(el("yourPicksCount").textContent || "0");
-      if(currentCount >= maxPicksAllowed){
-        snd.buzz?.play?.();
-        toast("You’ve reached max picks.");
-        return;
-      }
-
-      lockUI(true);
-      snd.click?.play?.();
-
-      ballEl.classList.remove("idle");
-      ballEl.classList.add("spin");
-
-      try{
-        const res = await jsonp(API, { action:"pickBall", token });
-        if(!res || !res.ok){
-          snd.buzz?.play?.();
-          toast(res?.error || "Pick failed");
-          ballEl.classList.remove("spin");
-          ballEl.classList.add("idle");
-          return;
-        }
-
-        setTimeout(() => {
-          ballEl.dataset.picked = "1";
-          ballEl.innerHTML += `<div class="num">${res.pick.ballNumber}</div>`;
-          ballEl.classList.add("disabled");
-        }, 650);
-
-        setTimeout(() => {
-          snd.cheer?.play?.();
-          confettiBurst();
-          toast(`Locked in: BALL ${res.pick.ballNumber} (${res.pick.slotKey})`);
-        }, 950);
-
-        await loadState();
-      }catch(e){
-        snd.buzz?.play?.();
-        toast("Pick failed (API error).");
-      }finally{
-        lockUI(false);
-      }
-    }
+    el("zoomIn").addEventListener("click", ()=> zoomTo(scale * 1.12));
+    el("zoomOut").addEventListener("click", ()=> zoomTo(scale * 0.88));
+    el("zoomReset").addEventListener("click", resetView);
 
     function init(){
-      buildRack();
-      autoFillTokenFromUrl();
-
-      el("saveBtn").addEventListener("click", () => saveName(false));
-      el("refreshBtn").addEventListener("click", loadState);
-
-      // auto-save name after typing
-      let nameTimer = null;
-      el("name").addEventListener("input", () => {
-        clearTimeout(nameTimer);
-        nameTimer = setTimeout(() => saveName(true), 350);
-      });
-      el("name").addEventListener("blur", () => saveName(true));
-      el("name").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") { e.preventDefault(); saveName(false); }
-      });
-
-      el("openBracket").addEventListener("click", () => {
-        const tok = el("token").value.trim();
-        const url = "bracket.html" + (tok ? ("?token=" + encodeURIComponent(tok)) : "");
-        window.open(url, "_blank");
-      });
-
-      if(el("token").value.trim()) loadState();
-      setInterval(()=>{ if(el("token").value.trim()) loadState(); }, POLL_MS);
+      el("pollBtn").addEventListener("click", () => loadBracket().catch(()=>{}));
+      loadBracket().catch(()=>{});
+      setInterval(()=> loadBracket().catch(()=>{}), POLL_MS);
+      applyTransform();
     }
     init();
   </script>
