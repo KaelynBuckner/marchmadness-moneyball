@@ -3,93 +3,224 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Live Bracket</title>
+  <title>Money Madness</title>
+
   <style>
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#0b1220;color:#eef3ff;padding:28px 16px 60px}
-    .wrap{max-width:1100px;margin:0 auto}
-    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-    h1{margin:0;font-size:22px}
-    a{color:#93c5fd;text-decoration:none;font-weight:900}
-    .card{margin-top:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:14px}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.10);text-align:left;font-size:13px}
-    th{opacity:.8;font-weight:900}
-    .muted{opacity:.75;font-size:13px;margin-top:10px;font-weight:800;white-space:pre-wrap}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#0b1220;color:#eef3ff}
+    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 60px}
+    h1{margin:0 0 6px;font-size:42px}
+    .muted{opacity:.75;font-size:14px}
+    .card{margin-top:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:16px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:900px){.row{grid-template-columns:1fr}}
+    label{display:block;margin:0 0 6px;font-size:13px;opacity:.8;font-weight:700}
+    input{width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.25);color:#fff}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+    a{color:#93c5fd;text-decoration:none;font-weight:800}
+    .chip{padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);font-weight:800;font-size:13px;opacity:.9}
+    .grid{display:grid;grid-template-columns:repeat(14,1fr);gap:10px;margin-top:14px}
+    @media(max-width:1000px){.grid{grid-template-columns:repeat(10,1fr)}}
+    @media(max-width:640px){.grid{grid-template-columns:repeat(7,1fr)}}
+    .ball{height:52px;border-radius:16px;border:1px solid rgba(255,255,255,.14);
+      background:linear-gradient(180deg,#ffb07a,#d36b35);
+      display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;font-weight:900;color:rgba(0,0,0,.6)}
+    .ball.taken{opacity:.28;cursor:not-allowed}
+    .status{margin-top:12px;font-size:13px;opacity:.85;min-height:18px;white-space:pre-wrap}
+
+    .back{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.65)}
+    .modal{width:min(520px,100%);background:#0f1a33;border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:16px}
+    .modal h2{margin:0 0 6px;font-size:18px}
+    .btns{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+    button{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.10);color:#eef3ff;font-weight:900;padding:10px 12px;border-radius:14px;cursor:pointer}
+    .primary{background:linear-gradient(180deg,#4aa3ff,#2a78d2)}
+    .primary:disabled{opacity:.6;cursor:not-allowed}
   </style>
 </head>
+
 <body>
   <div class="wrap">
-    <div class="top">
-      <h1>Live Picks</h1>
-      <a href="https://kaelynbuckner.github.io/marchmadness-moneyball/">← Back</a>
-    </div>
+    <h1>Money Madness</h1>
+    <div class="muted">Pick any <b>blank</b> basketball. Once claimed, it locks.</div>
 
     <div class="card">
-      <table>
-        <thead><tr><th>Name</th><th>Token</th><th>Ball #</th></tr></thead>
-        <tbody id="rows"></tbody>
-      </table>
-      <div class="muted" id="status">Loading…</div>
+      <div class="row">
+        <div>
+          <label>Your name</label>
+          <input id="name" placeholder="Type your name (required)">
+        </div>
+        <div>
+          <label>Invite token</label>
+          <input id="token" placeholder="Auto-filled from your link">
+        </div>
+      </div>
+
+      <div class="topbar">
+        <a href="bracket.html">📋 View Bracket</a>
+        <div class="chip" id="countChip">Loading balls…</div>
+        <div class="chip" id="updatedChip">Last updated: —</div>
+      </div>
+
+      <div class="grid" id="grid"></div>
+      <div class="status" id="status"></div>
     </div>
   </div>
 
-<script>
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzlQ91quFkT2XA98MusdUMtvh6heIQKxzjpF2vkvfxmoc7vPLUvChIQoqHax2l5r-I/exec";
+  <div class="back" id="modalBack">
+    <div class="modal">
+      <h2>Confirm your pick</h2>
+      <div class="muted" id="modalText">—</div>
+      <div class="btns">
+        <button id="cancelBtn">Cancel</button>
+        <button class="primary" id="confirmBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
 
-  function jsonp(params) {
-    return new Promise((resolve, reject) => {
-      const cb = "mm_cb_" + Math.random().toString(16).slice(2);
-      const url = new URL(WEB_APP_URL);
-      Object.entries({ ...params, callback: cb }).forEach(([k,v]) => url.searchParams.set(k, v));
+  <script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzlQ91quFkT2XA98MusdUMtvh6heIQKxzjpF2vkvfxmoc7vPLUvChIQoqHax2l5r-I/exec";
 
-      const script = document.createElement("script");
-      const timer = setTimeout(() => {
-        cleanup();
-        reject(new Error("JSONP timeout"));
-      }, 12000);
+    const nameEl = document.getElementById("name");
+    const tokenEl = document.getElementById("token");
+    const gridEl = document.getElementById("grid");
+    const statusEl = document.getElementById("status");
+    const countChip = document.getElementById("countChip");
+    const updatedChip = document.getElementById("updatedChip");
 
-      function cleanup(){
-        clearTimeout(timer);
-        delete window[cb];
-        script.remove();
-      }
+    const modalBack = document.getElementById("modalBack");
+    const modalText = document.getElementById("modalText");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const confirmBtn = document.getElementById("confirmBtn");
 
-      window[cb] = (data) => { cleanup(); resolve(data); };
-      script.onerror = () => { cleanup(); reject(new Error("JSONP load error")); };
-      script.src = url.toString();
-      document.body.appendChild(script);
-    });
-  }
+    let pendingBallNumber = null;
+    let busy = false;
 
-  function esc(s){
-    return String(s).replace(/[&<>"']/g, m => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[m]));
-  }
+    // JSONP helper (bypasses CORS)
+    function jsonp(params) {
+      return new Promise((resolve, reject) => {
+        const cb = "mm_cb_" + Math.random().toString(16).slice(2);
+        const url = new URL(WEB_APP_URL);
+        Object.entries({ ...params, callback: cb }).forEach(([k, v]) => url.searchParams.set(k, v));
 
-  const rowsEl = document.getElementById("rows");
-  const statusEl = document.getElementById("status");
+        const script = document.createElement("script");
+        const timer = setTimeout(() => { cleanup(); reject(new Error("JSONP timeout")); }, 12000);
 
-  async function load(){
-    try{
-      const st = await jsonp({ action:"getState" });
-      if(!st.ok){ statusEl.textContent = "API ERROR: " + (st.error || "Unknown"); return; }
+        function cleanup() {
+          clearTimeout(timer);
+          delete window[cb];
+          script.remove();
+        }
 
-      rowsEl.innerHTML = "";
-      st.picks.forEach(p=>{
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${esc(p.name)}</td><td>${esc(p.token)}</td><td>${p.ballNumber}</td>`;
-        rowsEl.appendChild(tr);
+        window[cb] = (data) => { cleanup(); resolve(data); };
+        script.onerror = () => { cleanup(); reject(new Error("JSONP load error")); };
+        script.src = url.toString();
+        document.body.appendChild(script);
       });
-
-      statusEl.textContent = `Loaded ${st.picks.length} picks. Refreshing every 10 seconds.`;
-    }catch(err){
-      statusEl.textContent = String(err);
     }
-  }
 
-  load();
-  setInterval(load, 10000);
-</script>
+    function showModal(ballNumber) {
+      pendingBallNumber = ballNumber;
+      modalText.textContent = `Confirm to lock in your pick. You will receive Ball #${ballNumber}.`;
+      modalBack.style.display = "flex";
+    }
+
+    function hideModal() {
+      pendingBallNumber = null;
+      modalBack.style.display = "none";
+    }
+
+    function renderBalls(balls) {
+      gridEl.innerHTML = "";
+      balls.forEach(b => {
+        const d = document.createElement("div");
+        d.className = "ball" + (b.available ? "" : " taken");
+        d.textContent = "●";
+
+        if (b.available) {
+          d.onclick = () => {
+            if (busy) return;
+            const name = nameEl.value.trim();
+            const token = tokenEl.value.trim();
+            if (!name || !token) {
+              statusEl.textContent = "Enter your name and token first.";
+              return;
+            }
+            showModal(b.ballNumber);
+          };
+        }
+        gridEl.appendChild(d);
+      });
+    }
+
+    async function loadState() {
+      try {
+        const st = await jsonp({ action: "getState" });
+        if (!st.ok) {
+          countChip.textContent = "Error";
+          statusEl.textContent = "API ERROR: " + (st.error || "Unknown");
+          return;
+        }
+
+        const taken = st.balls.filter(x => !x.available).length;
+        countChip.textContent = `${taken}/${st.ballCount || 68} claimed`;
+        updatedChip.textContent = "Last updated: " + new Date().toLocaleString();
+
+        renderBalls(st.balls);
+        statusEl.textContent = "";
+      } catch (err) {
+        countChip.textContent = "Error";
+        statusEl.textContent = "LOAD ERROR: " + String(err);
+      }
+    }
+
+    async function confirmPick() {
+      if (busy || !pendingBallNumber) return;
+      busy = true;
+      confirmBtn.disabled = true;
+
+      try {
+        statusEl.textContent = "Saving…";
+        const out = await jsonp({
+          action: "pickBall",
+          name: nameEl.value.trim(),
+          token: tokenEl.value.trim(),
+          ballNumber: String(pendingBallNumber)
+        });
+
+        if (!out.ok) {
+          statusEl.textContent = "SAVE ERROR: " + (out.error || "Unknown");
+          hideModal();
+          await loadState();
+          return;
+        }
+
+        statusEl.textContent = `Locked in! You got Ball #${pendingBallNumber}.`;
+        hideModal();
+        await loadState();
+      } catch (err) {
+        statusEl.textContent = "SAVE ERROR: " + String(err);
+        hideModal();
+      } finally {
+        busy = false;
+        confirmBtn.disabled = false;
+      }
+    }
+
+    // ✅ Auto-fill token from URL ?token=...
+    (function init() {
+      const params = new URLSearchParams(location.search);
+      const t = params.get("token");
+      if (t) tokenEl.value = t;
+
+      loadState();
+      setInterval(loadState, 10000);
+    })();
+
+    // Modal close handlers
+    modalBack.addEventListener("click", (e) => { if (e.target === modalBack) hideModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modalBack.style.display === "flex") hideModal(); });
+
+    cancelBtn.onclick = hideModal;
+    confirmBtn.onclick = confirmPick;
+  </script>
 </body>
 </html>
