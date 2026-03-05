@@ -18,6 +18,8 @@
       --blue:#2a66ff; --orange:#ff7a00; --orange2:#ff9d2f;
       --good:#30d158; --bad:#ff453a;
       --radius:18px; --shadow:0 18px 50px rgba(0,0,0,.45);
+      --card: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      --blk: rgba(0,0,0,.22);
     }
     *{box-sizing:border-box}
     body{
@@ -30,9 +32,9 @@
     }
     .wrap{max-width:1100px;margin:0 auto;padding:18px}
     .topbar{
-      display:flex;gap:14px;align-items:center;justify-content:space-between;
+      display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;
       padding:14px 16px;border:1px solid var(--stroke);
-      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      background:var(--card);
       border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(10px);
       position:sticky; top:12px; z-index:50;
     }
@@ -41,22 +43,24 @@
     .mark:after{content:"";position:absolute;inset:-30%;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), transparent 55%);transform:rotate(20deg)}
     .brand h1{margin:0;font-family:Oswald,Inter,sans-serif;letter-spacing:.6px;font-size:22px;line-height:1}
     .sub{margin-top:2px;color:var(--muted);font-size:12px;font-weight:800}
-    .score{display:flex;gap:10px;align-items:center;justify-content:center;flex:1}
-    .pill{display:flex;gap:10px;align-items:center;padding:10px 12px;background:rgba(0,0,0,.22);border:1px solid var(--stroke);border-radius:999px;min-width:150px;justify-content:center}
+
+    .pill{display:flex;gap:10px;align-items:center;padding:10px 12px;background:var(--blk);border:1px solid var(--stroke);border-radius:999px;justify-content:center}
     .pill span{color:var(--muted);font-size:12px;font-weight:900}
     .pill b{font-family:Oswald,Inter,sans-serif;letter-spacing:.4px}
+
     .btn{
       border:none;border-radius:14px;padding:11px 14px;color:white;font-weight:900;cursor:pointer;
       background:linear-gradient(135deg,var(--orange),#ff4d00);
       box-shadow:0 12px 26px rgba(255,122,0,.22);
+      user-select:none;
     }
     .btn.secondary{background:rgba(255,255,255,.06);border:1px solid var(--stroke);box-shadow:none}
     .btn:disabled{opacity:.55;cursor:not-allowed}
 
-    /* ✅ single column (no side bracket/activity while picking) */
-    .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+    @media (max-width:940px){.grid{grid-template-columns:1fr}}
 
-    .card{border:1px solid var(--stroke);background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .card{border:1px solid var(--stroke);background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
     .head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08)}
     .head h2{margin:0;font-family:Oswald,Inter,sans-serif;font-size:18px;letter-spacing:.4px}
     .body{padding:16px}
@@ -67,58 +71,123 @@
     }
     .hint{color:var(--muted);font-size:12px;font-weight:800;margin-top:10px;line-height:1.35}
     .meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 12px}
-    .tag{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:999px;background:rgba(0,0,0,.22);border:1px solid var(--stroke);font-size:12px;font-weight:900;color:var(--muted)}
+    .tag{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:999px;background:var(--blk);border:1px solid var(--stroke);font-size:12px;font-weight:900;color:var(--muted)}
     .tag b{color:var(--text)}
-    .ballGrid{display:grid;grid-template-columns:repeat(auto-fill,74px);gap:14px;justify-content:center}
 
-    /* ✅ more 3D / realistic look */
+    /* Balls */
+    .ballGrid{display:grid;grid-template-columns:repeat(auto-fill,80px);gap:16px;justify-content:center}
     .ball{
-      width:74px;height:74px;border-radius:50%;
-      position:relative;cursor:pointer;
-      transform-style:preserve-3d;perspective:900px;
+      width:80px;height:80px;border-radius:50%;
+      position:relative;cursor:pointer;transform-style:preserve-3d;perspective:900px;
       background:
-        radial-gradient(circle at 26% 24%, rgba(255,255,255,.60), transparent 28%),
-        radial-gradient(circle at 70% 78%, rgba(0,0,0,.45), transparent 38%),
-        radial-gradient(circle at 35% 35%, var(--orange2), var(--orange));
+        radial-gradient(circle at 28% 26%, rgba(255,255,255,.55), transparent 35%),
+        radial-gradient(circle at 70% 80%, rgba(0,0,0,.35), transparent 45%),
+        radial-gradient(circle at 50% 50%, var(--orange2), var(--orange));
       box-shadow:
         inset -18px -18px 22px rgba(0,0,0,.55),
-        inset 10px 12px 18px rgba(255,255,255,.20),
-        0 16px 24px rgba(0,0,0,.55);
-      border:1px solid rgba(255,255,255,.12);
+        inset 12px 14px 18px rgba(255,255,255,.14),
+        0 18px 22px rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.10);
       overflow:hidden;
       transition: transform .14s ease, filter .14s ease, opacity .2s ease;
     }
     .ball:before{
-      content:"";position:absolute;inset:-25%;
+      content:"";
+      position:absolute; inset:-25%;
       background:
-        radial-gradient(circle at 30% 30%, rgba(255,255,255,.40), transparent 45%),
-        repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,.14) 0 1px, transparent 1px 6px);
-      opacity:.35; transform:rotate(18deg); pointer-events:none;
-      filter:contrast(1.05);
-    }
-    .ball:after{
-      content:""; position:absolute; inset:8%;
-      border-radius:50%;
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,.10);
+        radial-gradient(circle at 25% 25%, rgba(255,255,255,.30), transparent 42%),
+        repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,.10) 0 1px, transparent 1px 6px);
+      opacity:.35; transform:rotate(18deg);
       pointer-events:none;
-      mix-blend-mode:overlay;
     }
-    .seamH{position:absolute;left:-10%;right:-10%;height:4px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.78);box-shadow:0 1px 0 rgba(255,255,255,.10) inset}
-    .seamV{position:absolute;top:-10%;bottom:-10%;width:4px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.78);box-shadow:0 1px 0 rgba(255,255,255,.10) inset}
+    .seamH{position:absolute;left:-10%;right:-10%;height:4px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.78)}
+    .seamV{position:absolute;top:-10%;bottom:-10%;width:4px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.78)}
+    .ball:hover{filter:brightness(1.07);transform:translateY(-2px) scale(1.02)}
+    .ball.disabled{opacity:.38;cursor:not-allowed;filter:grayscale(.15);transform:none}
 
-    @keyframes idleSpin{0%{transform:rotateY(0) rotateX(14deg)}100%{transform:rotateY(360deg) rotateX(14deg)}}
-    .ball.idle{animation:idleSpin 5.2s linear infinite}
-    .ball:hover{filter:brightness(1.06);transform:translateY(-2px) scale(1.02);animation-play-state:paused}
-    @keyframes pickSpin{0%{transform:rotateY(0) rotateX(0) scale(1)}55%{transform:rotateY(560deg) rotateX(240deg) scale(1.06)}100%{transform:rotateY(920deg) rotateX(360deg) scale(1)}}
-    .ball.spin{animation:pickSpin 1.45s cubic-bezier(.2,.9,.1,1)}
-    .ball.disabled{opacity:.40;cursor:not-allowed;filter:grayscale(.2);animation:none;transform:none}
+    @keyframes pickSpin{
+      0%{transform:rotateY(0) rotateX(0) scale(1)}
+      55%{transform:rotateY(600deg) rotateX(260deg) scale(1.06)}
+      100%{transform:rotateY(980deg) rotateX(360deg) scale(1)}
+    }
+    .ball.spin{animation:pickSpin 1.35s cubic-bezier(.2,.9,.1,1)}
 
-    .num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Oswald,Inter,sans-serif;font-size:26px;font-weight:900;letter-spacing:.6px;text-shadow:0 6px 18px rgba(0,0,0,.55)}
+    /* Reveal Modal */
+    .modalBack{
+      position:fixed; inset:0; background:rgba(0,0,0,.55);
+      display:none; align-items:center; justify-content:center;
+      z-index:999; backdrop-filter: blur(10px);
+      padding:18px;
+    }
+    .modal{
+      width:min(920px, 96vw);
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .modalTop{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:14px 16px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+    .modalTop h3{margin:0;font-family:Oswald,Inter,sans-serif;letter-spacing:.5px}
+    .x{cursor:pointer; font-weight:900; color:var(--muted); padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.20)}
+    .modalBody{padding:16px; display:grid; gap:14px; grid-template-columns: 360px 1fr; }
+    @media (max-width:860px){ .modalBody{grid-template-columns:1fr} }
 
-    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-    .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;background:rgba(0,0,0,.22);border:1px solid var(--stroke);font-weight:900;font-size:12px}
-    .dot{width:10px;height:10px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 3px rgba(255,122,0,.18)}
-    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14);padding:12px 14px;border-radius:14px;box-shadow:var(--shadow);font-weight:900;display:none;z-index:999;backdrop-filter:blur(10px)}
+    .revealCard{
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.22);
+      padding:16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .revealCard:before{
+      content:"";
+      position:absolute; inset:-40%;
+      background:radial-gradient(circle at 30% 30%, rgba(42,102,255,.30), transparent 55%),
+                 radial-gradient(circle at 70% 70%, rgba(255,122,0,.25), transparent 55%);
+      transform:rotate(18deg);
+      opacity:.85;
+      pointer-events:none;
+    }
+    .revealInner{position:relative; z-index:1}
+    .slotBig{
+      font-family:Oswald,Inter,sans-serif;
+      font-size:64px;
+      letter-spacing:2px;
+      margin:0 0 6px;
+      line-height:1;
+      text-shadow:0 16px 40px rgba(0,0,0,.55);
+    }
+    .miniRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    .mini{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:10px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      font-weight:900;
+      color:var(--muted);
+    }
+    .mini b{color:var(--text)}
+    .iframeWrap{
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.22);
+      overflow:hidden;
+      min-height:420px;
+    }
+    iframe{width:100%; height:100%; border:0; display:block; min-height:420px; background:transparent;}
+    .toast{
+      position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+      background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14);
+      padding:12px 14px;border-radius:14px;box-shadow:var(--shadow);
+      font-weight:900;display:none;z-index:999;backdrop-filter:blur(10px)
+    }
     .toast.show{display:block}
   </style>
 </head>
@@ -129,15 +198,11 @@
         <div class="mark"></div>
         <div>
           <h1>MONEY MADNESS</h1>
-          <div class="sub">Realistic ball draw • ESPN vibe</div>
+          <div class="sub">ESPN vibe • Realistic ball reveal • Live bracket</div>
         </div>
       </div>
-      <div class="score">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
         <div class="pill"><span>BALLS LEFT</span><b id="ballsLeft">—</b></div>
-        <div class="pill"><span>YOUR PICKS</span><b id="yourPicksCount">0</b></div>
-        <div class="pill"><span>MAX</span><b id="maxPicks">—</b></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center;">
         <button class="btn secondary" id="openBracket">Live Bracket</button>
         <button class="btn" id="refreshBtn">Refresh</button>
       </div>
@@ -146,16 +211,15 @@
     <div class="grid">
       <div class="card">
         <div class="head">
-          <h2>Enter Name + Pick</h2>
-          <div class="hint" style="margin:0">Token auto-fills from your link. Name saves automatically.</div>
+          <h2>Enter Token + Name</h2>
+          <div class="hint" style="margin:0">Token auto-fills from invite link.</div>
         </div>
         <div class="body">
           <div class="row">
             <input id="token" placeholder="Token (MM-XXXXX…)" autocomplete="off" spellcheck="false">
             <input id="name" placeholder="Your name" autocomplete="name" spellcheck="false">
-            <button class="btn" id="saveBtn" title="Optional (name auto-saves)">Save</button>
+            <button class="btn" id="saveBtn">Save</button>
           </div>
-          <div class="hint">Invite links auto-fill token using <b>?token=MM-XXXXX</b></div>
 
           <div class="meta">
             <div class="tag">Status: <b id="statusTag">Not loaded</b></div>
@@ -163,7 +227,50 @@
           </div>
 
           <div class="ballGrid" id="ballGrid"></div>
-          <div class="chips" id="pickedList"></div>
+          <div class="hint">Pick a ball. Your ball will spin and reveal your bracket slot (ex: <b>E12</b>). That slot locks immediately.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="head">
+          <h2>Live Activity</h2>
+          <button class="btn secondary" id="pollBtn">Poll Now</button>
+        </div>
+        <div class="body">
+          <div id="log" class="hint">No activity yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reveal + Bracket modal -->
+  <div class="modalBack" id="modalBack">
+    <div class="modal">
+      <div class="modalTop">
+        <h3>Your Draw is Locked</h3>
+        <div class="x" id="closeModal">Close</div>
+      </div>
+      <div class="modalBody">
+        <div class="revealCard">
+          <div class="revealInner">
+            <div class="hint" style="margin:0 0 8px">Bracket Slot</div>
+            <div class="slotBig" id="slotBig">—</div>
+            <div class="miniRow">
+              <div class="mini">Region: <b id="slotRegion">—</b></div>
+              <div class="mini">Seed: <b id="slotSeed">—</b></div>
+            </div>
+            <div class="hint" style="margin-top:12px">
+              Teams will appear after Selection Sunday. Your name stays pinned to this slot.
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+              <button class="btn" id="openBracketNow">Open Full Bracket</button>
+              <button class="btn secondary" id="stayHere">Stay Here</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="iframeWrap">
+          <iframe id="bracketFrame" title="Live Bracket"></iframe>
         </div>
       </div>
     </div>
@@ -176,16 +283,14 @@
   <audio id="sndBuzz" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
   <script>
-    // ✅ Your Web App URL (JSONP)
+    // ✅ Your Web App URL
     const API = "https://script.google.com/macros/s/AKfycbzplqX-cV6Fk80vHyCFrk3kxO4ZJIj7PkahyP-TZ37krUn1mhH5mM0AfywGFMbWVuQ/exec";
-
     const BALL_COUNT = 68;
-    const POLL_MS = 8000;
+    const POLL_MS = 9000;
 
     const el = (id)=>document.getElementById(id);
     const toastEl = el("toast");
     const snd = { click: el("sndClick"), cheer: el("sndCheer"), buzz: el("sndBuzz") };
-    let maxPicksAllowed = 4;
     let locked = false;
 
     function toast(msg){
@@ -222,7 +327,7 @@
 
     function makeBall(){
       const d = document.createElement("div");
-      d.className = "ball idle";
+      d.className = "ball";
       d.innerHTML = `<div class="seamH"></div><div class="seamV"></div>`;
       d.addEventListener("click", () => onBallClick(d));
       return d;
@@ -237,57 +342,50 @@
       locked = v;
       el("saveBtn").disabled = v;
       el("refreshBtn").disabled = v;
+      el("pollBtn").disabled = v;
       el("token").disabled = v;
       el("name").disabled = v;
       document.querySelectorAll(".ball").forEach(b => {
         if(v) b.classList.add("disabled");
-        else if(!b.dataset.picked) b.classList.remove("disabled");
+        else if(!b.dataset.locked) b.classList.remove("disabled");
       });
     }
 
-    function renderPicked(picks){
-      const box = el("pickedList");
-      box.innerHTML = "";
-      (picks || []).forEach(p => {
-        const c = document.createElement("div");
-        c.className = "chip";
-        c.innerHTML = `<span class="dot"></span> Ball <b>${p.ballNumber}</b> • Slot <b>${escapeHtml(p.slotKey||"")}</b>`;
-        box.appendChild(c);
-      });
-      el("yourPicksCount").textContent = String((picks||[]).length);
+    function showModal(slotKey, region, seed){
+      el("slotBig").textContent = slotKey || "—";
+      el("slotRegion").textContent = region || "—";
+      el("slotSeed").textContent = seed || "—";
+
+      const tok = el("token").value.trim();
+      const url = "bracket.html"
+        + (tok ? ("?token=" + encodeURIComponent(tok)) : "")
+        + (slotKey ? ((tok ? "&" : "?") + "slot=" + encodeURIComponent(slotKey)) : "");
+
+      el("bracketFrame").src = url;
+      el("modalBack").style.display = "flex";
+    }
+    function hideModal(){
+      el("modalBack").style.display = "none";
+      // keep iframe loaded (do not clear src)
     }
 
-    // ✅ token auto-fill supports ?token=, ?t=, and #token=
-    function autoFillTokenFromUrl(){
-      const params = new URLSearchParams(location.search);
-      let t = (params.get("token") || params.get("t") || "").trim();
-      if (!t && location.hash) {
-        const hp = new URLSearchParams(location.hash.replace(/^#/, ""));
-        t = (hp.get("token") || hp.get("t") || "").trim();
-      }
-      if (t) el("token").value = t;
-    }
-
-    // ✅ name saves automatically (backend supports setname + setName)
-    async function saveName(silent=false){
+    async function saveName(){
       const token = el("token").value.trim();
-      const name  = el("name").value.trim();
+      const name = el("name").value.trim();
+      if(!token){ toast("Paste your token first."); return; }
+      if(!name){ toast("Type your name first."); return; }
 
-      if(!token){ if(!silent) toast("Paste your token first."); return false; }
-      if(!name){  if(!silent) toast("Type your name first."); return false; }
-
+      lockUI(true);
       try{
-        // Use lowercase action to match older backends; Code.gs supports both.
         const res = await jsonp(API, { action:"setname", token, name });
-        if(!res || !res.ok){
-          if(!silent) toast(res?.error || "Name save failed");
-          return false;
-        }
-        el("playerTag").textContent = name;
-        return true;
+        if(!res || !res.ok){ toast(res?.error || "Save failed"); setStatus("Name save failed", false); return; }
+        toast("Name saved!");
+        await loadState();
       }catch(e){
-        if(!silent) toast("API error saving name.");
-        return false;
+        toast("API error saving name.");
+        setStatus("API error", false);
+      }finally{
+        lockUI(false);
       }
     }
 
@@ -303,16 +401,23 @@
           toast(data?.error || "Load failed");
           return;
         }
-        maxPicksAllowed = Number(data.maxPicksPerToken || 4);
-        el("maxPicks").textContent = String(maxPicksAllowed);
         el("ballsLeft").textContent = String(data.ballsRemaining ?? "—");
+        el("playerTag").textContent = data.playerName || "—";
 
-        const typed = el("name").value.trim();
-        const backendName = (data.playerName || "").trim();
-        if (!typed && backendName) el("name").value = backendName;
+        // Simple activity display
+        if (data.recentPicks && data.recentPicks.length) {
+          el("log").className = "";
+          el("log").innerHTML = data.recentPicks.map(it => `
+            <div class="tag" style="display:flex;justify-content:space-between;width:100%;margin-bottom:10px">
+              <span><b>${escapeHtml(it.playerName||"Player")}</b> • ${escapeHtml(it.slotKey||"")}</span>
+              <span style="color:var(--muted)">${escapeHtml(it.time||"")}</span>
+            </div>
+          `).join("");
+        } else {
+          el("log").className = "hint";
+          el("log").textContent = "No activity yet.";
+        }
 
-        el("playerTag").textContent = typed || backendName || "—";
-        renderPicked(data.yourPicks || []);
         setStatus("Ready", true);
       }catch(e){
         setStatus("API error", false);
@@ -324,27 +429,20 @@
       if(locked) return;
 
       const token = el("token").value.trim();
+      const name = el("name").value.trim();
       if(!token){ toast("Paste your token first."); return; }
+      if(!name){ toast("Type your name first."); return; }
 
-      // ✅ ensure name saved BEFORE picking (prevents Missing name)
-      const okName = await saveName(true);
-      if(!okName){
-        snd.buzz?.play?.();
-        toast("Type your name first.");
-        return;
-      }
-
-      const currentCount = Number(el("yourPicksCount").textContent || "0");
-      if(currentCount >= maxPicksAllowed){
-        snd.buzz?.play?.();
-        toast("You’ve reached max picks.");
-        return;
-      }
-
+      // Ensure name is saved before pick (keeps it consistent)
       lockUI(true);
-      snd.click?.play?.();
+      try{
+        const save = await jsonp(API, { action:"setname", token, name });
+        if(!save || !save.ok){ snd.buzz?.play?.(); toast(save?.error || "Name save failed"); lockUI(false); return; }
+      }catch{
+        snd.buzz?.play?.(); toast("Name save failed (API error)."); lockUI(false); return;
+      }
 
-      ballEl.classList.remove("idle");
+      snd.click?.play?.();
       ballEl.classList.add("spin");
 
       try{
@@ -353,52 +451,64 @@
           snd.buzz?.play?.();
           toast(res?.error || "Pick failed");
           ballEl.classList.remove("spin");
-          ballEl.classList.add("idle");
+          lockUI(false);
           return;
         }
 
+        // Lock this ball visually after spin finishes
         setTimeout(() => {
-          ballEl.dataset.picked = "1";
-          ballEl.innerHTML += `<div class="num">${res.pick.ballNumber}</div>`;
+          ballEl.dataset.locked = "1";
           ballEl.classList.add("disabled");
-        }, 650);
+        }, 900);
 
+        // Reveal card + bracket (slotKey like E12)
         setTimeout(() => {
           snd.cheer?.play?.();
           confettiBurst();
-          toast(`Locked in: BALL ${res.pick.ballNumber} (${res.pick.slotKey})`);
-        }, 950);
+          const slotKey = res.pick?.slotKey || "";
+          const region = res.pick?.region || "";
+          const seed = res.pick?.seed || "";
+          toast(`Locked: ${slotKey}`);
+          showModal(slotKey, region, seed);
+        }, 980);
 
         await loadState();
       }catch(e){
         snd.buzz?.play?.();
         toast("Pick failed (API error).");
       }finally{
+        // unlock UI but keep picked ball disabled
         lockUI(false);
       }
     }
 
     function init(){
       buildRack();
-      autoFillTokenFromUrl();
 
-      el("saveBtn").addEventListener("click", () => saveName(false));
+      const params = new URLSearchParams(location.search);
+      const t = params.get("token");
+      if(t) el("token").value = t;
+
+      el("saveBtn").addEventListener("click", saveName);
       el("refreshBtn").addEventListener("click", loadState);
-
-      // auto-save name after typing
-      let nameTimer = null;
-      el("name").addEventListener("input", () => {
-        clearTimeout(nameTimer);
-        nameTimer = setTimeout(() => saveName(true), 350);
-      });
-      el("name").addEventListener("blur", () => saveName(true));
-      el("name").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") { e.preventDefault(); saveName(false); }
-      });
+      el("pollBtn").addEventListener("click", loadState);
 
       el("openBracket").addEventListener("click", () => {
         const tok = el("token").value.trim();
         const url = "bracket.html" + (tok ? ("?token=" + encodeURIComponent(tok)) : "");
+        window.open(url, "_blank");
+      });
+
+      el("closeModal").addEventListener("click", hideModal);
+      el("stayHere").addEventListener("click", hideModal);
+      el("modalBack").addEventListener("click", (e)=>{ if(e.target === el("modalBack")) hideModal(); });
+
+      el("openBracketNow").addEventListener("click", () => {
+        const tok = el("token").value.trim();
+        const slotKey = el("slotBig").textContent.trim();
+        const url = "bracket.html"
+          + (tok ? ("?token=" + encodeURIComponent(tok)) : "")
+          + (slotKey ? ((tok ? "&" : "?") + "slot=" + encodeURIComponent(slotKey)) : "");
         window.open(url, "_blank");
       });
 
