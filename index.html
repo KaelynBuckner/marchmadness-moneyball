@@ -15,7 +15,6 @@
     :root{
       --bg1:#07162f;
       --bg2:#0e2a55;
-      --panel:rgba(255,255,255,.06);
       --stroke:rgba(255,255,255,.10);
       --text:#eaf2ff;
       --muted:#9db7e6;
@@ -24,7 +23,6 @@
       --orange2:#ff9d2f;
       --good:#30d158;
       --bad:#ff453a;
-
       --radius:18px;
       --shadow: 0 18px 50px rgba(0,0,0,.45);
     }
@@ -43,7 +41,6 @@
 
     .wrap{ max-width:1100px; margin:0 auto; padding:18px; }
 
-    /* ESPN-ish top bar */
     .topbar{
       display:flex; gap:14px; align-items:center; justify-content:space-between;
       padding:14px 16px;
@@ -54,16 +51,12 @@
       position:sticky; top:12px; z-index:50;
       backdrop-filter: blur(10px);
     }
-    .brand{
-      display:flex; gap:12px; align-items:center;
-      min-width:240px;
-    }
+    .brand{ display:flex; gap:12px; align-items:center; min-width:240px; }
     .logoMark{
       width:44px;height:44px;border-radius:14px;
       background:linear-gradient(135deg, var(--orange), var(--blue));
       box-shadow: 0 12px 22px rgba(0,0,0,.35);
-      position:relative;
-      overflow:hidden;
+      position:relative; overflow:hidden;
     }
     .logoMark:after{
       content:"";
@@ -78,18 +71,9 @@
       font-size:22px;
       line-height:1.0;
     }
-    .brand .sub{
-      margin-top:2px;
-      color:var(--muted);
-      font-size:12px;
-      font-weight:600;
-      letter-spacing:.2px;
-    }
+    .brand .sub{ margin-top:2px; color:var(--muted); font-size:12px; font-weight:600; }
 
-    .scorestrip{
-      display:flex; gap:10px; align-items:center; justify-content:center;
-      flex:1;
-    }
+    .scorestrip{ display:flex; gap:10px; align-items:center; justify-content:center; flex:1; }
     .pill{
       display:flex; gap:10px; align-items:center;
       padding:10px 12px;
@@ -100,12 +84,10 @@
       justify-content:center;
     }
     .pill b{ font-family:Oswald,Inter,sans-serif; letter-spacing:.4px; }
-    .pill span{ color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.2px; }
+    .pill span{ color:var(--muted); font-size:12px; font-weight:700; }
 
-    .right{
-      display:flex; gap:10px; align-items:center; justify-content:flex-end;
-      min-width:240px;
-    }
+    .right{ display:flex; gap:10px; align-items:center; justify-content:flex-end; min-width:240px; }
+
     .btn{
       border:none;
       border-radius:14px;
@@ -125,11 +107,7 @@
       box-shadow:none;
       color:var(--text);
     }
-    .btn:disabled{
-      opacity:.55;
-      cursor:not-allowed;
-      filter:grayscale(.2);
-    }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
 
     .grid{
       display:grid;
@@ -137,11 +115,7 @@
       gap:16px;
       margin-top:16px;
     }
-    @media (max-width: 940px){
-      .grid{ grid-template-columns:1fr; }
-      .brand, .right{ min-width:auto; }
-      .pill{ min-width:auto; }
-    }
+    @media (max-width: 940px){ .grid{ grid-template-columns:1fr; } .brand,.right{ min-width:auto; } .pill{ min-width:auto; } }
 
     .card{
       border:1px solid var(--stroke);
@@ -163,15 +137,9 @@
     }
     .cardBody{ padding:16px; }
 
-    .formRow{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
+    .formRow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     input{
-      flex:1;
-      min-width:220px;
+      flex:1; min-width:220px;
       border-radius:14px;
       padding:12px 12px;
       border:1px solid rgba(255,255,255,.14);
@@ -182,15 +150,8 @@
     }
     input::placeholder{ color:rgba(157,183,230,.65); font-weight:700; }
 
-    .hint{
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.35;
-      margin-top:10px;
-      font-weight:600;
-    }
+    .hint{ color:var(--muted); font-size:12px; line-height:1.35; margin-top:10px; font-weight:600; }
 
-    /* Ball rack */
     .rackMeta{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       margin-bottom:12px;
@@ -216,15 +177,10 @@
     }
 
     .ball{
-      width:74px;
-      height:74px;
-      border-radius:50%;
-      position:relative;
-      cursor:pointer;
-      transform-style:preserve-3d;
-      perspective:800px;
-      background:
-        radial-gradient(circle at 30% 30%, var(--orange2), var(--orange));
+      width:74px; height:74px; border-radius:50%;
+      position:relative; cursor:pointer;
+      transform-style:preserve-3d; perspective:800px;
+      background: radial-gradient(circle at 30% 30%, var(--orange2), var(--orange));
       box-shadow:
         inset -10px -12px 14px rgba(0,0,0,0.45),
         inset 10px 12px 16px rgba(255,255,255,0.18),
@@ -234,7 +190,6 @@
       overflow:hidden;
     }
 
-    /* leather texture + highlight */
     .ball:before{
       content:"";
       position:absolute; inset:-20%;
@@ -247,15 +202,9 @@
       pointer-events:none;
     }
 
-    /* seams */
-    .seamH, .seamV, .seamCurve1, .seamCurve2{
-      position:absolute;
-      background:rgba(0,0,0,.72);
-      box-shadow: 0 0 0 1px rgba(255,255,255,.06);
-      pointer-events:none;
-    }
-    .seamH{ left:-8%; right:-8%; height:4px; top:50%; transform: translateY(-50%); }
-    .seamV{ top:-8%; bottom:-8%; width:4px; left:50%; transform: translateX(-50%); }
+    .seamH, .seamV, .seamCurve1, .seamCurve2{ position:absolute; pointer-events:none; }
+    .seamH{ left:-8%; right:-8%; height:4px; top:50%; transform: translateY(-50%); background:rgba(0,0,0,.72); box-shadow: 0 0 0 1px rgba(255,255,255,.06); }
+    .seamV{ top:-8%; bottom:-8%; width:4px; left:50%; transform: translateX(-50%); background:rgba(0,0,0,.72); box-shadow: 0 0 0 1px rgba(255,255,255,.06); }
     .seamCurve1{
       width:120%; height:120%;
       left:-10%; top:-10%;
@@ -276,29 +225,23 @@
       opacity:.9;
     }
 
-    /* idle slow spin */
     @keyframes idleSpin{
       0%{ transform: rotateY(0deg) rotateX(12deg); }
       100%{ transform: rotateY(360deg) rotateX(12deg); }
     }
-    .ball.idle{
-      animation: idleSpin 5.2s linear infinite;
-    }
+    .ball.idle{ animation: idleSpin 5.2s linear infinite; }
     .ball:hover{
       filter:brightness(1.07);
       transform: translateY(-2px) scale(1.02);
       animation-play-state: paused;
     }
 
-    /* pick spin */
     @keyframes pickSpin{
       0%{ transform: rotateY(0deg) rotateX(0deg) scale(1); }
       55%{ transform: rotateY(540deg) rotateX(220deg) scale(1.06); }
       100%{ transform: rotateY(900deg) rotateX(360deg) scale(1); }
     }
-    .ball.spin{
-      animation: pickSpin 1.45s cubic-bezier(.2,.9,.1,1);
-    }
+    .ball.spin{ animation: pickSpin 1.45s cubic-bezier(.2,.9,.1,1); }
 
     .ball.disabled{
       opacity:.40;
@@ -321,10 +264,7 @@
       pointer-events:none;
     }
 
-    .pickedList{
-      display:flex; gap:8px; flex-wrap:wrap;
-      margin-top:10px;
-    }
+    .pickedList{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
     .chip{
       display:inline-flex; align-items:center; gap:8px;
       padding:8px 10px;
@@ -342,9 +282,7 @@
       display:inline-block;
     }
 
-    .log{
-      display:grid; gap:10px;
-    }
+    .log{ display:grid; gap:10px; }
     .logItem{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       padding:12px 12px;
@@ -365,9 +303,7 @@
     }
 
     .toast{
-      position:fixed;
-      bottom:16px;
-      left:50%;
+      position:fixed; bottom:16px; left:50%;
       transform:translateX(-50%);
       background:rgba(0,0,0,.55);
       border:1px solid rgba(255,255,255,.14);
@@ -382,16 +318,7 @@
     }
     .toast.show{ display:block; }
 
-    /* small footer */
-    .foot{
-      margin:14px 0 0;
-      color:rgba(157,183,230,.75);
-      font-size:12px;
-      font-weight:700;
-      text-align:center;
-    }
-    a{ color:#9fc0ff; text-decoration:none; font-weight:900; }
-    a:hover{ text-decoration:underline; }
+    .foot{ margin:14px 0 0; color:rgba(157,183,230,.75); font-size:12px; font-weight:700; text-align:center; }
   </style>
 </head>
 
@@ -413,13 +340,12 @@
       </div>
 
       <div class="right">
-        <button class="btn secondary" id="openBracket">Live Bracket</button>
+        <button class="btn secondary" id="openBracket">Live Board</button>
         <button class="btn" id="refreshBtn">Refresh</button>
       </div>
     </div>
 
     <div class="grid">
-      <!-- LEFT: Pick panel -->
       <div class="card">
         <div class="cardHead">
           <h2>Pick Your Ball</h2>
@@ -430,9 +356,7 @@
             <input id="token" placeholder="Paste your token (MM-XXXXXX...)" autocomplete="off" spellcheck="false">
             <button class="btn" id="loadBtn">Load</button>
           </div>
-          <div class="hint">
-            Tip: Your invite link can include <b>?token=MM-XXXXX</b> so it auto-fills.
-          </div>
+          <div class="hint">Tip: Your invite link can include <b>?token=MM-XXXXX</b> so it auto-fills.</div>
 
           <div style="height:14px"></div>
 
@@ -442,16 +366,12 @@
           </div>
 
           <div class="ballGrid" id="ballGrid"></div>
-
           <div class="pickedList" id="pickedList"></div>
 
-          <div class="foot">
-            If something looks stuck, click <b>Refresh</b>. You can share the live board anytime.
-          </div>
+          <div class="foot">If something looks stuck, click <b>Refresh</b>.</div>
         </div>
       </div>
 
-      <!-- RIGHT: Live activity -->
       <div class="card">
         <div class="cardHead">
           <h2>Live Activity</h2>
@@ -472,18 +392,12 @@
   <audio id="sndBuzz" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
   <script>
-    /***************
-     * CONFIG
-     ***************/
-    // IMPORTANT: replace with YOUR deployed Apps Script web app /exec URL
+    // ✅ Your Apps Script Web App URL
     const API = "https://script.google.com/macros/s/AKfycbzplqX-cV6Fk80vHyCFrk3kxO4ZJIj7PkahyP-TZ37krUn1mhH5mM0AfywGFMbWVuQ/exec";
 
-    const POLL_MS = 8000; // live activity refresh
-    const BALL_COUNT = 68; // NCAA tournament field
+    const POLL_MS = 8000;
+    const BALL_COUNT = 68;
 
-    /***************
-     * JSONP helper
-     ***************/
     function jsonp(url, params = {}) {
       return new Promise((resolve, reject) => {
         const cb = "cb_" + Math.random().toString(16).slice(2);
@@ -518,31 +432,22 @@
       });
     }
 
-    /***************
-     * UI helpers
-     ***************/
     const el = (id) => document.getElementById(id);
     const toastEl = el("toast");
-    const snd = {
-      click: el("sndClick"),
-      cheer: el("sndCheer"),
-      buzz: el("sndBuzz"),
-    };
+    const snd = { click: el("sndClick"), cheer: el("sndCheer"), buzz: el("sndBuzz") };
 
     function toast(msg){
       toastEl.textContent = msg;
       toastEl.classList.add("show");
       setTimeout(()=>toastEl.classList.remove("show"), 2400);
     }
-
     function confettiBurst(){
-      try{
-        confetti({
-          particleCount: 140,
-          spread: 70,
-          origin: { y: 0.75 }
-        });
-      }catch{}
+      try{ confetti({ particleCount: 140, spread: 70, origin: { y: 0.75 } }); }catch{}
+    }
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[c]));
     }
 
     function makeBall(){
@@ -598,16 +503,6 @@
       });
     }
 
-    function escapeHtml(s){
-      return String(s).replace(/[&<>"']/g, c => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-      }[c]));
-    }
-
-    /***************
-     * State
-     ***************/
-    let currentToken = "";
     let maxPicksAllowed = 4;
     let locked = false;
 
@@ -633,22 +528,22 @@
       }
     }
 
-    async function loadState(){
-      if(!API || API.includes("PASTE_YOUR")){
-        toast("Paste your Apps Script /exec URL into index.html first.");
-        setStatus("Missing API URL", false);
-        return;
-      }
+    function refreshRackDisabledState(picksCount){
+      const canPick = picksCount < maxPicksAllowed;
+      document.querySelectorAll(".ball").forEach(b => {
+        const isPicked = b.dataset.picked === "1";
+        if(isPicked) b.classList.add("disabled");
+        else b.classList.toggle("disabled", !canPick || locked);
+      });
+    }
 
-      currentToken = el("token").value.trim();
-      if(!currentToken){
-        toast("Paste your token first.");
-        return;
-      }
+    async function loadState(){
+      const token = el("token").value.trim();
+      if(!token){ toast("Paste your token first."); return; }
 
       setStatus("Loading…", true);
       try{
-        const data = await jsonp(API, { action:"getState", token: currentToken });
+        const data = await jsonp(API, { action:"getState", token });
         if(!data || !data.ok){
           setStatus(data?.error || "Load failed", false);
           toast(data?.error || "Load failed");
@@ -665,22 +560,11 @@
         renderLog(data.recentPicks || []);
         setStatus("Ready", true);
 
-        // enable rack clicks only if can pick more
-        refreshRackDisabledState(data.yourPicks?.length || 0);
-
+        refreshRackDisabledState((data.yourPicks || []).length);
       }catch(err){
         setStatus("API error", false);
-        toast("API error. Check Apps Script deploy access + URL.");
+        toast("API error. Check deploy access + URL.");
       }
-    }
-
-    function refreshRackDisabledState(picksCount){
-      const canPick = picksCount < maxPicksAllowed;
-      document.querySelectorAll(".ball").forEach(b => {
-        const isPicked = b.dataset.picked === "1";
-        if(isPicked) b.classList.add("disabled");
-        else b.classList.toggle("disabled", !canPick || locked);
-      });
     }
 
     async function onBallClick(ballEl){
@@ -688,26 +572,14 @@
 
       const token = el("token").value.trim();
       if(!token){ toast("Paste your token first."); return; }
+      if(ballEl.dataset.picked === "1"){ snd.buzz?.play?.(); toast("Pick a different ball."); return; }
 
-      // if already revealed, don't reuse this visual ball
-      if(ballEl.dataset.picked === "1"){
-        snd.buzz?.play?.();
-        toast("Pick a different ball (this one is already revealed).");
-        return;
-      }
-
-      // check if user already hit max (client side)
       const currentCount = Number(el("yourPicksCount").textContent || "0");
-      if(currentCount >= maxPicksAllowed){
-        snd.buzz?.play?.();
-        toast("You’ve reached the max picks.");
-        return;
-      }
+      if(currentCount >= maxPicksAllowed){ snd.buzz?.play?.(); toast("You’ve reached the max picks."); return; }
 
       lockUI(true);
       snd.click?.play?.();
 
-      // spin animation
       ballEl.classList.remove("idle");
       ballEl.classList.add("spin");
 
@@ -722,23 +594,19 @@
           return;
         }
 
-        // reveal number mid-spin
         setTimeout(() => {
           ballEl.dataset.picked = "1";
           ballEl.innerHTML += `<div class="ballNumber">${res.pick.ballNumber}</div>`;
           ballEl.classList.add("disabled");
         }, 650);
 
-        // celebration
         setTimeout(() => {
           snd.cheer?.play?.();
           confettiBurst();
           toast(`Locked in: BALL ${res.pick.ballNumber}`);
         }, 950);
 
-        // refresh UI data
         await loadState();
-
       }catch(e){
         snd.buzz?.play?.();
         toast("Pick failed. Check API deploy + permissions.");
@@ -747,13 +615,9 @@
       }
     }
 
-    /***************
-     * Init
-     ***************/
     function init(){
       buildRack();
 
-      // auto-fill token from URL ?token=...
       const params = new URLSearchParams(location.search);
       const t = params.get("token");
       if(t) el("token").value = t;
@@ -768,13 +632,8 @@
         window.open(url, "_blank");
       });
 
-      // initial poll if token already present
       if(el("token").value.trim()) loadState();
-
-      // poll live activity
-      setInterval(() => {
-        if(el("token").value.trim()) loadState();
-      }, POLL_MS);
+      setInterval(() => { if(el("token").value.trim()) loadState(); }, POLL_MS);
     }
     init();
   </script>
