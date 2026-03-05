@@ -51,11 +51,10 @@
       user-select:none;
     }
     .btn.secondary{background:rgba(255,255,255,.06);border:1px solid var(--stroke);box-shadow:none}
-    .pill{display:flex;gap:10px;align-items:center;padding:10px 12px;background:rgba(0,0,0,.22);border:1px solid var(--stroke);border-radius:999px;justify-content:center}
+    .pill{display:flex;gap:10px;align-items:center;padding:10px 12px;background:var(--blk);border:1px solid var(--stroke);border-radius:999px;justify-content:center}
     .pill span{color:var(--muted);font-size:12px;font-weight:900}
     .pill b{font-family:Oswald,Inter,sans-serif;letter-spacing:.4px}
 
-    /* zoom viewer */
     .viewer{
       margin-top:16px;
       border:1px solid var(--stroke);
@@ -69,17 +68,7 @@
     .viewport{width:100%; height:100%; overflow:hidden; cursor:grab; touch-action:none;}
     .viewport.dragging{cursor:grabbing}
     .content{transform-origin:0 0; will-change:transform; padding:16px; min-width:2100px;}
-    .hint{
-      position:absolute; left:14px; bottom:14px;
-      padding:10px 12px;border-radius:14px;
-      background:rgba(0,0,0,.38);
-      border:1px solid rgba(255,255,255,.12);
-      color:var(--muted); font-weight:900; font-size:12px;
-      backdrop-filter: blur(10px);
-      pointer-events:none;
-    }
 
-    /* bracket layout like NCAA template */
     .bracket{
       display:grid;
       grid-template-columns: 1fr 420px 1fr;
@@ -87,24 +76,21 @@
       align-items:start;
     }
 
-    .side{
+    .side, .center{
       border:1px solid var(--stroke);
       border-radius:var(--radius);
       background:var(--card);
       overflow:hidden;
     }
-    .sideHeader{
+    .sideHeader, .centerHead{
       padding:12px 14px;
       border-bottom:1px solid rgba(255,255,255,.08);
       display:flex;justify-content:space-between;align-items:center;
     }
-    .sideHeader h2{
+    .sideHeader h2, .centerHead h2{
       margin:0;font-family:Oswald,Inter,sans-serif;letter-spacing:.5px;font-size:16px;
     }
-    .legend{
-      color:var(--muted);font-size:12px;font-weight:900;
-      display:flex;gap:10px;align-items:center;
-    }
+    .legend{color:var(--muted);font-size:12px;font-weight:900;display:flex;gap:10px;align-items:center;}
     .dot{width:10px;height:10px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 3px rgba(255,122,0,.18)}
     .dot2{width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 3px rgba(42,102,255,.18)}
 
@@ -126,6 +112,7 @@
       display:flex;justify-content:space-between;align-items:center;
     }
     .regionHead b{font-family:Oswald,Inter,sans-serif;letter-spacing:.5px}
+
     .roundTitles{
       display:grid;
       grid-template-columns: 240px 190px 160px 140px;
@@ -137,7 +124,6 @@
       letter-spacing:.5px;
       text-transform:uppercase;
     }
-
     .rounds{
       display:grid;
       grid-template-columns: 240px 190px 160px 140px;
@@ -145,7 +131,6 @@
       padding:0 12px 12px;
       align-items:start;
     }
-
     .col{display:grid; gap:10px}
     .game{border:1px solid rgba(255,255,255,.10); border-radius:14px; background:rgba(255,255,255,.03); overflow:hidden}
     .teamRow{
@@ -163,32 +148,11 @@
     .hi{background:var(--hi); outline:2px solid rgba(255,122,0,.32)}
     .hi2{background:var(--hi2); outline:2px solid rgba(42,102,255,.26)}
 
-    /* center: Final Four / Championship */
-    .center{
-      border:1px solid var(--stroke);
-      border-radius:var(--radius);
-      background:var(--card);
-      overflow:hidden;
-    }
-    .centerHead{
-      padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);
-      display:flex;justify-content:space-between;align-items:center;
-    }
-    .centerHead h2{margin:0;font-family:Oswald,Inter,sans-serif;letter-spacing:.5px;font-size:16px}
     .centerBody{padding:12px}
-    .centerGrid{
-      display:grid;
-      gap:12px;
-    }
-    .centerLabel{
-      color:var(--muted);font-weight:900;font-size:11px;letter-spacing:.5px;text-transform:uppercase;
-    }
-    .centerBlock{
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:16px;
-      background:rgba(0,0,0,.22);
-      padding:10px;
-    }
+    .centerGrid{display:grid;gap:12px}
+    .centerLabel{color:var(--muted);font-weight:900;font-size:11px;letter-spacing:.5px;text-transform:uppercase;}
+    .centerBlock{border:1px solid rgba(255,255,255,.10);border-radius:16px;background:rgba(0,0,0,.22);padding:10px;}
+
   </style>
 </head>
 <body>
@@ -197,8 +161,8 @@
       <div class="brand">
         <div class="mark"></div>
         <div>
-          <h1>LIVE TOURNAMENT BRACKET</h1>
-          <div class="sub">Player + Team + Score updates as data arrives</div>
+          <h1>LIVE BRACKET</h1>
+          <div class="sub">All 4 regions always visible • Updates teams/owners/scores live</div>
         </div>
       </div>
 
@@ -216,16 +180,14 @@
       <div class="viewport" id="viewport">
         <div class="content" id="content">
           <div class="bracket">
-            <!-- LEFT SIDE (top+bottom regions) -->
             <div class="side">
               <div class="sideHeader">
                 <h2>LEFT SIDE</h2>
-                <div class="legend"><span class="dot"></span> Your slot <span class="dot2"></span> Your token</div>
+                <div class="legend"><span class="dot"></span> Highlight slot <span class="dot2"></span> Your token</div>
               </div>
               <div class="regions2" id="leftRegions"></div>
             </div>
 
-            <!-- CENTER -->
             <div class="center">
               <div class="centerHead">
                 <h2>FINAL FOUR + TITLE</h2>
@@ -245,18 +207,16 @@
               </div>
             </div>
 
-            <!-- RIGHT SIDE (top+bottom regions) -->
             <div class="side">
               <div class="sideHeader">
                 <h2>RIGHT SIDE</h2>
-                <div class="legend"><span class="dot"></span> Your slot <span class="dot2"></span> Your token</div>
+                <div class="legend"><span class="dot"></span> Highlight slot <span class="dot2"></span> Your token</div>
               </div>
               <div class="regions2" id="rightRegions"></div>
             </div>
           </div>
         </div>
       </div>
-      <div class="hint">Drag to pan • Ctrl+Scroll to zoom • Poll updates teams, owners, scores, advancement</div>
     </div>
   </div>
 
@@ -284,17 +244,25 @@
       });
     }
 
-    // Regions ordered to match classic bracket feel
-    const REGION_ORDER_LEFT  = ["East","West"];      // top-left, bottom-left (adjust if you prefer)
-    const REGION_ORDER_RIGHT = ["South","Midwest"];  // top-right, bottom-right
+    // Always show all 4 regions (even if API doesn’t have them yet)
+    const REGION_ORDER_LEFT  = ["East","West"];
+    const REGION_ORDER_RIGHT = ["South","Midwest"];
 
     function normalizeRegion(r){
-      const s = String(r||"").toLowerCase();
+      const s = String(r||"").toLowerCase().trim();
       if (s.startsWith("e")) return "East";
       if (s.startsWith("w")) return "West";
       if (s.startsWith("s")) return "South";
       if (s.startsWith("m")) return "Midwest";
-      return (r||"Region");
+      return r || "Region";
+    }
+
+    function emptyRegion(){
+      const emptyGame = ()=>({
+        home:{team:"TBD",seed:"",score:"",ownerName:"",ownerToken:"",slotKey:""},
+        away:{team:"TBD",seed:"",score:"",ownerName:"",ownerToken:"",slotKey:""}
+      });
+      return { rounds:{ r1:Array.from({length:8},emptyGame), r2:Array.from({length:4},emptyGame), r3:Array.from({length:2},emptyGame), r4:Array.from({length:1},emptyGame) } };
     }
 
     function renderTeamRow(t, opts){
@@ -321,7 +289,6 @@
     }
 
     function renderGame(g, opts){
-      // g.home / g.away are team objects
       return `
         <div class="game">
           ${renderTeamRow(g.home, opts)}
@@ -331,7 +298,6 @@
     }
 
     function renderRegionCard(regionName, regionData, opts){
-      // regionData.rounds: { r1:[games], r2:[games], r3:[games], r4:[games] }
       const card = document.createElement("div");
       card.className = "regionCard";
 
@@ -353,18 +319,10 @@
       const rounds = document.createElement("div");
       rounds.className = "rounds";
 
-      const cols = [
-        { key:"r1", label:"R1" },
-        { key:"r2", label:"R2" },
-        { key:"r3", label:"R3" },
-        { key:"r4", label:"R4" },
-      ];
-
-      cols.forEach(c => {
+      ["r1","r2","r3","r4"].forEach(k => {
         const col = document.createElement("div");
         col.className = "col";
-        const list = (regionData.rounds[c.key] || []);
-        col.innerHTML = list.map(g => renderGame(g, opts)).join("");
+        col.innerHTML = (regionData.rounds[k] || []).map(g => renderGame(g, opts)).join("");
         rounds.appendChild(col);
       });
 
@@ -374,7 +332,7 @@
 
     function renderCenterBlock(blockEl, game, opts){
       if (!game) {
-        blockEl.innerHTML = `<div class="game">${renderTeamRow({team:"TBD"}, opts)}${renderTeamRow({team:"TBD"}, opts)}</div>`;
+        blockEl.innerHTML = renderGame({home:{team:"TBD"},away:{team:"TBD"}}, opts);
         return;
       }
       blockEl.innerHTML = renderGame(game, opts);
@@ -392,28 +350,31 @@
 
       const opts = { token, highlightSlot };
 
-      // sides
       const left = el("leftRegions");
       const right = el("rightRegions");
       left.innerHTML = "";
       right.innerHTML = "";
 
+      // Normalize keys coming from API
+      const apiRegions = {};
+      Object.keys(data.regions || {}).forEach(k => apiRegions[normalizeRegion(k)] = data.regions[k]);
+
       REGION_ORDER_LEFT.forEach(r => {
-        const region = data.regions[normalizeRegion(r)];
-        if (region) left.appendChild(renderRegionCard(normalizeRegion(r), region, opts));
-      });
-      REGION_ORDER_RIGHT.forEach(r => {
-        const region = data.regions[normalizeRegion(r)];
-        if (region) right.appendChild(renderRegionCard(normalizeRegion(r), region, opts));
+        const region = apiRegions[normalizeRegion(r)] || emptyRegion();
+        left.appendChild(renderRegionCard(normalizeRegion(r), region, opts));
       });
 
-      // center: final four / championship
-      renderCenterBlock(el("ff1"), data.center.ff1, opts);
-      renderCenterBlock(el("ff2"), data.center.ff2, opts);
-      renderCenterBlock(el("champ"), data.center.champ, opts);
+      REGION_ORDER_RIGHT.forEach(r => {
+        const region = apiRegions[normalizeRegion(r)] || emptyRegion();
+        right.appendChild(renderRegionCard(normalizeRegion(r), region, opts));
+      });
+
+      renderCenterBlock(el("ff1"), data.center?.ff1, opts);
+      renderCenterBlock(el("ff2"), data.center?.ff2, opts);
+      renderCenterBlock(el("champ"), data.center?.champ, opts);
     }
 
-    /* Zoom + Pan */
+    // Zoom + pan
     const viewport = el("viewport");
     const content = el("content");
     let scale = 1, tx = 0, ty = 0;
@@ -436,7 +397,6 @@
       scale = newScale;
       tx = x - worldX * scale;
       ty = y - worldY * scale;
-
       applyTransform();
     }
     function resetView(){ scale = 1; tx = 0; ty = 0; applyTransform(); }
