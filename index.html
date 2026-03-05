@@ -1,8 +1,8 @@
 <!doctype html>
 <html>
 <head>
-  <base target="_top">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Money Madness</title>
   <style>
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#0b1220;color:#eef3ff}
@@ -25,10 +25,8 @@
       display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;font-weight:900;color:rgba(0,0,0,.6)}
     .ball.taken{opacity:.28;cursor:not-allowed}
     .status{margin-top:12px;font-size:13px;opacity:.85;min-height:18px;white-space:pre-wrap}
-    /* modal */
     .back{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.65)}
     .modal{width:min(520px,100%);background:#0f1a33;border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:16px}
-    .modal h2{margin:0 0 6px;font-size:18px}
     .btns{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
     button{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.10);color:#eef3ff;font-weight:900;padding:10px 12px;border-radius:14px;cursor:pointer}
     .primary{background:linear-gradient(180deg,#4aa3ff,#2a78d2)}
@@ -44,16 +42,16 @@
       <div class="row">
         <div>
           <label>Your name</label>
-          <input id="name" placeholder="Type your name (required)" />
+          <input id="name" placeholder="Type your name (required)">
         </div>
         <div>
           <label>Invite token</label>
-          <input id="token" placeholder="Auto-filled from your link" />
+          <input id="token" placeholder="Auto-filled from your link">
         </div>
       </div>
 
       <div class="topbar">
-        <a href="?page=bracket" target="_top">📋 View Bracket</a>
+        <a href="bracket.html">📋 View Bracket</a>
         <div class="chip" id="countChip">Loading balls…</div>
         <div class="chip" id="updatedChip">Last updated: —</div>
       </div>
@@ -75,7 +73,6 @@
   </div>
 
 <script>
-  // ✅ PASTE YOUR WEB APP /exec URL here
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzlQ91quFkT2XA98MusdUMtvh6heIQKxzjpF2vkvfxmoc7vPLUvChIQoqHax2l5r-I/exec";
 
   const nameEl = document.getElementById("name");
@@ -93,13 +90,26 @@
   let pendingBallNumber = null;
   let busy = false;
 
-  async function api(payload){
-    const res = await fetch(WEB_APP_URL, {
-      method: "POST",
-      headers: { "Content-Type":"application/json" },
-      body: JSON.stringify(payload)
+  function jsonp(params) {
+    return new Promise((resolve, reject) => {
+      const cb = "mm_cb_" + Math.random().toString(16).slice(2);
+      const url = new URL(WEB_APP_URL);
+      Object.entries({ ...params, callback: cb }).forEach(([k,v]) => url.searchParams.set(k, v));
+
+      const script = document.createElement("script");
+      const timer = setTimeout(() => { cleanup(); reject(new Error("JSONP timeout")); }, 12000);
+
+      function cleanup(){
+        clearTimeout(timer);
+        delete window[cb];
+        script.remove();
+      }
+
+      window[cb] = (data) => { cleanup(); resolve(data); };
+      script.onerror = () => { cleanup(); reject(new Error("JSONP load error")); };
+      script.src = url.toString();
+      document.body.appendChild(script);
     });
-    return res.json();
   }
 
   function showModal(ballNumber){
@@ -107,26 +117,20 @@
     modalText.textContent = `Confirm to lock in your pick. You will receive Ball #${ballNumber}.`;
     modalBack.style.display = "flex";
   }
-  function hideModal(){
-    pendingBallNumber = null;
-    modalBack.style.display = "none";
-  }
+  function hideModal(){ pendingBallNumber = null; modalBack.style.display = "none"; }
 
   function renderBalls(balls){
     gridEl.innerHTML = "";
     balls.forEach(b=>{
       const d = document.createElement("div");
       d.className = "ball" + (b.available ? "" : " taken");
-      d.innerHTML = "<span>●</span>"; // blank look
+      d.textContent = "●";
       if (b.available){
         d.onclick = ()=>{
           if (busy) return;
           const name = nameEl.value.trim();
           const token = tokenEl.value.trim();
-          if (!name || !token){
-            statusEl.textContent = "Enter your name and token first.";
-            return;
-          }
+          if (!name || !token){ statusEl.textContent = "Enter your name and token first."; return; }
           showModal(b.ballNumber);
         };
       }
@@ -136,60 +140,48 @@
 
   async function loadState(){
     try{
-      const st = await api({ action:"getState" });
-      if(!st.ok){
-        statusEl.textContent = "API ERROR: " + (st.error || "Unknown");
-        countChip.textContent = "Error";
-        return;
-      }
+      const st = await jsonp({ action:"getState" });
+      if(!st.ok){ countChip.textContent="Error"; statusEl.textContent="API ERROR: "+(st.error||"Unknown"); return; }
       const taken = st.balls.filter(x=>!x.available).length;
       countChip.textContent = `${taken}/${st.ballCount || 68} claimed`;
       updatedChip.textContent = "Last updated: " + new Date().toLocaleString();
       renderBalls(st.balls);
       statusEl.textContent = "";
     }catch(err){
-      statusEl.textContent = "LOAD ERROR: " + String(err);
-      countChip.textContent = "Error";
+      countChip.textContent="Error";
+      statusEl.textContent="LOAD ERROR: "+String(err);
     }
   }
 
   async function confirmPick(){
-    if (busy) return;
-    if (!pendingBallNumber) return;
-
-    busy = true;
-    confirmBtn.disabled = true;
+    if (busy || !pendingBallNumber) return;
+    busy = true; confirmBtn.disabled = true;
 
     try{
       statusEl.textContent = "Saving…";
-      const out = await api({
+      const out = await jsonp({
         action:"pickBall",
         name: nameEl.value.trim(),
         token: tokenEl.value.trim(),
-        ballNumber: pendingBallNumber
+        ballNumber: String(pendingBallNumber)
       });
 
       if(!out.ok){
         statusEl.textContent = "SAVE ERROR: " + (out.error || "Unknown");
-        hideModal();
-        await loadState();
-        return;
+        hideModal(); await loadState(); return;
       }
 
       statusEl.textContent = `Locked in! You got Ball #${pendingBallNumber}.`;
-      hideModal();
-      await loadState();
+      hideModal(); await loadState();
 
     }catch(err){
       statusEl.textContent = "SAVE ERROR: " + String(err);
       hideModal();
     }finally{
-      busy = false;
-      confirmBtn.disabled = false;
+      busy = false; confirmBtn.disabled = false;
     }
   }
 
-  // Auto-fill token from URL ?token=...
   (function init(){
     const params = new URLSearchParams(location.search);
     const t = params.get("token");
@@ -199,12 +191,11 @@
     setInterval(loadState, 10000);
   })();
 
-  // Close modal by clicking outside + ESC
   modalBack.addEventListener("click", (e)=>{ if(e.target===modalBack) hideModal(); });
   document.addEventListener("keydown", (e)=>{ if(e.key==="Escape" && modalBack.style.display==="flex") hideModal(); });
 
-  cancelBtn.addEventListener("click", hideModal);
-  confirmBtn.addEventListener("click", confirmPick);
+  cancelBtn.onclick = hideModal;
+  confirmBtn.onclick = confirmPick;
 </script>
 </body>
 </html>
