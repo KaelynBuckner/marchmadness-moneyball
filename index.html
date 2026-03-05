@@ -52,8 +52,10 @@
     }
     .btn.secondary{background:rgba(255,255,255,.06);border:1px solid var(--stroke);box-shadow:none}
     .btn:disabled{opacity:.55;cursor:not-allowed}
-    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:16px}
-    @media (max-width:940px){.grid{grid-template-columns:1fr}}
+
+    /* ✅ removed side panel: make single-column layout */
+    .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+
     .card{border:1px solid var(--stroke);background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
     .head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08)}
     .head h2{margin:0;font-family:Oswald,Inter,sans-serif;font-size:18px;letter-spacing:.4px}
@@ -97,11 +99,6 @@
     .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
     .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;background:rgba(0,0,0,.22);border:1px solid var(--stroke);font-weight:900;font-size:12px}
     .dot{width:10px;height:10px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 3px rgba(255,122,0,.18)}
-    .log{display:grid;gap:10px}
-    .logItem{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border-radius:14px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.10)}
-    .who{font-weight:950}
-    .when{color:var(--muted);font-size:12px;font-weight:900}
-    .ballTag{font-family:Oswald,Inter,sans-serif;font-weight:950;letter-spacing:.4px;padding:6px 10px;border-radius:999px;background:rgba(255,122,0,.16);border:1px solid rgba(255,122,0,.28)}
     .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14);padding:12px 14px;border-radius:14px;box-shadow:var(--shadow);font-weight:900;display:none;z-index:999;backdrop-filter:blur(10px)}
     .toast.show{display:block}
   </style>
@@ -131,15 +128,15 @@
       <div class="card">
         <div class="head">
           <h2>Enter Name + Pick</h2>
-          <div class="hint" style="margin:0">Name is saved to your token.</div>
+          <div class="hint" style="margin:0">Token auto-fills from your link. Name saves automatically.</div>
         </div>
         <div class="body">
           <div class="row">
             <input id="token" placeholder="Token (MM-XXXXX…)" autocomplete="off" spellcheck="false">
-            <input id="name" placeholder="Your name" autocomplete="name" spellcheck="false">
-            <button class="btn" id="saveBtn">Save</button>
+            <input id="name" placeholder="Type your name (anything you want)" autocomplete="name" spellcheck="false">
+            <button class="btn" id="saveBtn" title="Optional (name auto-saves)">Save</button>
           </div>
-          <div class="hint">Tip: invite links can auto-fill token using <b>?token=MM-XXXXX</b></div>
+          <div class="hint">Invite links auto-fill token using <b>?token=MM-XXXXX</b>. Players only need to type a name.</div>
 
           <div class="meta">
             <div class="tag">Status: <b id="statusTag">Not loaded</b></div>
@@ -148,16 +145,6 @@
 
           <div class="ballGrid" id="ballGrid"></div>
           <div class="chips" id="pickedList"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="head">
-          <h2>Live Activity</h2>
-          <button class="btn secondary" id="pollBtn">Poll Now</button>
-        </div>
-        <div class="body">
-          <div class="log" id="log"></div>
         </div>
       </div>
     </div>
@@ -170,7 +157,7 @@
   <audio id="sndBuzz" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
   <script>
-    // ✅ Your Web App URL
+    // ✅ Your Web App URL (JSONP)
     const API = "https://script.google.com/macros/s/AKfycbzplqX-cV6Fk80vHyCFrk3kxO4ZJIj7PkahyP-TZ37krUn1mhH5mM0AfywGFMbWVuQ/exec";
 
     const BALL_COUNT = 68;
@@ -231,7 +218,6 @@
       locked = v;
       el("saveBtn").disabled = v;
       el("refreshBtn").disabled = v;
-      el("pollBtn").disabled = v;
       el("token").disabled = v;
       el("name").disabled = v;
       document.querySelectorAll(".ball").forEach(b => {
@@ -252,47 +238,38 @@
       el("yourPicksCount").textContent = String((picks||[]).length);
     }
 
-    function renderLog(items){
-      const log = el("log");
-      log.innerHTML = "";
-      if(!items || !items.length){
-        const h = document.createElement("div");
-        h.className = "hint";
-        h.textContent = "No activity yet.";
-        log.appendChild(h);
-        return;
+    // ✅ token auto-fill supports ?token=, ?t=, and #token=
+    function autoFillTokenFromUrl(){
+      const params = new URLSearchParams(location.search);
+      let t = (params.get("token") || params.get("t") || "").trim();
+
+      if (!t && location.hash) {
+        const hp = new URLSearchParams(location.hash.replace(/^#/, ""));
+        t = (hp.get("token") || hp.get("t") || "").trim();
       }
-      items.forEach(it => {
-        const row = document.createElement("div");
-        row.className = "logItem";
-        row.innerHTML = `
-          <div>
-            <div class="who">${escapeHtml(it.playerName || "Unknown")}</div>
-            <div class="when">${escapeHtml(it.time || "")}</div>
-          </div>
-          <div class="ballTag">BALL ${escapeHtml(String(it.ballNumber))} • ${escapeHtml(it.slotKey || "")}</div>
-        `;
-        log.appendChild(row);
-      });
+      if (t) el("token").value = t;
     }
 
-    async function saveName(){
+    // ✅ name saves automatically (any name is OK; doesn't need to match anything)
+    async function saveName(silent=false){
       const token = el("token").value.trim();
-      const name = el("name").value.trim();
-      if(!token){ toast("Paste your token first."); return; }
-      if(!name){ toast("Type your name first."); return; }
+      const name  = el("name").value.trim();
 
-      lockUI(true);
+      if(!token){ if(!silent) toast("Paste your token first."); return false; }
+      if(!name){  if(!silent) toast("Type your name first."); return false; }
+
       try{
         const res = await jsonp(API, { action:"setName", token, name });
-        if(!res || !res.ok){ toast(res?.error || "Save failed"); setStatus("Name save failed", false); return; }
-        toast("Name saved!");
-        await loadState();
+        if(!res || !res.ok){
+          if(!silent) toast(res?.error || "Name save failed");
+          return false;
+        }
+        // reflect immediately (no need to match backend formatting)
+        el("playerTag").textContent = name;
+        return true;
       }catch(e){
-        toast("API error saving name.");
-        setStatus("API error", false);
-      }finally{
-        lockUI(false);
+        if(!silent) toast("API error saving name.");
+        return false;
       }
     }
 
@@ -311,9 +288,14 @@
         maxPicksAllowed = Number(data.maxPicksPerToken || 4);
         el("maxPicks").textContent = String(maxPicksAllowed);
         el("ballsLeft").textContent = String(data.ballsRemaining ?? "—");
-        el("playerTag").textContent = data.playerName || "—";
+
+        // If backend has a name, show it. If user typed something, keep what they typed.
+        const typed = el("name").value.trim();
+        const backendName = (data.playerName || "").trim();
+        if (!typed && backendName) el("name").value = backendName;
+
+        el("playerTag").textContent = typed || backendName || "—";
         renderPicked(data.yourPicks || []);
-        renderLog(data.recentPicks || []);
         setStatus("Ready", true);
       }catch(e){
         setStatus("API error", false);
@@ -327,8 +309,20 @@
       const token = el("token").value.trim();
       if(!token){ toast("Paste your token first."); return; }
 
+      // ✅ ensure name is saved before picking (prevents "Missing name")
+      const nameOk = await saveName(true);
+      if(!nameOk){
+        snd.buzz?.play?.();
+        toast("Type your name first.");
+        return;
+      }
+
       const currentCount = Number(el("yourPicksCount").textContent || "0");
-      if(currentCount >= maxPicksAllowed){ snd.buzz?.play?.(); toast("You’ve reached max picks."); return; }
+      if(currentCount >= maxPicksAllowed){
+        snd.buzz?.play?.();
+        toast("You’ve reached max picks.");
+        return;
+      }
 
       lockUI(true);
       snd.click?.play?.();
@@ -370,15 +364,24 @@
 
     function init(){
       buildRack();
+      autoFillTokenFromUrl();
 
-      const params = new URLSearchParams(location.search);
-      const t = params.get("token");
-      if(t) el("token").value = t;
-
-      el("saveBtn").addEventListener("click", saveName);
+      // Optional save button (still there, but not required)
+      el("saveBtn").addEventListener("click", () => saveName(false));
       el("refreshBtn").addEventListener("click", loadState);
-      el("pollBtn").addEventListener("click", loadState);
 
+      // Auto-save name after typing
+      let nameTimer = null;
+      el("name").addEventListener("input", () => {
+        clearTimeout(nameTimer);
+        nameTimer = setTimeout(() => saveName(true), 350);
+      });
+      el("name").addEventListener("blur", () => saveName(true));
+      el("name").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); saveName(false); }
+      });
+
+      // Open bracket page (optional)
       el("openBracket").addEventListener("click", () => {
         const tok = el("token").value.trim();
         const url = "bracket.html" + (tok ? ("?token=" + encodeURIComponent(tok)) : "");
