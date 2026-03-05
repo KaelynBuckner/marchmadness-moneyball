@@ -1,201 +1,714 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Money Madness</title>
+
   <style>
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#0b1220;color:#eef3ff}
-    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 60px}
-    h1{margin:0 0 6px;font-size:42px}
-    .muted{opacity:.75;font-size:14px}
-    .card{margin-top:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:16px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media(max-width:900px){.row{grid-template-columns:1fr}}
-    label{display:block;margin:0 0 6px;font-size:13px;opacity:.8;font-weight:700}
-    input{width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.25);color:#fff}
-    .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
-    a{color:#93c5fd;text-decoration:none;font-weight:800}
-    .chip{padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);font-weight:800;font-size:13px;opacity:.9}
-    .grid{display:grid;grid-template-columns:repeat(14,1fr);gap:10px;margin-top:14px}
-    @media(max-width:1000px){.grid{grid-template-columns:repeat(10,1fr)}}
-    @media(max-width:640px){.grid{grid-template-columns:repeat(7,1fr)}}
-    .ball{height:52px;border-radius:16px;border:1px solid rgba(255,255,255,.14);
-      background:linear-gradient(180deg,#ffb07a,#d36b35);
-      display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;font-weight:900;color:rgba(0,0,0,.6)}
-    .ball.taken{opacity:.28;cursor:not-allowed}
-    .status{margin-top:12px;font-size:13px;opacity:.85;min-height:18px;white-space:pre-wrap}
-    .back{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.65)}
-    .modal{width:min(520px,100%);background:#0f1a33;border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:16px}
-    .btns{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
-    button{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.10);color:#eef3ff;font-weight:900;padding:10px 12px;border-radius:14px;cursor:pointer}
-    .primary{background:linear-gradient(180deg,#4aa3ff,#2a78d2)}
-    .primary:disabled{opacity:.6;cursor:not-allowed}
+    :root{
+      --bg0:#070A12;
+      --bg1:#0b1220;
+      --bg2:#0b1935;
+      --glass: rgba(255,255,255,.07);
+      --border: rgba(255,255,255,.14);
+      --text: #eef3ff;
+      --muted: rgba(238,243,255,.72);
+      --muted2: rgba(238,243,255,.55);
+      --accent: #ff3b30;
+      --blue: #4aa3ff;
+      --good: #2bd576;
+      --warn: #ffcc00;
+      --shadow: 0 26px 90px rgba(0,0,0,.45);
+      --radius: 22px;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1000px 620px at 15% 18%, rgba(255,120,80,.22), transparent 60%),
+        radial-gradient(900px 560px at 78% 22%, rgba(70,160,255,.20), transparent 58%),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 30%, var(--bg2));
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+
+    .wrap{ max-width: 1240px; margin:0 auto; padding: 34px 18px 70px; }
+
+    /* Header */
+    .top{
+      display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+      margin-bottom: 10px;
+    }
+    .brand{
+      display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap;
+    }
+    .brand h1{
+      margin:0;
+      font-size: 46px;
+      letter-spacing: .3px;
+      line-height: 1;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.28);
+      font-weight: 900;
+      color: rgba(255,255,255,.92);
+      box-shadow: 0 14px 40px rgba(0,0,0,.25);
+    }
+    .dot{
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 14px rgba(255,59,48,.9);
+    }
+    .actions{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    }
+    .btnLink, .btnGhost, .btnPrimary{
+      display:inline-flex; align-items:center; gap:10px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      color: var(--text);
+      text-decoration:none;
+      font-weight: 900;
+      box-shadow: 0 18px 55px rgba(0,0,0,.28);
+      cursor:pointer;
+      user-select:none;
+    }
+    .btnPrimary{
+      background: linear-gradient(180deg, rgba(74,163,255,.96), rgba(42,120,210,.96));
+      border: 1px solid rgba(255,255,255,.20);
+    }
+    .btnGhost{
+      background: rgba(255,255,255,.06);
+      box-shadow:none;
+    }
+    .btnLink:active,.btnGhost:active,.btnPrimary:active{ transform: translateY(1px); }
+
+    .sub{
+      margin: 12px 0 22px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    /* Main Card */
+    .card{
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(90deg, rgba(255,255,255,.07), rgba(255,255,255,.05));
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    .formRow{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+      align-items:end;
+    }
+    @media (max-width: 920px){
+      .brand h1{ font-size: 38px; }
+      .formRow{ grid-template-columns: 1fr; }
+    }
+    .field label{
+      display:block;
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: rgba(238,243,255,.80);
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+    .field input{
+      width:100%;
+      padding: 14px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      outline:none;
+      font-size: 16px;
+    }
+    .help{
+      margin-top:10px;
+      color: rgba(238,243,255,.55);
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+
+    .metaRow{
+      margin-top: 14px;
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center;
+    }
+    .chip{
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(238,243,255,.85);
+      font-weight: 900;
+      font-size: 13px;
+    }
+    .chip.good{ border-color: rgba(43,213,118,.35); }
+    .chip.warn{ border-color: rgba(255,204,0,.35); }
+    .chip.bad{ border-color: rgba(255,59,48,.35); }
+
+    .toolbar{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    }
+    .toggle{
+      display:inline-flex; align-items:center; gap:10px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      font-weight: 900;
+      font-size: 13px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .toggle input{ accent-color: var(--blue); }
+
+    /* Grid */
+    .gridWrap{
+      margin-top: 18px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      padding-top: 18px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(14, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 1200px){ .grid{ grid-template-columns: repeat(12, 1fr);} }
+    @media (max-width: 980px){ .grid{ grid-template-columns: repeat(10, 1fr);} }
+    @media (max-width: 720px){ .grid{ grid-template-columns: repeat(8, 1fr);} }
+    @media (max-width: 520px){ .grid{ grid-template-columns: repeat(6, 1fr);} }
+
+    .ball{
+      height: 54px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(18px 18px at 30% 28%, rgba(255,255,255,.45), rgba(255,255,255,0) 65%),
+        radial-gradient(50px 50px at 70% 80%, rgba(0,0,0,.35), rgba(0,0,0,0) 70%),
+        linear-gradient(180deg, rgba(255,147,80,.98), rgba(220,105,50,.98));
+      box-shadow: 0 12px 26px rgba(0,0,0,.34);
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+      user-select:none;
+      transition: transform .10s ease, filter .15s ease, opacity .15s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .ball::after{
+      content:"";
+      position:absolute; inset:-40%;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.22), transparent 35%),
+        radial-gradient(circle at 70% 70%, rgba(0,0,0,.18), transparent 45%);
+      transform: rotate(18deg);
+      pointer-events:none;
+    }
+    .ball:hover{ transform: translateY(-1px) scale(1.01); filter:brightness(1.06); }
+    .ball:active{ transform: translateY(1px) scale(.99); }
+    .ball.taken{
+      cursor:not-allowed;
+      opacity:.26;
+      filter:saturate(.6) brightness(.85);
+      box-shadow:none;
+    }
+    .ball .mark{
+      font-weight: 1000;
+      font-size: 18px;
+      color: rgba(0,0,0,.55);
+      transform: translateY(-1px);
+    }
+
+    .status{
+      margin-top: 12px;
+      color: rgba(238,243,255,.82);
+      font-size: 13px;
+      font-weight: 800;
+      min-height: 18px;
+      white-space: pre-wrap;
+    }
+
+    /* Modal */
+    .modalBack{
+      position:fixed; inset:0;
+      display:none;
+      align-items:center; justify-content:center;
+      padding:18px;
+      background:rgba(0,0,0,.70);
+      z-index:1000;
+    }
+    .modal{
+      width:min(620px, 100%);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(20,30,60,.98), rgba(10,14,28,.98));
+      box-shadow: 0 40px 140px rgba(0,0,0,.75);
+      padding: 18px;
+      position:relative;
+      overflow:hidden;
+    }
+    .modalHeader{
+      display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
+    }
+    .modal h2{ margin:0; font-size: 18px; }
+    .modal p{ margin:6px 0 0; color: var(--muted); font-weight: 700; }
+    .x{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 10px 12px;
+      cursor:pointer;
+      font-weight: 1000;
+    }
+
+    .revealStage{
+      margin-top: 16px;
+      display:flex;
+      gap: 16px;
+      align-items:center;
+      flex-wrap:wrap;
+      border-top: 1px solid rgba(255,255,255,.10);
+      padding-top: 16px;
+    }
+    .bigBall{
+      width: 120px; height: 120px;
+      border-radius: 30px;
+      border: 1px solid rgba(255,255,255,.16);
+      background:
+        radial-gradient(28px 28px at 30% 28%, rgba(255,255,255,.48), rgba(255,255,255,0) 65%),
+        radial-gradient(78px 78px at 70% 80%, rgba(0,0,0,.35), rgba(0,0,0,0) 70%),
+        linear-gradient(180deg, rgba(255,147,80,.98), rgba(220,105,50,.98));
+      box-shadow: 0 24px 70px rgba(0,0,0,.55);
+      display:flex; align-items:center; justify-content:center;
+      position:relative;
+    }
+    .bigBall .num{
+      font-size: 44px;
+      font-weight: 1100;
+      color: rgba(0,0,0,.70);
+      text-shadow: 0 2px 0 rgba(255,255,255,.20);
+    }
+    .spin{
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin{
+      from{ transform: rotate(0deg); }
+      to{ transform: rotate(360deg); }
+    }
+
+    .modalActions{
+      display:flex; justify-content:flex-end; gap:10px; margin-top: 16px; flex-wrap:wrap;
+    }
+    .btn{
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.10);
+      color: var(--text);
+      font-weight: 1000;
+      cursor:pointer;
+    }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
+    .btnBlue{
+      background: linear-gradient(180deg, rgba(74,163,255,.98), rgba(42,120,210,.98));
+      border: 1px solid rgba(255,255,255,.18);
+    }
+
+    /* Confetti canvas */
+    #fx{
+      position:fixed; inset:0;
+      pointer-events:none;
+      z-index: 1200;
+    }
   </style>
 </head>
+
 <body>
+  <canvas id="fx"></canvas>
+
   <div class="wrap">
-    <h1>Money Madness</h1>
-    <div class="muted">Pick any <b>blank</b> basketball. Once claimed, it locks.</div>
+    <div class="top">
+      <div class="brand">
+        <h1>Money Madness</h1>
+        <div class="pill"><span class="dot"></span> LIVE BOARD</div>
+      </div>
+
+      <div class="actions">
+        <a class="btnLink" href="bracket.html">📋 View Bracket</a>
+        <button class="btnGhost" id="copyInviteBtn">🔗 Copy Invite Link</button>
+      </div>
+    </div>
+
+    <div class="sub">
+      Pick any <b>blank</b> basketball. It “spins”, then reveals your ball number. Once claimed, it locks.
+    </div>
 
     <div class="card">
-      <div class="row">
-        <div>
-          <label>Your name</label>
-          <input id="name" placeholder="Type your name (required)">
+      <div class="formRow">
+        <div class="field">
+          <label for="name">Your name</label>
+          <input id="name" placeholder="Type your name (required)" autocomplete="name" />
+          <div class="help">Use your real name so claims are easy to verify.</div>
         </div>
-        <div>
-          <label>Invite token</label>
-          <input id="token" placeholder="Auto-filled from your link">
+
+        <div class="field">
+          <label for="token">Invite token</label>
+          <input id="token" placeholder="Auto-filled from your link" autocomplete="off" />
+          <div class="help">Your unique invite link fills this automatically.</div>
         </div>
       </div>
 
-      <div class="topbar">
-        <a href="bracket.html">📋 View Bracket</a>
-        <div class="chip" id="countChip">Loading balls…</div>
-        <div class="chip" id="updatedChip">Last updated: —</div>
+      <div class="metaRow">
+        <div class="toolbar">
+          <div class="chip" id="countChip">Loading…</div>
+          <div class="chip" id="updatedChip">Last updated: —</div>
+        </div>
+
+        <label class="toggle" title="Toggle celebration effects">
+          <input type="checkbox" id="fxToggle" checked />
+          Effects
+        </label>
       </div>
 
-      <div class="grid" id="grid"></div>
-      <div class="status" id="status"></div>
+      <div class="gridWrap">
+        <div class="grid" id="grid"></div>
+        <div class="status" id="status"></div>
+      </div>
     </div>
   </div>
 
-  <div class="back" id="modalBack">
-    <div class="modal">
-      <h2>Confirm your pick</h2>
-      <div class="muted" id="modalText">—</div>
-      <div class="btns">
-        <button id="cancelBtn">Cancel</button>
-        <button class="primary" id="confirmBtn">Confirm</button>
+  <!-- Modal -->
+  <div class="modalBack" id="modalBack" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modalHeader">
+        <div>
+          <h2 id="modalTitle">Confirm your pick</h2>
+          <p id="modalSub">—</p>
+        </div>
+        <button class="x" id="modalX" aria-label="Close">✕</button>
+      </div>
+
+      <div class="revealStage">
+        <div class="bigBall" id="bigBall">
+          <div class="num" id="bigNum">●</div>
+        </div>
+        <div style="flex:1; min-width:240px">
+          <div class="chip good" id="revealChip">Ready</div>
+          <div class="status" id="modalStatus" style="margin-top:10px"></div>
+        </div>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn" id="btnCancel">Cancel</button>
+        <button class="btn btnBlue" id="btnConfirm">Confirm</button>
       </div>
     </div>
   </div>
 
-<script>
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzplqX-cV6Fk80vHyCFrk3kxO4ZJIj7PkahyP-TZ37krUn1mhH5mM0AfywGFMbWVuQ/exec";
+  <script>
+    // ====== CONFIG ======
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzlQ91quFkT2XA98MusdUMtvh6heIQKxzjpF2vkvfxmoc7vPLUvChIQoqHax2l5r-I/exec";
+    const BALL_COUNT = 68;
 
-  const nameEl = document.getElementById("name");
-  const tokenEl = document.getElementById("token");
-  const gridEl = document.getElementById("grid");
-  const statusEl = document.getElementById("status");
-  const countChip = document.getElementById("countChip");
-  const updatedChip = document.getElementById("updatedChip");
+    // ====== DOM ======
+    const nameEl = document.getElementById("name");
+    const tokenEl = document.getElementById("token");
+    const gridEl = document.getElementById("grid");
+    const statusEl = document.getElementById("status");
+    const countChip = document.getElementById("countChip");
+    const updatedChip = document.getElementById("updatedChip");
+    const fxToggle = document.getElementById("fxToggle");
+    const copyInviteBtn = document.getElementById("copyInviteBtn");
 
-  const modalBack = document.getElementById("modalBack");
-  const modalText = document.getElementById("modalText");
-  const cancelBtn = document.getElementById("cancelBtn");
-  const confirmBtn = document.getElementById("confirmBtn");
+    const modalBack = document.getElementById("modalBack");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalSub = document.getElementById("modalSub");
+    const modalStatus = document.getElementById("modalStatus");
+    const revealChip = document.getElementById("revealChip");
+    const bigBall = document.getElementById("bigBall");
+    const bigNum = document.getElementById("bigNum");
+    const btnCancel = document.getElementById("btnCancel");
+    const btnConfirm = document.getElementById("btnConfirm");
+    const modalX = document.getElementById("modalX");
 
-  let pendingBallNumber = null;
-  let busy = false;
+    // ====== STATE ======
+    let pendingBallNumber = null;
+    let busy = false;
+    let lastState = null;
 
-  function jsonp(params) {
-    return new Promise((resolve, reject) => {
-      const cb = "mm_cb_" + Math.random().toString(16).slice(2);
-      const url = new URL(WEB_APP_URL);
-      Object.entries({ ...params, callback: cb }).forEach(([k,v]) => url.searchParams.set(k, v));
+    // ====== JSONP (CORS-safe) ======
+    function jsonp(params) {
+      return new Promise((resolve, reject) => {
+        const cb = "mm_cb_" + Math.random().toString(16).slice(2);
+        const url = new URL(WEB_APP_URL);
+        Object.entries({ ...params, callback: cb }).forEach(([k,v]) => url.searchParams.set(k, v));
 
-      const script = document.createElement("script");
-      const timer = setTimeout(() => { cleanup(); reject(new Error("JSONP timeout")); }, 12000);
+        const script = document.createElement("script");
+        const timer = setTimeout(() => { cleanup(); reject(new Error("JSONP timeout")); }, 12000);
 
-      function cleanup(){
-        clearTimeout(timer);
-        delete window[cb];
-        script.remove();
-      }
+        function cleanup(){
+          clearTimeout(timer);
+          delete window[cb];
+          script.remove();
+        }
 
-      window[cb] = (data) => { cleanup(); resolve(data); };
-      script.onerror = () => { cleanup(); reject(new Error("JSONP load error")); };
-      script.src = url.toString();
-      document.body.appendChild(script);
-    });
-  }
-
-  function showModal(ballNumber){
-    pendingBallNumber = ballNumber;
-    modalText.textContent = `Confirm to lock in your pick. You will receive Ball #${ballNumber}.`;
-    modalBack.style.display = "flex";
-  }
-  function hideModal(){ pendingBallNumber = null; modalBack.style.display = "none"; }
-
-  function renderBalls(balls){
-    gridEl.innerHTML = "";
-    balls.forEach(b=>{
-      const d = document.createElement("div");
-      d.className = "ball" + (b.available ? "" : " taken");
-      d.textContent = "●";
-      if (b.available){
-        d.onclick = ()=>{
-          if (busy) return;
-          const name = nameEl.value.trim();
-          const token = tokenEl.value.trim();
-          if (!name || !token){ statusEl.textContent = "Enter your name and token first."; return; }
-          showModal(b.ballNumber);
-        };
-      }
-      gridEl.appendChild(d);
-    });
-  }
-
-  async function loadState(){
-    try{
-      const st = await jsonp({ action:"getState" });
-      if(!st.ok){ countChip.textContent="Error"; statusEl.textContent="API ERROR: "+(st.error||"Unknown"); return; }
-      const taken = st.balls.filter(x=>!x.available).length;
-      countChip.textContent = `${taken}/${st.ballCount || 68} claimed`;
-      updatedChip.textContent = "Last updated: " + new Date().toLocaleString();
-      renderBalls(st.balls);
-      statusEl.textContent = "";
-    }catch(err){
-      countChip.textContent="Error";
-      statusEl.textContent="LOAD ERROR: "+String(err);
-    }
-  }
-
-  async function confirmPick(){
-    if (busy || !pendingBallNumber) return;
-    busy = true; confirmBtn.disabled = true;
-
-    try{
-      statusEl.textContent = "Saving…";
-      const out = await jsonp({
-        action:"pickBall",
-        name: nameEl.value.trim(),
-        token: tokenEl.value.trim(),
-        ballNumber: String(pendingBallNumber)
+        window[cb] = (data) => { cleanup(); resolve(data); };
+        script.onerror = () => { cleanup(); reject(new Error("JSONP load error")); };
+        script.src = url.toString();
+        document.body.appendChild(script);
       });
-
-      if(!out.ok){
-        statusEl.textContent = "SAVE ERROR: " + (out.error || "Unknown");
-        hideModal(); await loadState(); return;
-      }
-
-      statusEl.textContent = `Locked in! You got Ball #${pendingBallNumber}.`;
-      hideModal(); await loadState();
-
-    }catch(err){
-      statusEl.textContent = "SAVE ERROR: " + String(err);
-      hideModal();
-    }finally{
-      busy = false; confirmBtn.disabled = false;
     }
-  }
 
-  (function init(){
-    const params = new URLSearchParams(location.search);
-    const t = params.get("token");
-    if (t) tokenEl.value = t;
+    // ====== UI helpers ======
+    function stamp(){
+      return new Date().toLocaleString();
+    }
 
-    loadState();
-    setInterval(loadState, 10000);
-  })();
+    function setChip(el, text, kind){
+      el.classList.remove("good","warn","bad");
+      if (kind) el.classList.add(kind);
+      el.textContent = text;
+    }
 
-  modalBack.addEventListener("click", (e)=>{ if(e.target===modalBack) hideModal(); });
-  document.addEventListener("keydown", (e)=>{ if(e.key==="Escape" && modalBack.style.display==="flex") hideModal(); });
+    function openModal(ballNumber){
+      pendingBallNumber = ballNumber;
 
-  cancelBtn.onclick = hideModal;
-  confirmBtn.onclick = confirmPick;
-</script>
+      modalTitle.textContent = "Confirm your pick";
+      modalSub.textContent = `You’re about to claim Ball #${ballNumber}.`;
+      modalStatus.textContent = "Press Confirm to lock it in.";
+      setChip(revealChip, "Ready", "good");
+
+      bigBall.classList.remove("spin");
+      bigNum.textContent = "●";
+
+      modalBack.style.display = "flex";
+      modalBack.setAttribute("aria-hidden","false");
+    }
+
+    function closeModal(){
+      pendingBallNumber = null;
+      modalBack.style.display = "none";
+      modalBack.setAttribute("aria-hidden","true");
+    }
+
+    function renderBalls(balls){
+      gridEl.innerHTML = "";
+      balls.forEach(b=>{
+        const d = document.createElement("div");
+        d.className = "ball" + (b.available ? "" : " taken");
+        d.innerHTML = `<div class="mark">●</div>`;
+
+        if (b.available){
+          d.addEventListener("click", ()=>{
+            if (busy) return;
+
+            const name = nameEl.value.trim();
+            const token = tokenEl.value.trim();
+
+            if (!name || !token){
+              statusEl.textContent = "Enter your name and token first.";
+              return;
+            }
+
+            openModal(b.ballNumber);
+          });
+        }
+        gridEl.appendChild(d);
+      });
+    }
+
+    // ====== Confetti FX ======
+    const fx = document.getElementById("fx");
+    const ctx = fx.getContext("2d");
+    let confetti = [];
+    function resizeFx(){
+      fx.width = window.innerWidth * devicePixelRatio;
+      fx.height = window.innerHeight * devicePixelRatio;
+      fx.style.width = window.innerWidth + "px";
+      fx.style.height = window.innerHeight + "px";
+      ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    }
+    window.addEventListener("resize", resizeFx);
+    resizeFx();
+
+    function launchConfetti(){
+      if (!fxToggle.checked) return;
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+      const n = 140;
+
+      confetti = [];
+      for (let i=0;i<n;i++){
+        confetti.push({
+          x: W * (0.2 + Math.random()*0.6),
+          y: -20 - Math.random()*120,
+          vx: (Math.random()-0.5) * 6,
+          vy: 3 + Math.random() * 6,
+          r: 2 + Math.random() * 4,
+          a: Math.random() * Math.PI,
+          va: (Math.random()-0.5) * 0.25,
+          life: 80 + Math.floor(Math.random()*40),
+          t: 0
+        });
+      }
+      tickConfetti();
+    }
+
+    let confettiRunning = false;
+    function tickConfetti(){
+      if (confettiRunning) return;
+      confettiRunning = true;
+
+      function frame(){
+        ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+
+        confetti = confetti.filter(p => p.t < p.life);
+        confetti.forEach(p=>{
+          p.t++;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.10;
+          p.a += p.va;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.a);
+          // no fixed colors; just use alpha white rectangles + shadow for clean look
+          ctx.globalAlpha = 0.85;
+          ctx.fillRect(-p.r, -p.r, p.r*2, p.r*2);
+          ctx.restore();
+        });
+
+        if (confetti.length){
+          requestAnimationFrame(frame);
+        } else {
+          ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+          confettiRunning = false;
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    // ====== Data ======
+    async function loadState(){
+      try{
+        const st = await jsonp({ action:"getState" });
+        lastState = st;
+
+        if (!st.ok){
+          setChip(countChip, "API error", "bad");
+          statusEl.textContent = "API ERROR: " + (st.error || "Unknown");
+          return;
+        }
+
+        const taken = st.balls.filter(x=>!x.available).length;
+        setChip(countChip, `${taken}/${st.ballCount || BALL_COUNT} claimed`, taken === (st.ballCount||BALL_COUNT) ? "warn" : "good");
+        updatedChip.textContent = `Last updated: ${stamp()}`;
+
+        renderBalls(st.balls);
+        statusEl.textContent = "";
+      } catch(err){
+        setChip(countChip, "Load error", "bad");
+        statusEl.textContent = "LOAD ERROR: " + String(err);
+      }
+    }
+
+    // ====== Claim flow with “spin reveal” ======
+    async function confirmPick(){
+      if (busy || !pendingBallNumber) return;
+
+      busy = true;
+      btnConfirm.disabled = true;
+
+      // start spin
+      bigBall.classList.add("spin");
+      setChip(revealChip, "Spinning…", "warn");
+      modalStatus.textContent = "Locking your pick…";
+
+      try{
+        const out = await jsonp({
+          action: "pickBall",
+          name: nameEl.value.trim(),
+          token: tokenEl.value.trim(),
+          ballNumber: String(pendingBallNumber)
+        });
+
+        if (!out.ok){
+          bigBall.classList.remove("spin");
+          setChip(revealChip, "Not claimed", "bad");
+          modalStatus.textContent = "SAVE ERROR: " + (out.error || "Unknown");
+          await loadState();
+          return;
+        }
+
+        // reveal
+        bigBall.classList.remove("spin");
+        bigNum.textContent = String(pendingBallNumber);
+        setChip(revealChip, "Claimed!", "good");
+        modalStatus.textContent = `Locked in — Ball #${pendingBallNumber} is yours.`;
+        launchConfetti();
+        await loadState();
+
+        // auto-close after a short beat
+        setTimeout(closeModal, 900);
+
+      } catch(err){
+        bigBall.classList.remove("spin");
+        setChip(revealChip, "Error", "bad");
+        modalStatus.textContent = "SAVE ERROR: " + String(err);
+      } finally{
+        busy = false;
+        btnConfirm.disabled = false;
+      }
+    }
+
+    // ====== Copy invite link ======
+    async function copyInvite(){
+      const t = tokenEl.value.trim();
+      const url = new URL(location.href);
+      url.searchParams.set("token", t || "MM-XXXXX");
+      try{
+        await navigator.clipboard.writeText(url.toString());
+        statusEl.textContent = "Invite link copied to clipboard.";
+      } catch{
+        // fallback
+        statusEl.textContent = "Copy failed. Here it is:\n" + url.toString();
+      }
+    }
+
+    // ====== Init ======
+    (function init(){
+      const params = new URLSearchParams(location.search);
+      const t = params.get("token");
+      if (t) tokenEl.value = t;
+
+      loadState();
+      setInterval(loadState, 10000);
+    })();
+
+    // ====== Events ======
+    copyInviteBtn.addEventListener("click", copyInvite);
+
+    modalBack.addEventListener("click", (e)=>{ if(e.target===modalBack) closeModal(); });
+    document.addEventListener("keydown", (e)=>{ if(e.key==="Escape" && modalBack.style.display==="flex") closeModal(); });
+
+    btnCancel.addEventListener("click", closeModal);
+    btnConfirm.addEventListener("click", confirmPick);
+    modalX.addEventListener("click", closeModal);
+  </script>
 </body>
 </html>
