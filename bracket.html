@@ -1,206 +1,276 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Live Board</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Money Madness — Live Board</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --bg0:#070A12;
-      --bg1:#0b1220;
-      --bg2:#0b1935;
-      --glass: rgba(255,255,255,.07);
-      --border: rgba(255,255,255,.14);
-      --text: #eef3ff;
-      --muted: rgba(238,243,255,.72);
-      --blue: #4aa3ff;
-      --shadow: 0 26px 90px rgba(0,0,0,.45);
-      --radius: 22px;
+      --bg1:#07162f;
+      --bg2:#0e2a55;
+      --panel:rgba(255,255,255,.06);
+      --stroke:rgba(255,255,255,.10);
+      --text:#eaf2ff;
+      --muted:#9db7e6;
+      --blue:#2a66ff;
+      --orange:#ff7a00;
+      --radius:18px;
+      --shadow: 0 18px 50px rgba(0,0,0,.45);
     }
     *{ box-sizing:border-box; }
     body{
       margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(900px 520px at 15% 18%, rgba(255,120,80,.18), transparent 60%),
-        radial-gradient(900px 520px at 78% 22%, rgba(70,160,255,.16), transparent 58%),
-        linear-gradient(180deg, var(--bg0), var(--bg1) 30%, var(--bg2));
       min-height:100vh;
+      color:var(--text);
+      font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;
+      background:
+        radial-gradient(1200px 800px at 20% 10%, rgba(42,102,255,.24), transparent 60%),
+        radial-gradient(900px 700px at 90% 20%, rgba(255,122,0,.18), transparent 55%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
     }
-    .wrap{ max-width: 1240px; margin:0 auto; padding: 34px 18px 70px; }
-    .top{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-    h1{ margin:0; font-size: 22px; letter-spacing:.2px; }
-    a{
-      color: var(--text);
-      text-decoration:none;
-      font-weight: 900;
-      padding: 12px 16px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.10);
-      box-shadow: 0 18px 55px rgba(0,0,0,.28);
+    .wrap{ max-width:1100px; margin:0 auto; padding:18px; }
+
+    .topbar{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      padding:14px 16px;
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(10px);
     }
+    h1{
+      margin:0;
+      font-family:Oswald,Inter,sans-serif;
+      letter-spacing:.6px;
+      font-size:22px;
+      line-height:1.0;
+      color:var(--orange);
+    }
+    .sub{
+      margin-top:2px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+    }
+    .pill{
+      display:flex; gap:10px; align-items:center;
+      padding:10px 12px;
+      background:rgba(0,0,0,.22);
+      border:1px solid var(--stroke);
+      border-radius:999px;
+      min-width:150px;
+      justify-content:center;
+    }
+    .pill span{ color:var(--muted); font-size:12px; font-weight:800; }
+    .pill b{ font-family:Oswald,Inter,sans-serif; letter-spacing:.4px; }
+
+    .btn{
+      border:none;
+      border-radius:14px;
+      padding:11px 14px;
+      color:white;
+      font-weight:800;
+      cursor:pointer;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--stroke);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:16px;
+      margin-top:16px;
+    }
+
     .card{
-      margin-top: 16px;
-      border-radius: var(--radius);
-      border: 1px solid rgba(255,255,255,.14);
-      background: linear-gradient(90deg, rgba(255,255,255,.07), rgba(255,255,255,.05));
-      box-shadow: var(--shadow);
-      padding: 16px;
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
     }
-    .bar{
-      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
-      margin-bottom: 10px;
+    .cardHead{
+      padding:14px 16px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      border-bottom:1px solid rgba(255,255,255,.08);
     }
-    .chip{
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      color: rgba(238,243,255,.85);
-      font-weight: 900;
-      font-size: 13px;
+    .cardHead h2{
+      margin:0;
+      font-family:Oswald,Inter,sans-serif;
+      font-size:18px;
+      letter-spacing:.4px;
     }
-    input{
-      width: min(320px, 100%);
-      padding: 12px 14px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.22);
-      color: var(--text);
-      outline:none;
-      font-size: 14px;
+    .cardBody{ padding:16px; }
+
+    /* Live picks table */
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0 10px;
     }
-    table{ width:100%; border-collapse:collapse; overflow:hidden; border-radius: 16px; }
-    th, td{
-      padding: 12px 10px;
-      border-bottom: 1px solid rgba(255,255,255,.10);
+    th{
       text-align:left;
-      font-size: 13px;
+      color:var(--muted);
+      font-size:12px;
+      letter-spacing:.3px;
+      font-weight:900;
+      padding:0 10px 6px 10px;
     }
-    th{ color: rgba(238,243,255,.78); font-weight: 1000; letter-spacing:.2px; }
-    tr:hover td{ background: rgba(255,255,255,.04); }
-    .muted{ margin-top: 10px; color: var(--muted); font-weight: 800; font-size: 13px; white-space:pre-wrap; }
+    td{
+      padding:12px 10px;
+      background:rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.10);
+      font-weight:800;
+      vertical-align:middle;
+    }
+    tr td:first-child{ border-radius:14px 0 0 14px; }
+    tr td:last-child{ border-radius:0 14px 14px 0; }
+    .ballTag{
+      font-family:Oswald,Inter,sans-serif;
+      letter-spacing:.5px;
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(255,122,0,.16);
+      border:1px solid rgba(255,122,0,.28);
+    }
+
+    .hint{ color:var(--muted); font-size:12px; font-weight:700; }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <div class="top">
-      <h1>Live Board</h1>
-      <a href="./">← Back</a>
-    </div>
-
-    <div class="card">
-      <div class="bar">
-        <div class="chip" id="countChip">Loading…</div>
-        <input id="filter" placeholder="Search name or token…" />
-        <div class="chip" id="updatedChip">Last updated: —</div>
+    <div class="topbar">
+      <div>
+        <h1>LIVE BOARD</h1>
+        <div class="sub">Money Madness — picks update automatically</div>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th style="width:44%">Name</th>
-            <th style="width:36%">Token</th>
-            <th style="width:20%">Ball #</th>
-          </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <div class="pill"><span>BALLS LEFT</span><b id="ballsLeft">—</b></div>
+        <div class="pill"><span>TOTAL PICKS</span><b id="totalPicks">—</b></div>
+        <button class="btn" id="pollNow">Poll Now</button>
+      </div>
+    </div>
 
-      <div class="muted" id="status">Loading…</div>
+    <div class="grid">
+      <div class="card">
+        <div class="cardHead">
+          <h2>All Picks</h2>
+          <div class="hint" id="stamp">—</div>
+        </div>
+        <div class="cardBody">
+          <div class="hint" style="margin-bottom:10px;">
+            Tip: Share this link with your group for a live ESPN-style board.
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:44%">PLAYER</th>
+                <th style="width:22%">BALL</th>
+                <th style="width:34%">TIME</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+          <div class="hint" id="empty" style="display:none;">No picks yet.</div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzplqX-cV6Fk80vHyCFrk3kxO4ZJIj7PkahyP-TZ37krUn1mhH5mM0AfywGFMbWVuQ/exec";
-    const BALL_COUNT = 68;
+    // IMPORTANT: replace with YOUR deployed Apps Script web app /exec URL
+    const API = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
+    const POLL_MS = 7000;
 
-    const rowsEl = document.getElementById("rows");
-    const statusEl = document.getElementById("status");
-    const countChip = document.getElementById("countChip");
-    const updatedChip = document.getElementById("updatedChip");
-    const filterEl = document.getElementById("filter");
-
-    let allPicks = [];
-
-    function jsonp(params) {
+    function jsonp(url, params = {}) {
       return new Promise((resolve, reject) => {
-        const cb = "mm_cb_" + Math.random().toString(16).slice(2);
-        const url = new URL(WEB_APP_URL);
-        Object.entries({ ...params, callback: cb }).forEach(([k,v]) => url.searchParams.set(k, v));
-
+        const cb = "cb_" + Math.random().toString(16).slice(2);
         const script = document.createElement("script");
-        const timer = setTimeout(() => { cleanup(); reject(new Error("JSONP timeout")); }, 12000);
+        const qs = new URLSearchParams({ ...params, callback: cb });
+        script.src = url + (url.includes("?") ? "&" : "?") + qs.toString();
+        script.async = true;
 
-        function cleanup(){
-          clearTimeout(timer);
-          delete window[cb];
+        const timeout = setTimeout(() => {
+          cleanup();
+          reject(new Error("JSONP timeout"));
+        }, 12000);
+
+        window[cb] = (data) => {
+          clearTimeout(timeout);
+          cleanup();
+          resolve(data);
+        };
+
+        function cleanup() {
+          try { delete window[cb]; } catch {}
           script.remove();
         }
 
-        window[cb] = (data) => { cleanup(); resolve(data); };
-        script.onerror = () => { cleanup(); reject(new Error("JSONP load error")); };
-        script.src = url.toString();
-        document.body.appendChild(script);
+        script.onerror = () => {
+          clearTimeout(timeout);
+          cleanup();
+          reject(new Error("JSONP load error"));
+        };
+
+        document.head.appendChild(script);
       });
     }
 
-    function esc(s){
-      return String(s).replace(/[&<>"']/g, m => ({
+    const el = (id) => document.getElementById(id);
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, c => ({
         "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-      }[m]));
+      }[c]));
     }
 
-    function stamp(){
-      return new Date().toLocaleString();
-    }
-
-    function render(){
-      const q = filterEl.value.trim().toLowerCase();
-      const picks = !q ? allPicks : allPicks.filter(p =>
-        String(p.name).toLowerCase().includes(q) || String(p.token).toLowerCase().includes(q)
-      );
-
-      rowsEl.innerHTML = "";
-      picks.forEach(p=>{
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${esc(p.name)}</td><td>${esc(p.token)}</td><td>${p.ballNumber}</td>`;
-        rowsEl.appendChild(tr);
-      });
-
-      statusEl.textContent = `Showing ${picks.length} of ${allPicks.length} picks. Refreshing every 10 seconds.`;
-    }
-
-    async function load(){
+    async function poll(){
+      if(!API || API.includes("PASTE_YOUR")){
+        el("stamp").textContent = "Paste API URL into bracket.html";
+        return;
+      }
       try{
-        const st = await jsonp({ action:"getState" });
-        if(!st.ok){
-          countChip.textContent = "API error";
-          statusEl.textContent = "API ERROR: " + (st.error || "Unknown");
+        const data = await jsonp(API, { action:"getAllPicks" });
+        if(!data || !data.ok){
+          el("stamp").textContent = data?.error || "Load failed";
           return;
         }
 
-        allPicks = st.picks || [];
-        const taken = (st.balls || []).filter(x=>!x.available).length;
+        el("ballsLeft").textContent = String(data.ballsRemaining ?? "—");
+        el("totalPicks").textContent = String((data.picks || []).length);
 
-        countChip.textContent = `${taken}/${st.ballCount || BALL_COUNT} claimed`;
-        updatedChip.textContent = `Last updated: ${stamp()}`;
+        const tbody = el("rows");
+        tbody.innerHTML = "";
+        const picks = data.picks || [];
+        el("empty").style.display = picks.length ? "none" : "block";
 
-        render();
-      }catch(err){
-        countChip.textContent = "Load error";
-        statusEl.textContent = String(err);
+        picks.slice().reverse().forEach(p => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escapeHtml(p.playerName || "Unknown")}</td>
+            <td><span class="ballTag">BALL ${escapeHtml(String(p.ballNumber))}</span></td>
+            <td class="hint">${escapeHtml(p.time || "")}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        el("stamp").textContent = "Last update: " + new Date().toLocaleString();
+      }catch(e){
+        el("stamp").textContent = "API error";
       }
     }
 
-    filterEl.addEventListener("input", render);
-
-    load();
-    setInterval(load, 10000);
+    el("pollNow").addEventListener("click", poll);
+    poll();
+    setInterval(poll, POLL_MS);
   </script>
 </body>
 </html>
