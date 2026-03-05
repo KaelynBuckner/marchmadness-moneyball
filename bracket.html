@@ -1,8 +1,8 @@
 <!doctype html>
 <html>
 <head>
-  <base target="_top">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Live Bracket</title>
   <style>
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#0b1220;color:#eef3ff;padding:28px 16px 60px}
@@ -14,14 +14,14 @@
     table{width:100%;border-collapse:collapse}
     th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.10);text-align:left;font-size:13px}
     th{opacity:.8;font-weight:900}
-    .muted{opacity:.75;font-size:13px;margin-top:10px;font-weight:800}
+    .muted{opacity:.75;font-size:13px;margin-top:10px;font-weight:800;white-space:pre-wrap}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top">
       <h1>Live Picks</h1>
-      <a href="?page=index" target="_top">← Back</a>
+      <a href="https://kaelynbuckner.github.io/marchmadness-moneyball/">← Back</a>
     </div>
 
     <div class="card">
@@ -34,19 +34,31 @@
   </div>
 
 <script>
-  // ✅ PASTE YOUR WEB APP /exec URL here (same as index.html)
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzplqX-cV6Fk80vHyCFrk3kxO4ZJIj7PkahyP-TZ37krUn1mhH5mM0AfywGFMbWVuQ/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzlQ91quFkT2XA98MusdUMtvh6heIQKxzjpF2vkvfxmoc7vPLUvChIQoqHax2l5r-I/exec";
 
-  const rowsEl = document.getElementById("rows");
-  const statusEl = document.getElementById("status");
+  function jsonp(params) {
+    return new Promise((resolve, reject) => {
+      const cb = "mm_cb_" + Math.random().toString(16).slice(2);
+      const url = new URL(WEB_APP_URL);
+      Object.entries({ ...params, callback: cb }).forEach(([k,v]) => url.searchParams.set(k, v));
 
-  async function api(payload){
-    const res = await fetch(WEB_APP_URL, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(payload)
+      const script = document.createElement("script");
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error("JSONP timeout"));
+      }, 12000);
+
+      function cleanup(){
+        clearTimeout(timer);
+        delete window[cb];
+        script.remove();
+      }
+
+      window[cb] = (data) => { cleanup(); resolve(data); };
+      script.onerror = () => { cleanup(); reject(new Error("JSONP load error")); };
+      script.src = url.toString();
+      document.body.appendChild(script);
     });
-    return res.json();
   }
 
   function esc(s){
@@ -55,16 +67,21 @@
     }[m]));
   }
 
+  const rowsEl = document.getElementById("rows");
+  const statusEl = document.getElementById("status");
+
   async function load(){
     try{
-      const st = await api({ action:"getState" });
-      if(!st.ok){ statusEl.textContent = st.error || "Error"; return; }
+      const st = await jsonp({ action:"getState" });
+      if(!st.ok){ statusEl.textContent = "API ERROR: " + (st.error || "Unknown"); return; }
+
       rowsEl.innerHTML = "";
       st.picks.forEach(p=>{
         const tr = document.createElement("tr");
         tr.innerHTML = `<td>${esc(p.name)}</td><td>${esc(p.token)}</td><td>${p.ballNumber}</td>`;
         rowsEl.appendChild(tr);
       });
+
       statusEl.textContent = `Loaded ${st.picks.length} picks. Refreshing every 10 seconds.`;
     }catch(err){
       statusEl.textContent = String(err);
