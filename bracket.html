@@ -3,86 +3,199 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Money Madness — Live Bracket</title>
+  <title>Money Madness — Pick Your Ball</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <style>
     :root{
       --bg1:#07162f; --bg2:#0e2a55;
       --stroke:rgba(255,255,255,.10);
       --text:#eaf2ff; --muted:#9db7e6;
-      --orange:#ff7a00; --blue:#2a66ff;
+      --blue:#2a66ff; --orange:#ff7a00; --orange2:#ff9d2f;
+      --good:#30d158; --bad:#ff453a;
       --radius:18px; --shadow:0 18px 50px rgba(0,0,0,.45);
-      --elimBg: rgba(255,69,58,.12);
-      --elimStroke: rgba(255,69,58,.22);
     }
     *{box-sizing:border-box}
     body{
       margin:0; min-height:100vh; color:var(--text);
       font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;
       background:
-        radial-gradient(1200px 800px at 20% 10%, rgba(42,102,255,.24), transparent 60%),
-        radial-gradient(900px 700px at 90% 20%, rgba(255,122,0,.18), transparent 55%),
+        radial-gradient(1200px 800px at 20% 10%, rgba(42,102,255,.28), transparent 60%),
+        radial-gradient(900px 700px at 90% 20%, rgba(255,122,0,.22), transparent 55%),
         linear-gradient(135deg, var(--bg1), var(--bg2));
     }
-    .wrap{max-width:1200px;margin:0 auto;padding:18px}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px}
     .topbar{
-      display:flex;gap:12px;align-items:center;justify-content:space-between;
+      display:flex;gap:14px;align-items:center;justify-content:space-between;
       padding:14px 16px;border:1px solid var(--stroke);
       background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-      border-radius:var(--radius);box-shadow:var(--shadow);backdrop-filter:blur(10px)
+      border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(10px);
+      position:sticky; top:12px; z-index:50;
     }
-    h1{margin:0;font-family:Oswald,Inter,sans-serif;letter-spacing:.6px;font-size:22px;line-height:1;color:var(--orange)}
-    .sub{margin-top:2px;color:var(--muted);font-size:12px;font-weight:900}
-    .btn{border:none;border-radius:14px;padding:11px 14px;color:white;font-weight:900;cursor:pointer;background:rgba(255,255,255,.06);border:1px solid var(--stroke)}
-    .hint{color:var(--muted);font-size:12px;font-weight:900}
-    .grid{display:grid;grid-template-columns:repeat(2, 1fr);gap:16px;margin-top:16px}
-    @media (max-width:980px){.grid{grid-template-columns:1fr}}
+    .brand{display:flex;gap:12px;align-items:center}
+    .mark{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--orange),var(--blue));position:relative;overflow:hidden;box-shadow:0 12px 22px rgba(0,0,0,.35)}
+    .mark:after{content:"";position:absolute;inset:-30%;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), transparent 55%);transform:rotate(20deg)}
+    .brand h1{margin:0;font-family:Oswald,Inter,sans-serif;letter-spacing:.6px;font-size:22px;line-height:1}
+    .sub{margin-top:2px;color:var(--muted);font-size:12px;font-weight:800}
+    .score{display:flex;gap:10px;align-items:center;justify-content:center;flex:1}
+    .pill{display:flex;gap:10px;align-items:center;padding:10px 12px;background:rgba(0,0,0,.22);border:1px solid var(--stroke);border-radius:999px;min-width:150px;justify-content:center}
+    .pill span{color:var(--muted);font-size:12px;font-weight:900}
+    .pill b{font-family:Oswald,Inter,sans-serif;letter-spacing:.4px}
+    .btn{
+      border:none;border-radius:14px;padding:11px 14px;color:white;font-weight:900;cursor:pointer;
+      background:linear-gradient(135deg,var(--orange),#ff4d00);
+      box-shadow:0 12px 26px rgba(255,122,0,.22);
+    }
+    .btn.secondary{background:rgba(255,255,255,.06);border:1px solid var(--stroke);box-shadow:none}
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+
+    /* ✅ single column (no side bracket/activity while picking) */
+    .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
 
     .card{border:1px solid var(--stroke);background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
     .head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08)}
     .head h2{margin:0;font-family:Oswald,Inter,sans-serif;font-size:18px;letter-spacing:.4px}
     .body{padding:16px}
-
-    .slots{display:grid;grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));gap:12px}
-    .slot{
-      padding:12px;border-radius:14px;background:rgba(0,0,0,.22);
-      border:1px solid rgba(255,255,255,.10);
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    input{
+      flex:1;min-width:220px;border-radius:14px;padding:12px;border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.22);color:var(--text);outline:none;font-weight:800
     }
-    .slot.elim{ background: var(--elimBg); border-color: var(--elimStroke); }
-    .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .slotKey{font-family:Oswald,Inter,sans-serif;font-weight:950;letter-spacing:.4px;color:var(--orange)}
-    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:rgba(42,102,255,.14);border:1px solid rgba(42,102,255,.25);font-weight:950}
-    .team{margin-top:6px;font-weight:950;line-height:1.2}
-    .meta{margin-top:6px;color:var(--muted);font-size:12px;font-weight:900}
-    .player{margin-top:10px;font-weight:950}
-    .player small{color:var(--muted);font-weight:900}
+    .hint{color:var(--muted);font-size:12px;font-weight:800;margin-top:10px;line-height:1.35}
+    .meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 12px}
+    .tag{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:999px;background:rgba(0,0,0,.22);border:1px solid var(--stroke);font-size:12px;font-weight:900;color:var(--muted)}
+    .tag b{color:var(--text)}
+    .ballGrid{display:grid;grid-template-columns:repeat(auto-fill,74px);gap:14px;justify-content:center}
+
+    /* ✅ more 3D / realistic look */
+    .ball{
+      width:74px;height:74px;border-radius:50%;
+      position:relative;cursor:pointer;
+      transform-style:preserve-3d;perspective:900px;
+      background:
+        radial-gradient(circle at 26% 24%, rgba(255,255,255,.60), transparent 28%),
+        radial-gradient(circle at 70% 78%, rgba(0,0,0,.45), transparent 38%),
+        radial-gradient(circle at 35% 35%, var(--orange2), var(--orange));
+      box-shadow:
+        inset -18px -18px 22px rgba(0,0,0,.55),
+        inset 10px 12px 18px rgba(255,255,255,.20),
+        0 16px 24px rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.12);
+      overflow:hidden;
+      transition: transform .14s ease, filter .14s ease, opacity .2s ease;
+    }
+    .ball:before{
+      content:"";position:absolute;inset:-25%;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.40), transparent 45%),
+        repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,.14) 0 1px, transparent 1px 6px);
+      opacity:.35; transform:rotate(18deg); pointer-events:none;
+      filter:contrast(1.05);
+    }
+    .ball:after{
+      content:""; position:absolute; inset:8%;
+      border-radius:50%;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.10);
+      pointer-events:none;
+      mix-blend-mode:overlay;
+    }
+    .seamH{position:absolute;left:-10%;right:-10%;height:4px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.78);box-shadow:0 1px 0 rgba(255,255,255,.10) inset}
+    .seamV{position:absolute;top:-10%;bottom:-10%;width:4px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.78);box-shadow:0 1px 0 rgba(255,255,255,.10) inset}
+
+    @keyframes idleSpin{0%{transform:rotateY(0) rotateX(14deg)}100%{transform:rotateY(360deg) rotateX(14deg)}}
+    .ball.idle{animation:idleSpin 5.2s linear infinite}
+    .ball:hover{filter:brightness(1.06);transform:translateY(-2px) scale(1.02);animation-play-state:paused}
+    @keyframes pickSpin{0%{transform:rotateY(0) rotateX(0) scale(1)}55%{transform:rotateY(560deg) rotateX(240deg) scale(1.06)}100%{transform:rotateY(920deg) rotateX(360deg) scale(1)}}
+    .ball.spin{animation:pickSpin 1.45s cubic-bezier(.2,.9,.1,1)}
+    .ball.disabled{opacity:.40;cursor:not-allowed;filter:grayscale(.2);animation:none;transform:none}
+
+    .num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Oswald,Inter,sans-serif;font-size:26px;font-weight:900;letter-spacing:.6px;text-shadow:0 6px 18px rgba(0,0,0,.55)}
+
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;background:rgba(0,0,0,.22);border:1px solid var(--stroke);font-weight:900;font-size:12px}
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 3px rgba(255,122,0,.18)}
+    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14);padding:12px 14px;border-radius:14px;box-shadow:var(--shadow);font-weight:900;display:none;z-index:999;backdrop-filter:blur(10px)}
+    .toast.show{display:block}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="topbar">
-      <div>
-        <h1>LIVE BRACKET</h1>
-        <div class="sub">Teams auto-fill • Player names attach to bracket slots</div>
+      <div class="brand">
+        <div class="mark"></div>
+        <div>
+          <h1>MONEY MADNESS</h1>
+          <div class="sub">Realistic ball draw • ESPN vibe</div>
+        </div>
+      </div>
+      <div class="score">
+        <div class="pill"><span>BALLS LEFT</span><b id="ballsLeft">—</b></div>
+        <div class="pill"><span>YOUR PICKS</span><b id="yourPicksCount">0</b></div>
+        <div class="pill"><span>MAX</span><b id="maxPicks">—</b></div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;">
-        <div class="hint" id="stamp">—</div>
-        <button class="btn" id="pollNow">Poll Now</button>
+        <button class="btn secondary" id="openBracket">Live Bracket</button>
+        <button class="btn" id="refreshBtn">Refresh</button>
       </div>
     </div>
 
-    <div class="grid" id="regions"></div>
+    <div class="grid">
+      <div class="card">
+        <div class="head">
+          <h2>Enter Name + Pick</h2>
+          <div class="hint" style="margin:0">Token auto-fills from your link. Name saves automatically.</div>
+        </div>
+        <div class="body">
+          <div class="row">
+            <input id="token" placeholder="Token (MM-XXXXX…)" autocomplete="off" spellcheck="false">
+            <input id="name" placeholder="Your name" autocomplete="name" spellcheck="false">
+            <button class="btn" id="saveBtn" title="Optional (name auto-saves)">Save</button>
+          </div>
+          <div class="hint">Invite links auto-fill token using <b>?token=MM-XXXXX</b></div>
+
+          <div class="meta">
+            <div class="tag">Status: <b id="statusTag">Not loaded</b></div>
+            <div class="tag">Player: <b id="playerTag">—</b></div>
+          </div>
+
+          <div class="ballGrid" id="ballGrid"></div>
+          <div class="chips" id="pickedList"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <div class="toast" id="toast"></div>
+
+  <audio id="sndClick" preload="auto" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="sndCheer" preload="auto" src="https://actions.google.com/sounds/v1/crowds/medium_crowd_cheer.ogg"></audio>
+  <audio id="sndBuzz" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
   <script>
+    // ✅ Your Web App URL (JSONP)
     const API = "https://script.google.com/macros/s/AKfycbzplqX-cV6Fk80vHyCFrk3kxO4ZJIj7PkahyP-TZ37krUn1mhH5mM0AfywGFMbWVuQ/exec";
-    const POLL_MS = 9000;
+
+    const BALL_COUNT = 68;
+    const POLL_MS = 8000;
 
     const el = (id)=>document.getElementById(id);
+    const toastEl = el("toast");
+    const snd = { click: el("sndClick"), cheer: el("sndCheer"), buzz: el("sndBuzz") };
+    let maxPicksAllowed = 4;
+    let locked = false;
+
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      setTimeout(()=>toastEl.classList.remove("show"), 2400);
+    }
+    function confettiBurst(){
+      try{ confetti({ particleCount: 140, spread: 70, origin:{ y:0.75 } }); }catch{}
+    }
     function escapeHtml(s){
       return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
     }
@@ -102,70 +215,197 @@
         document.head.appendChild(script);
       });
     }
-
-    function groupByRegion(slots){
-      const out = {};
-      (slots||[]).forEach(s => {
-        const r = s.region || "Other";
-        (out[r] ||= []).push(s);
-      });
-      Object.keys(out).forEach(r => out[r].sort((a,b)=>Number(a.seed)-Number(b.seed)));
-      return out;
+    function setStatus(text, good=true){
+      el("statusTag").textContent = text;
+      el("statusTag").style.color = good ? "var(--good)" : "var(--bad)";
     }
 
-    function render(regionsMap){
-      const container = el("regions");
-      container.innerHTML = "";
+    function makeBall(){
+      const d = document.createElement("div");
+      d.className = "ball idle";
+      d.innerHTML = `<div class="seamH"></div><div class="seamV"></div>`;
+      d.addEventListener("click", () => onBallClick(d));
+      return d;
+    }
+    function buildRack(){
+      const grid = el("ballGrid");
+      grid.innerHTML = "";
+      for(let i=0;i<BALL_COUNT;i++) grid.appendChild(makeBall());
+    }
 
-      Object.keys(regionsMap).sort().forEach(region => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <div class="head">
-            <h2>${escapeHtml(region)}</h2>
-            <div class="hint">Seed • Slot</div>
-          </div>
-          <div class="body">
-            <div class="slots" id="slots_${escapeHtml(region).replace(/\W+/g,'_')}"></div>
-          </div>
-        `;
-        container.appendChild(card);
-
-        const slotsBox = card.querySelector(".slots");
-        regionsMap[region].forEach(s => {
-          const d = document.createElement("div");
-          d.className = "slot" + (s.eliminated ? " elim" : "");
-          d.innerHTML = `
-            <div class="top">
-              <div class="slotKey">${escapeHtml(s.slotKey)}</div>
-              <div class="pill">Seed ${escapeHtml(String(s.seed || "—"))}</div>
-            </div>
-            <div class="team">${escapeHtml(s.teamName || "TBD")}</div>
-            <div class="meta">${s.eliminated ? "Eliminated" : "Alive"}</div>
-            <div class="player"><small>Player:</small> ${escapeHtml(s.playerName || "—")}</div>
-          `;
-          slotsBox.appendChild(d);
-        });
+    function lockUI(v){
+      locked = v;
+      el("saveBtn").disabled = v;
+      el("refreshBtn").disabled = v;
+      el("token").disabled = v;
+      el("name").disabled = v;
+      document.querySelectorAll(".ball").forEach(b => {
+        if(v) b.classList.add("disabled");
+        else if(!b.dataset.picked) b.classList.remove("disabled");
       });
     }
 
-    async function poll(){
+    function renderPicked(picks){
+      const box = el("pickedList");
+      box.innerHTML = "";
+      (picks || []).forEach(p => {
+        const c = document.createElement("div");
+        c.className = "chip";
+        c.innerHTML = `<span class="dot"></span> Ball <b>${p.ballNumber}</b> • Slot <b>${escapeHtml(p.slotKey||"")}</b>`;
+        box.appendChild(c);
+      });
+      el("yourPicksCount").textContent = String((picks||[]).length);
+    }
+
+    // ✅ token auto-fill supports ?token=, ?t=, and #token=
+    function autoFillTokenFromUrl(){
+      const params = new URLSearchParams(location.search);
+      let t = (params.get("token") || params.get("t") || "").trim();
+      if (!t && location.hash) {
+        const hp = new URLSearchParams(location.hash.replace(/^#/, ""));
+        t = (hp.get("token") || hp.get("t") || "").trim();
+      }
+      if (t) el("token").value = t;
+    }
+
+    // ✅ name saves automatically (backend supports setname + setName)
+    async function saveName(silent=false){
+      const token = el("token").value.trim();
+      const name  = el("name").value.trim();
+
+      if(!token){ if(!silent) toast("Paste your token first."); return false; }
+      if(!name){  if(!silent) toast("Type your name first."); return false; }
+
       try{
-        const data = await jsonp(API, { action:"getBracket" });
-        if(!data || !data.ok){
-          el("stamp").textContent = data?.error || "Load failed";
-          return;
+        // Use lowercase action to match older backends; Code.gs supports both.
+        const res = await jsonp(API, { action:"setname", token, name });
+        if(!res || !res.ok){
+          if(!silent) toast(res?.error || "Name save failed");
+          return false;
         }
-        render(groupByRegion(data.slots || []));
-        el("stamp").textContent = "Last update: " + new Date().toLocaleString();
+        el("playerTag").textContent = name;
+        return true;
       }catch(e){
-        el("stamp").textContent = "API error";
+        if(!silent) toast("API error saving name.");
+        return false;
       }
     }
 
-    el("pollNow").addEventListener("click", poll);
-    poll();
-    setInterval(poll, POLL_MS);
+    async function loadState(){
+      const token = el("token").value.trim();
+      if(!token){ setStatus("Not loaded", false); return; }
+
+      setStatus("Loading…", true);
+      try{
+        const data = await jsonp(API, { action:"getState", token });
+        if(!data || !data.ok){
+          setStatus(data?.error || "Load failed", false);
+          toast(data?.error || "Load failed");
+          return;
+        }
+        maxPicksAllowed = Number(data.maxPicksPerToken || 4);
+        el("maxPicks").textContent = String(maxPicksAllowed);
+        el("ballsLeft").textContent = String(data.ballsRemaining ?? "—");
+
+        const typed = el("name").value.trim();
+        const backendName = (data.playerName || "").trim();
+        if (!typed && backendName) el("name").value = backendName;
+
+        el("playerTag").textContent = typed || backendName || "—";
+        renderPicked(data.yourPicks || []);
+        setStatus("Ready", true);
+      }catch(e){
+        setStatus("API error", false);
+        toast("API error.");
+      }
+    }
+
+    async function onBallClick(ballEl){
+      if(locked) return;
+
+      const token = el("token").value.trim();
+      if(!token){ toast("Paste your token first."); return; }
+
+      // ✅ ensure name saved BEFORE picking (prevents Missing name)
+      const okName = await saveName(true);
+      if(!okName){
+        snd.buzz?.play?.();
+        toast("Type your name first.");
+        return;
+      }
+
+      const currentCount = Number(el("yourPicksCount").textContent || "0");
+      if(currentCount >= maxPicksAllowed){
+        snd.buzz?.play?.();
+        toast("You’ve reached max picks.");
+        return;
+      }
+
+      lockUI(true);
+      snd.click?.play?.();
+
+      ballEl.classList.remove("idle");
+      ballEl.classList.add("spin");
+
+      try{
+        const res = await jsonp(API, { action:"pickBall", token });
+        if(!res || !res.ok){
+          snd.buzz?.play?.();
+          toast(res?.error || "Pick failed");
+          ballEl.classList.remove("spin");
+          ballEl.classList.add("idle");
+          return;
+        }
+
+        setTimeout(() => {
+          ballEl.dataset.picked = "1";
+          ballEl.innerHTML += `<div class="num">${res.pick.ballNumber}</div>`;
+          ballEl.classList.add("disabled");
+        }, 650);
+
+        setTimeout(() => {
+          snd.cheer?.play?.();
+          confettiBurst();
+          toast(`Locked in: BALL ${res.pick.ballNumber} (${res.pick.slotKey})`);
+        }, 950);
+
+        await loadState();
+      }catch(e){
+        snd.buzz?.play?.();
+        toast("Pick failed (API error).");
+      }finally{
+        lockUI(false);
+      }
+    }
+
+    function init(){
+      buildRack();
+      autoFillTokenFromUrl();
+
+      el("saveBtn").addEventListener("click", () => saveName(false));
+      el("refreshBtn").addEventListener("click", loadState);
+
+      // auto-save name after typing
+      let nameTimer = null;
+      el("name").addEventListener("input", () => {
+        clearTimeout(nameTimer);
+        nameTimer = setTimeout(() => saveName(true), 350);
+      });
+      el("name").addEventListener("blur", () => saveName(true));
+      el("name").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); saveName(false); }
+      });
+
+      el("openBracket").addEventListener("click", () => {
+        const tok = el("token").value.trim();
+        const url = "bracket.html" + (tok ? ("?token=" + encodeURIComponent(tok)) : "");
+        window.open(url, "_blank");
+      });
+
+      if(el("token").value.trim()) loadState();
+      setInterval(()=>{ if(el("token").value.trim()) loadState(); }, POLL_MS);
+    }
+    init();
   </script>
 </body>
 </html>
