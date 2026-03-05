@@ -1,27 +1,25 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Money Madness — Live Bracket</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Money Madness — Ball Pick</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <style>
     :root{
       --bg1:#07162f; --bg2:#0e2a55;
       --stroke:rgba(255,255,255,.10);
       --text:#eaf2ff; --muted:#9db7e6;
-      --blue:#2a66ff; --orange:#ff7a00;
+      --blue:#2a66ff; --orange:#ff7a00; --orange2:#ff9d2f;
+      --good:#30d158; --bad:#ff453a;
       --shadow:0 18px 50px rgba(0,0,0,.45);
+      --blk: rgba(0,0,0,.30);
       --glass: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
-      --blk: rgba(0,0,0,.26);
-      --line: rgba(255,255,255,.20);
-      --hi: rgba(255,122,0,.22);
-      --hi2: rgba(42,102,255,.18);
-      --win: rgba(48,209,88,.16);
     }
     *{box-sizing:border-box}
     body{
@@ -31,16 +29,18 @@
         radial-gradient(1200px 800px at 20% 10%, rgba(42,102,255,.26), transparent 60%),
         radial-gradient(900px 700px at 90% 20%, rgba(255,122,0,.22), transparent 55%),
         linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow-x:hidden;
     }
 
-    .topbar{
+    /* Header overlay (small, not taking over the screen) */
+    .topOverlay{
       position:sticky; top:0; z-index:50;
       backdrop-filter: blur(10px);
-      background:linear-gradient(180deg, rgba(0,0,0,.42), rgba(0,0,0,.12));
+      background:linear-gradient(180deg, rgba(0,0,0,.40), rgba(0,0,0,.12));
       border-bottom:1px solid rgba(255,255,255,.08);
     }
     .topInner{
-      max-width:1780px; margin:0 auto; padding:16px 18px;
+      max-width:1280px; margin:0 auto; padding:16px 18px;
       display:flex; gap:14px; align-items:center; justify-content:space-between; flex-wrap:wrap;
     }
     .brand{display:flex; gap:12px; align-items:center}
@@ -53,7 +53,7 @@
     .mark:after{content:"";position:absolute;inset:-30%;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), transparent 55%);transform:rotate(20deg)}
     h1{
       margin:0; font-family:Oswald,Inter,sans-serif;
-      letter-spacing:.8px; font-size:24px; line-height:1;
+      letter-spacing:.8px; font-size:28px; line-height:1;
     }
     .sub{margin-top:4px;color:var(--muted);font-size:12px;font-weight:900}
 
@@ -81,220 +81,253 @@
       border:1px solid rgba(255,255,255,.12);
       box-shadow:none;
     }
+    .btn:disabled{opacity:.55;cursor:not-allowed}
 
-    /* Viewer with pan+zoom */
-    .wrap{max-width:1780px;margin:0 auto;padding:18px}
-    .viewer{
+    /* Full screen ball wall */
+    .stage{
+      max-width:1280px; margin:0 auto;
+      padding:18px;
+    }
+    .hintBar{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+      margin:10px 0 16px;
+      padding:12px 14px;
       border:1px solid rgba(255,255,255,.10);
       background:var(--glass);
       border-radius:18px;
       box-shadow:var(--shadow);
-      overflow:hidden;
-      height: calc(100vh - 120px);
-      position:relative;
     }
-    .viewport{width:100%; height:100%; overflow:hidden; cursor:grab; touch-action:none;}
-    .viewport.dragging{cursor:grabbing}
-    .content{transform-origin:0 0; will-change:transform; padding:18px; min-width:2300px;}
+    .hintBar .left{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      color:var(--muted); font-weight:900; font-size:12px;
+    }
+    .hintBar b{color:var(--text)}
+    .inlineInputs{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;
+    }
+    input{
+      width:min(320px, 88vw);
+      border-radius:14px;padding:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.24);color:var(--text);
+      outline:none;font-weight:800
+    }
 
-    /* Bracket layout (more like real bracket) */
-    .grid{
+    .ballGrid{
       display:grid;
-      grid-template-columns: 1fr 460px 1fr;
+      grid-template-columns:repeat(auto-fill, minmax(92px, 1fr));
       gap:18px;
-      align-items:start;
+      align-items:center;
+      justify-items:center;
+      padding:10px 0 24px;
+    }
+    @media (max-width:520px){
+      .ballGrid{grid-template-columns:repeat(auto-fill, minmax(78px, 1fr)); gap:14px;}
     }
 
-    .panel{
+    /* More 3D / realistic ball */
+    .ball{
+      width:92px;height:92px;border-radius:50%;
+      position:relative;
+      cursor:pointer;
+      transform-style:preserve-3d;
+      perspective:900px;
+      background:
+        radial-gradient(circle at 26% 24%, rgba(255,255,255,.65), transparent 32%),
+        radial-gradient(circle at 68% 78%, rgba(0,0,0,.40), transparent 46%),
+        radial-gradient(circle at 50% 50%, var(--orange2), var(--orange));
+      box-shadow:
+        inset -22px -22px 28px rgba(0,0,0,.58),
+        inset 14px 16px 20px rgba(255,255,255,.12),
+        0 22px 26px rgba(0,0,0,.56);
       border:1px solid rgba(255,255,255,.10);
-      border-radius:18px;
-      background:rgba(0,0,0,.18);
+      overflow:hidden;
+      transition: transform .14s ease, filter .14s ease, opacity .2s ease;
+    }
+    .ball:before{
+      content:"";
+      position:absolute; inset:-30%;
+      background:
+        radial-gradient(circle at 30% 28%, rgba(255,255,255,.28), transparent 42%),
+        repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,.12) 0 1px, transparent 1px 6px);
+      opacity:.35;
+      transform:rotate(16deg);
+      pointer-events:none;
+    }
+    .seamH{position:absolute;left:-12%;right:-12%;height:4px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.78)}
+    .seamV{position:absolute;top:-12%;bottom:-12%;width:4px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.78)}
+
+    .ball:hover{filter:brightness(1.07);transform:translateY(-2px) scale(1.02)}
+    .ball.disabled{opacity:.35;cursor:not-allowed;filter:grayscale(.15);transform:none}
+
+    /* Spin ONLY when picked */
+    @keyframes pickSpin{
+      0%{transform:rotateY(0) rotateX(0) scale(1)}
+      60%{transform:rotateY(620deg) rotateX(250deg) scale(1.06)}
+      100%{transform:rotateY(980deg) rotateX(360deg) scale(1)}
+    }
+    .ball.spin{animation:pickSpin 1.2s cubic-bezier(.2,.9,.1,1)}
+
+    /* Locked overlay */
+    .lock{
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      background:radial-gradient(circle at 50% 30%, rgba(255,255,255,.10), rgba(0,0,0,.45));
+      opacity:0; transition:opacity .2s ease;
+    }
+    .ball.disabled .lock{opacity:1}
+    .lock svg{opacity:.55}
+
+    /* Reveal card (pull-out) */
+    .revealBack{
+      position:fixed; inset:0;
+      display:none; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.56);
+      z-index:999;
+      backdrop-filter: blur(10px);
+      padding:18px;
+    }
+    .reveal{
+      width:min(640px, 96vw);
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.14);
+      background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
+      box-shadow:var(--shadow);
       overflow:hidden;
     }
-    .panelHead{
-      display:flex; justify-content:space-between; align-items:center;
-      padding:12px 14px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      background:rgba(0,0,0,.20);
+    .revealTop{
+      padding:14px 16px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
     }
-    .panelHead h2{
-      margin:0; font-family:Oswald,Inter,sans-serif;
-      letter-spacing:.6px; font-size:16px;
-    }
-    .legend{color:var(--muted);font-size:12px;font-weight:900;display:flex;gap:10px;align-items:center;}
-    .dot{width:10px;height:10px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 3px rgba(255,122,0,.18)}
-    .dot2{width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 3px rgba(42,102,255,.18)}
-
-    .regions{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:14px;
-      padding:14px;
-    }
-
-    .region{
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:16px;
-      background:rgba(0,0,0,.22);
-      overflow:hidden;
-    }
-    .regionHead{
-      display:flex; justify-content:space-between; align-items:center;
-      padding:10px 12px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-    }
-    .regionHead b{
+    .revealTop h2{
+      margin:0;
       font-family:Oswald,Inter,sans-serif;
       letter-spacing:.6px;
+      font-size:18px;
     }
-
-    .roundLabels{
-      display:grid;
-      grid-template-columns: 260px 210px 170px 150px;
-      gap:12px;
-      padding:10px 12px;
+    .x{
+      cursor:pointer; font-weight:900;
       color:var(--muted);
-      font-weight:900;
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.5px;
-    }
-    .rounds{
-      display:grid;
-      grid-template-columns: 260px 210px 170px 150px;
-      gap:12px;
-      padding:0 12px 12px;
-      align-items:start;
-    }
-    .col{display:grid; gap:12px}
-
-    /* Match “real bracket” feel: slimmer team rows + lines */
-    .game{
-      position:relative;
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:14px;
-      background:rgba(255,255,255,.03);
-      overflow:hidden;
-    }
-    .teamRow{
-      display:flex; justify-content:space-between; align-items:center; gap:10px;
       padding:8px 10px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-    }
-    .teamRow:last-child{border-bottom:none}
-
-    .leftRow{display:flex; align-items:center; gap:10px; min-width:0}
-    .seed{
-      width:22px; text-align:center;
-      font-family:Oswald,Inter,sans-serif;
-      opacity:.95;
-    }
-    .teamText{min-width:0}
-    .teamName{
-      font-weight:950;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      line-height:1.1;
-    }
-    .owner{
-      margin-top:2px;
-      color:var(--muted);
-      font-size:11px;
-      font-weight:900;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .score{
-      font-family:Oswald,Inter,sans-serif;
-      min-width:20px;
-      text-align:right;
-      opacity:.95;
-    }
-
-    .winnerRow{background:var(--win)}
-    .hi{background:var(--hi); outline:2px solid rgba(255,122,0,.34)}
-    .hi2{background:var(--hi2); outline:2px solid rgba(42,102,255,.26)}
-
-    /* Center (Final Four) styled like header blocks */
-    .centerBody{padding:14px}
-    .centerStack{display:grid; gap:14px}
-    .centerLabel{
-      color:var(--muted);
-      font-weight:900;
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.5px;
-    }
-    .centerBlock{
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:16px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
       background:rgba(0,0,0,.22);
-      padding:12px;
+      user-select:none;
     }
+    .revealBody{
+      padding:16px;
+      display:grid;
+      gap:14px;
+    }
+    .card{
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.26);
+      padding:16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card:before{
+      content:"";
+      position:absolute; inset:-40%;
+      background:
+        radial-gradient(circle at 26% 26%, rgba(42,102,255,.30), transparent 55%),
+        radial-gradient(circle at 74% 74%, rgba(255,122,0,.26), transparent 55%);
+      transform:rotate(18deg);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .cardInner{position:relative; z-index:1}
+    .slotBig{
+      margin:0;
+      font-family:Oswald,Inter,sans-serif;
+      font-size:68px;
+      letter-spacing:2px;
+      line-height:1;
+      text-shadow:0 18px 46px rgba(0,0,0,.55);
+    }
+    .miniRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    .mini{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:10px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      font-weight:900;
+      color:var(--muted);
+    }
+    .mini b{color:var(--text)}
+    .note{color:var(--muted); font-weight:900; font-size:12px; line-height:1.35}
+    .actions{display:flex; gap:10px; flex-wrap:wrap}
+    .toast{
+      position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+      background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14);
+      padding:12px 14px;border-radius:14px;box-shadow:var(--shadow);
+      font-weight:900;display:none;z-index:999;backdrop-filter:blur(10px)
+    }
+    .toast.show{display:block}
   </style>
 </head>
 <body>
-  <div class="topbar">
+  <div class="topOverlay">
     <div class="topInner">
       <div class="brand">
         <div class="mark"></div>
         <div>
-          <h1>Live Bracket</h1>
-          <div class="sub">All regions visible • Teams + player ownership populate live</div>
+          <h1>Money Madness Ball Pick</h1>
+          <div class="sub">Pick a blank ball → it spins once → reveals your bracket slot</div>
         </div>
       </div>
 
       <div class="controls">
-        <div class="pill"><span>LAST UPDATE</span><b id="lastUpdate">—</b></div>
-        <button class="btn secondary" id="pollBtn">Poll</button>
-        <button class="btn secondary" id="zoomOut">−</button>
-        <button class="btn secondary" id="zoomIn">+</button>
-        <button class="btn secondary" id="zoomReset">Reset</button>
-        <button class="btn" id="backBtn">Pick Page</button>
+        <div class="pill"><span>BALLS LEFT</span><b id="ballsLeft">—</b></div>
+        <button class="btn secondary" id="viewBracket">View Bracket</button>
+        <button class="btn" id="refreshBtn">Refresh</button>
       </div>
     </div>
   </div>
 
-  <div class="wrap">
-    <div class="viewer">
-      <div class="viewport" id="viewport">
-        <div class="content" id="content">
-          <div class="grid">
-            <div class="panel">
-              <div class="panelHead">
-                <h2>LEFT SIDE</h2>
-                <div class="legend"><span class="dot"></span> Highlight slot <span class="dot2"></span> Your token</div>
-              </div>
-              <div class="regions" id="leftRegions"></div>
+  <div class="stage">
+    <div class="hintBar">
+      <div class="left">
+        <span>Status:</span> <b id="statusTag">Not loaded</b>
+        <span style="opacity:.6">•</span>
+        <span>Player:</span> <b id="playerTag">—</b>
+      </div>
+
+      <div class="inlineInputs">
+        <input id="name" placeholder="Your name" autocomplete="name" spellcheck="false">
+        <input id="token" placeholder="Invite token" autocomplete="off" spellcheck="false">
+        <button class="btn secondary" id="saveBtn">Save</button>
+      </div>
+    </div>
+
+    <div class="ballGrid" id="ballGrid"></div>
+  </div>
+
+  <!-- Reveal modal -->
+  <div class="revealBack" id="revealBack">
+    <div class="reveal" role="dialog" aria-modal="true">
+      <div class="revealTop">
+        <h2>Position Locked</h2>
+        <div class="x" id="closeReveal">Close</div>
+      </div>
+      <div class="revealBody">
+        <div class="card">
+          <div class="cardInner">
+            <div class="note" style="margin-bottom:10px">Your bracket slot</div>
+            <h3 class="slotBig" id="slotBig">—</h3>
+            <div class="miniRow">
+              <div class="mini">Region: <b id="slotRegion">—</b></div>
+              <div class="mini">Seed: <b id="slotSeed">—</b></div>
             </div>
-
-            <div class="panel">
-              <div class="panelHead">
-                <h2>FINAL FOUR + TITLE</h2>
-                <div class="legend"><span class="dot"></span> Highlight slot</div>
-              </div>
-              <div class="centerBody">
-                <div class="centerStack">
-                  <div class="centerLabel">National Semifinal</div>
-                  <div class="centerBlock" id="ff1"></div>
-
-                  <div class="centerLabel">National Semifinal</div>
-                  <div class="centerBlock" id="ff2"></div>
-
-                  <div class="centerLabel">National Championship</div>
-                  <div class="centerBlock" id="champ"></div>
-                </div>
-              </div>
+            <div class="note" style="margin-top:12px">
+              Teams will populate after Selection Sunday. Your name stays pinned to this slot for the tournament.
             </div>
-
-            <div class="panel">
-              <div class="panelHead">
-                <h2>RIGHT SIDE</h2>
-                <div class="legend"><span class="dot"></span> Highlight slot <span class="dot2"></span> Your token</div>
-              </div>
-              <div class="regions" id="rightRegions"></div>
+            <div class="actions" style="margin-top:12px">
+              <button class="btn" id="openBracketNow">Open Live Bracket</button>
+              <button class="btn secondary" id="okBtn">Done</button>
             </div>
           </div>
         </div>
@@ -302,13 +335,30 @@
     </div>
   </div>
 
-  <script>
-    const API = "https://script.google.com/macros/s/AKfycbzplqX-cV6Fk80vHyCFrk3kxO4ZJIj7PkahyP-TZ37krUn1mhH5mM0AfywGFMbWVuQ/exec";
-    const POLL_MS = 10000;
-    const el = (id)=>document.getElementById(id);
+  <div class="toast" id="toast"></div>
 
-    function escapeHtml(s){
-      return String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  <audio id="sndClick" preload="auto" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="sndCheer" preload="auto" src="https://actions.google.com/sounds/v1/crowds/medium_crowd_cheer.ogg"></audio>
+  <audio id="sndBuzz" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+  <script>
+    // ✅ Your Web App URL
+    const API = "https://script.google.com/macros/s/AKfycbzplqX-cV6Fk80vHyCFrk3kxO4ZJIj7PkahyP-TZ37krUn1mhH5mM0AfywGFMbWVuQ/exec";
+    const BALL_COUNT = 68;
+    const POLL_MS = 9000;
+
+    const el = (id)=>document.getElementById(id);
+    const toastEl = el("toast");
+    const snd = { click: el("sndClick"), cheer: el("sndCheer"), buzz: el("sndBuzz") };
+    let locked = false;
+
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      setTimeout(()=>toastEl.classList.remove("show"), 2400);
+    }
+    function confettiBurst(){
+      try{ confetti({ particleCount: 140, spread: 70, origin:{ y:0.75 } }); }catch{}
     }
     function jsonp(url, params = {}) {
       return new Promise((resolve, reject) => {
@@ -322,192 +372,189 @@
         window[cb] = (data) => { clearTimeout(timeout); cleanup(); resolve(data); };
         function cleanup(){ try{ delete window[cb]; }catch{} script.remove(); }
         script.onerror = () => { clearTimeout(timeout); cleanup(); reject(new Error("JSONP load error")); };
+
         document.head.appendChild(script);
       });
     }
-
-    const LEFT = ["East","West"];
-    const RIGHT = ["South","Midwest"];
-
-    function normalizeRegion(r){
-      const s = String(r||"").toLowerCase().trim();
-      if (s.startsWith("e")) return "East";
-      if (s.startsWith("w")) return "West";
-      if (s.startsWith("s")) return "South";
-      if (s.startsWith("m")) return "Midwest";
-      return r || "Region";
+    function setStatus(text, good=true){
+      el("statusTag").textContent = text;
+      el("statusTag").style.color = good ? "var(--good)" : "var(--bad)";
     }
 
-    function emptyRegion(){
-      const emptyGame = ()=>({
-        home:{team:"TBD",seed:"",score:"",ownerName:"",ownerToken:"",slotKey:""},
-        away:{team:"TBD",seed:"",score:"",ownerName:"",ownerToken:"",slotKey:""}
-      });
-      return { rounds:{ r1:Array.from({length:8},emptyGame), r2:Array.from({length:4},emptyGame), r3:Array.from({length:2},emptyGame), r4:Array.from({length:1},emptyGame) } };
-    }
-
-    function rowClass(t, opts){
-      const cls = [];
-      if (t.isWinner) cls.push("winnerRow");
-      if (opts.highlightSlot && t.slotKey === opts.highlightSlot) cls.push("hi");
-      if (opts.token && t.ownerToken && t.ownerToken === opts.token) cls.push("hi2");
-      return cls.join(" ");
-    }
-
-    function renderTeamRow(t, opts){
-      const team = t.team || "TBD";
-      const seed = t.seed || "";
-      const score = (t.score ?? "");
-      const owner = t.ownerName ? t.ownerName : "";
-
-      return `
-        <div class="teamRow ${rowClass(t, opts)}">
-          <div class="leftRow">
-            <div class="seed">${escapeHtml(seed)}</div>
-            <div class="teamText">
-              <div class="teamName" title="${escapeHtml(team)}">${escapeHtml(team)}</div>
-              <div class="owner">${owner ? escapeHtml(owner) : "Awaiting…"}</div>
-            </div>
-          </div>
-          <div class="score">${escapeHtml(String(score))}</div>
+    function makeBall(){
+      const d = document.createElement("div");
+      d.className = "ball";
+      d.innerHTML = `
+        <div class="seamH"></div><div class="seamV"></div>
+        <div class="lock" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+            <path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="rgba(255,255,255,.7)" stroke-width="2" stroke-linecap="round"/>
+            <rect x="6" y="11" width="12" height="10" rx="2" stroke="rgba(255,255,255,.7)" stroke-width="2"/>
+          </svg>
         </div>
       `;
+      d.addEventListener("click", () => onBallClick(d));
+      return d;
+    }
+    function buildRack(){
+      const grid = el("ballGrid");
+      grid.innerHTML = "";
+      for(let i=0;i<BALL_COUNT;i++) grid.appendChild(makeBall());
     }
 
-    function renderGame(g, opts){
-      return `
-        <div class="game">
-          ${renderTeamRow(g.home, opts)}
-          ${renderTeamRow(g.away, opts)}
-        </div>
-      `;
-    }
-
-    function renderRegion(regionName, data, opts){
-      const region = document.createElement("div");
-      region.className = "region";
-
-      const head = document.createElement("div");
-      head.className = "regionHead";
-      head.innerHTML = `<b>${escapeHtml(regionName)}</b><span style="color:var(--muted);font-weight:900;font-size:12px;">Region</span>`;
-      region.appendChild(head);
-
-      const labels = document.createElement("div");
-      labels.className = "roundLabels";
-      labels.innerHTML = `
-        <div>First Round</div>
-        <div>Second Round</div>
-        <div>Sweet 16</div>
-        <div>Elite 8</div>
-      `;
-      region.appendChild(labels);
-
-      const rounds = document.createElement("div");
-      rounds.className = "rounds";
-
-      ["r1","r2","r3","r4"].forEach(k => {
-        const col = document.createElement("div");
-        col.className = "col";
-        col.innerHTML = (data.rounds[k] || []).map(g => renderGame(g, opts)).join("");
-        rounds.appendChild(col);
+    function lockUI(v){
+      locked = v;
+      el("saveBtn").disabled = v;
+      el("refreshBtn").disabled = v;
+      el("token").disabled = v;
+      el("name").disabled = v;
+      document.querySelectorAll(".ball").forEach(b => {
+        if(v) b.classList.add("disabled");
+        else if(!b.dataset.locked) b.classList.remove("disabled");
       });
-
-      region.appendChild(rounds);
-      return region;
     }
 
-    function renderCenterBlock(target, game, opts){
-      if (!game) {
-        target.innerHTML = renderGame({home:{team:"TBD"},away:{team:"TBD"}}, opts);
-        return;
+    function showReveal(slotKey, region, seed){
+      el("slotBig").textContent = slotKey || "—";
+      el("slotRegion").textContent = region || "—";
+      el("slotSeed").textContent = seed || "—";
+      el("revealBack").style.display = "flex";
+    }
+    function hideReveal(){
+      el("revealBack").style.display = "none";
+    }
+
+    async function saveName(){
+      const token = el("token").value.trim();
+      const name = el("name").value.trim();
+      if(!token){ toast("Paste your invite token first."); return; }
+      if(!name){ toast("Type your name first."); return; }
+
+      lockUI(true);
+      try{
+        const res = await jsonp(API, { action:"setname", token, name });
+        if(!res || !res.ok){ toast(res?.error || "Save failed"); setStatus("Name save failed", false); return; }
+        toast("Name saved!");
+        await loadState();
+      }catch{
+        toast("API error saving name.");
+        setStatus("API error", false);
+      }finally{
+        lockUI(false);
       }
-      target.innerHTML = renderGame(game, opts);
     }
 
-    async function loadBracket(){
-      const params = new URLSearchParams(location.search);
-      const token = (params.get("token") || "").trim();
-      const highlightSlot = (params.get("slot") || "").trim();
+    async function loadState(){
+      const token = el("token").value.trim();
+      if(!token){ setStatus("Paste token", false); return; }
 
-      const data = await jsonp(API, { action:"getBracketView", token, highlightSlot });
-      if(!data || !data.ok) throw new Error(data?.error || "Failed to load bracket");
-
-      el("lastUpdate").textContent = data.updatedAt || "—";
-      const opts = { token, highlightSlot };
-
-      const apiRegions = {};
-      Object.keys(data.regions || {}).forEach(k => apiRegions[normalizeRegion(k)] = data.regions[k]);
-
-      const left = el("leftRegions");
-      const right = el("rightRegions");
-      left.innerHTML = "";
-      right.innerHTML = "";
-
-      LEFT.forEach(r => left.appendChild(renderRegion(r, apiRegions[r] || emptyRegion(), opts)));
-      RIGHT.forEach(r => right.appendChild(renderRegion(r, apiRegions[r] || emptyRegion(), opts)));
-
-      renderCenterBlock(el("ff1"), data.center?.ff1, opts);
-      renderCenterBlock(el("ff2"), data.center?.ff2, opts);
-      renderCenterBlock(el("champ"), data.center?.champ, opts);
+      setStatus("Loading…", true);
+      try{
+        const data = await jsonp(API, { action:"getState", token });
+        if(!data || !data.ok){
+          setStatus(data?.error || "Load failed", false);
+          toast(data?.error || "Load failed");
+          return;
+        }
+        el("ballsLeft").textContent = String(data.ballsRemaining ?? "—");
+        el("playerTag").textContent = data.playerName || "—";
+        setStatus("Ready", true);
+      }catch{
+        setStatus("API error", false);
+        toast("API error.");
+      }
     }
 
-    // Zoom + pan
-    const viewport = el("viewport");
-    const content = el("content");
-    let scale = 1, tx = 0, ty = 0;
-    let dragging = false, startX = 0, startY = 0, startTx = 0, startTy = 0;
+    async function onBallClick(ballEl){
+      if(locked) return;
 
-    function applyTransform(){ content.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`; }
-    function clampScale(s){ return Math.max(0.35, Math.min(2.8, s)); }
-    function zoomTo(newScale, cx, cy){
-      newScale = clampScale(newScale);
-      const prev = scale;
-      if(newScale === prev) return;
+      const token = el("token").value.trim();
+      const name = el("name").value.trim();
+      if(!token){ toast("Paste your invite token first."); return; }
+      if(!name){ toast("Type your name first."); return; }
 
-      const rect = viewport.getBoundingClientRect();
-      const x = (cx ?? (rect.left + rect.width/2)) - rect.left;
-      const y = (cy ?? (rect.top + rect.height/2)) - rect.top;
+      lockUI(true);
 
-      const worldX = (x - tx) / prev;
-      const worldY = (y - ty) / prev;
+      // Ensure name saved before pick
+      try{
+        const save = await jsonp(API, { action:"setname", token, name });
+        if(!save || !save.ok){ snd.buzz?.play?.(); toast(save?.error || "Name save failed"); lockUI(false); return; }
+      }catch{
+        snd.buzz?.play?.(); toast("Name save failed (API error)."); lockUI(false); return;
+      }
 
-      scale = newScale;
-      tx = x - worldX * scale;
-      ty = y - worldY * scale;
-      applyTransform();
+      snd.click?.play?.();
+      ballEl.classList.add("spin");
+
+      try{
+        const res = await jsonp(API, { action:"pickBall", token });
+        if(!res || !res.ok){
+          snd.buzz?.play?.();
+          toast(res?.error || "Pick failed");
+          ballEl.classList.remove("spin");
+          lockUI(false);
+          return;
+        }
+
+        // Lock this ball after spin
+        setTimeout(() => {
+          ballEl.dataset.locked = "1";
+          ballEl.classList.add("disabled");
+        }, 780);
+
+        setTimeout(() => {
+          snd.cheer?.play?.();
+          confettiBurst();
+          const slotKey = res.pick?.slotKey || "";
+          const region = res.pick?.region || "";
+          const seed = res.pick?.seed || "";
+          toast(`Locked: ${slotKey}`);
+          showReveal(slotKey, region, seed);
+        }, 820);
+
+        await loadState();
+      }catch{
+        snd.buzz?.play?.();
+        toast("Pick failed (API error).");
+      }finally{
+        lockUI(false);
+      }
     }
-    function resetView(){ scale = 1; tx = 0; ty = 0; applyTransform(); }
-
-    viewport.addEventListener("mousedown", (e)=>{
-      dragging = true; viewport.classList.add("dragging");
-      startX = e.clientX; startY = e.clientY; startTx = tx; startTy = ty;
-    });
-    window.addEventListener("mousemove", (e)=>{
-      if(!dragging) return;
-      tx = startTx + (e.clientX - startX);
-      ty = startTy + (e.clientY - startY);
-      applyTransform();
-    });
-    window.addEventListener("mouseup", ()=>{
-      dragging = false; viewport.classList.remove("dragging");
-    });
-
-    el("zoomIn").addEventListener("click", ()=> zoomTo(scale * 1.12));
-    el("zoomOut").addEventListener("click", ()=> zoomTo(scale * 0.88));
-    el("zoomReset").addEventListener("click", resetView);
-
-    el("pollBtn").addEventListener("click", ()=> loadBracket().catch(()=>{}));
-    el("backBtn").addEventListener("click", ()=>{
-      const tok = new URLSearchParams(location.search).get("token") || "";
-      location.href = "index.html" + (tok ? ("?token=" + encodeURIComponent(tok)) : "");
-    });
 
     function init(){
-      applyTransform();
-      loadBracket().catch(()=>{});
-      setInterval(()=> loadBracket().catch(()=>{}), POLL_MS);
+      buildRack();
+
+      const params = new URLSearchParams(location.search);
+      const t = params.get("token");
+      if(t) el("token").value = t;
+
+      el("saveBtn").addEventListener("click", saveName);
+      el("refreshBtn").addEventListener("click", loadState);
+
+      el("viewBracket").addEventListener("click", () => {
+        const tok = el("token").value.trim();
+        const url = "bracket.html" + (tok ? ("?token=" + encodeURIComponent(tok)) : "");
+        window.open(url, "_blank");
+      });
+
+      el("closeReveal").addEventListener("click", hideReveal);
+      el("okBtn").addEventListener("click", hideReveal);
+      el("revealBack").addEventListener("click", (e)=>{ if(e.target === el("revealBack")) hideReveal(); });
+
+      el("openBracketNow").addEventListener("click", () => {
+        const tok = el("token").value.trim();
+        const slotKey = el("slotBig").textContent.trim();
+        const url = "bracket.html"
+          + (tok ? ("?token=" + encodeURIComponent(tok)) : "")
+          + (slotKey ? ((tok ? "&" : "?") + "slot=" + encodeURIComponent(slotKey)) : "");
+        window.open(url, "_blank");
+      });
+
+      if(el("token").value.trim()) loadState();
+      setInterval(()=>{ if(el("token").value.trim()) loadState(); }, POLL_MS);
     }
     init();
   </script>
 </body>
 </html>
+
