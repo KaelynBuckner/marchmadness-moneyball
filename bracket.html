@@ -15,34 +15,60 @@
       --stroke:rgba(255,255,255,.10);
       --text:#eaf2ff; --muted:#9db7e6;
       --blue:#2a66ff; --orange:#ff7a00;
-      --radius:18px; --shadow:0 18px 50px rgba(0,0,0,.45);
-      --card: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-      --blk: rgba(0,0,0,.22);
-      --hi: rgba(255,122,0,.20);
-      --hi2: rgba(42,102,255,.16);
+      --shadow:0 18px 50px rgba(0,0,0,.45);
+      --glass: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+      --blk: rgba(0,0,0,.26);
+      --line: rgba(255,255,255,.20);
+      --hi: rgba(255,122,0,.22);
+      --hi2: rgba(42,102,255,.18);
+      --win: rgba(48,209,88,.16);
     }
     *{box-sizing:border-box}
     body{
       margin:0; min-height:100vh; color:var(--text);
       font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;
       background:
-        radial-gradient(1200px 800px at 20% 10%, rgba(42,102,255,.28), transparent 60%),
+        radial-gradient(1200px 800px at 20% 10%, rgba(42,102,255,.26), transparent 60%),
         radial-gradient(900px 700px at 90% 20%, rgba(255,122,0,.22), transparent 55%),
         linear-gradient(135deg, var(--bg1), var(--bg2));
     }
-    .wrap{max-width:1780px;margin:0 auto;padding:18px}
+
     .topbar{
-      display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;
-      padding:14px 16px;border:1px solid var(--stroke);
-      background:var(--card);
-      border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(10px);
-      position:sticky; top:12px; z-index:50;
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(10px);
+      background:linear-gradient(180deg, rgba(0,0,0,.42), rgba(0,0,0,.12));
+      border-bottom:1px solid rgba(255,255,255,.08);
     }
-    .brand{display:flex;gap:12px;align-items:center}
-    .mark{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--orange),var(--blue));position:relative;overflow:hidden;box-shadow:0 12px 22px rgba(0,0,0,.35)}
+    .topInner{
+      max-width:1780px; margin:0 auto; padding:16px 18px;
+      display:flex; gap:14px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    }
+    .brand{display:flex; gap:12px; align-items:center}
+    .mark{
+      width:44px;height:44px;border-radius:14px;
+      background:linear-gradient(135deg,var(--orange),var(--blue));
+      position:relative;overflow:hidden;
+      box-shadow:0 12px 22px rgba(0,0,0,.35)
+    }
     .mark:after{content:"";position:absolute;inset:-30%;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), transparent 55%);transform:rotate(20deg)}
-    .brand h1{margin:0;font-family:Oswald,Inter,sans-serif;letter-spacing:.6px;font-size:22px;line-height:1}
-    .sub{margin-top:2px;color:var(--muted);font-size:12px;font-weight:800}
+    h1{
+      margin:0; font-family:Oswald,Inter,sans-serif;
+      letter-spacing:.8px; font-size:24px; line-height:1;
+    }
+    .sub{margin-top:4px;color:var(--muted);font-size:12px;font-weight:900}
+
+    .controls{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .pill{
+      display:flex; gap:10px; align-items:center;
+      padding:10px 12px; border-radius:999px;
+      background:rgba(0,0,0,.28);
+      border:1px solid rgba(255,255,255,.10);
+      font-weight:900;
+    }
+    .pill span{color:var(--muted);font-size:12px}
+    .pill b{font-family:Oswald,Inter,sans-serif;letter-spacing:.5px}
 
     .btn{
       border:none;border-radius:14px;padding:11px 14px;color:white;font-weight:900;cursor:pointer;
@@ -50,123 +76,177 @@
       box-shadow:0 12px 26px rgba(255,122,0,.22);
       user-select:none;
     }
-    .btn.secondary{background:rgba(255,255,255,.06);border:1px solid var(--stroke);box-shadow:none}
-    .pill{display:flex;gap:10px;align-items:center;padding:10px 12px;background:var(--blk);border:1px solid var(--stroke);border-radius:999px;justify-content:center}
-    .pill span{color:var(--muted);font-size:12px;font-weight:900}
-    .pill b{font-family:Oswald,Inter,sans-serif;letter-spacing:.4px}
+    .btn.secondary{
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:none;
+    }
 
+    /* Viewer with pan+zoom */
+    .wrap{max-width:1780px;margin:0 auto;padding:18px}
     .viewer{
-      margin-top:16px;
-      border:1px solid var(--stroke);
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border-radius:var(--radius);
+      border:1px solid rgba(255,255,255,.10);
+      background:var(--glass);
+      border-radius:18px;
       box-shadow:var(--shadow);
       overflow:hidden;
-      height: calc(100vh - 130px);
+      height: calc(100vh - 120px);
       position:relative;
     }
     .viewport{width:100%; height:100%; overflow:hidden; cursor:grab; touch-action:none;}
     .viewport.dragging{cursor:grabbing}
-    .content{transform-origin:0 0; will-change:transform; padding:16px; min-width:2100px;}
+    .content{transform-origin:0 0; will-change:transform; padding:18px; min-width:2300px;}
 
-    .bracket{
+    /* Bracket layout (more like real bracket) */
+    .grid{
       display:grid;
-      grid-template-columns: 1fr 420px 1fr;
-      gap:16px;
+      grid-template-columns: 1fr 460px 1fr;
+      gap:18px;
       align-items:start;
     }
 
-    .side, .center{
-      border:1px solid var(--stroke);
-      border-radius:var(--radius);
-      background:var(--card);
+    .panel{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      background:rgba(0,0,0,.18);
       overflow:hidden;
     }
-    .sideHeader, .centerHead{
+    .panelHead{
+      display:flex; justify-content:space-between; align-items:center;
       padding:12px 14px;
       border-bottom:1px solid rgba(255,255,255,.08);
-      display:flex;justify-content:space-between;align-items:center;
+      background:rgba(0,0,0,.20);
     }
-    .sideHeader h2, .centerHead h2{
-      margin:0;font-family:Oswald,Inter,sans-serif;letter-spacing:.5px;font-size:16px;
+    .panelHead h2{
+      margin:0; font-family:Oswald,Inter,sans-serif;
+      letter-spacing:.6px; font-size:16px;
     }
     .legend{color:var(--muted);font-size:12px;font-weight:900;display:flex;gap:10px;align-items:center;}
     .dot{width:10px;height:10px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 3px rgba(255,122,0,.18)}
     .dot2{width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 3px rgba(42,102,255,.18)}
 
-    .regions2{
+    .regions{
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:12px;
-      padding:12px;
+      gap:14px;
+      padding:14px;
     }
-    .regionCard{
+
+    .region{
       border:1px solid rgba(255,255,255,.10);
-      background:rgba(0,0,0,.22);
       border-radius:16px;
+      background:rgba(0,0,0,.22);
       overflow:hidden;
     }
     .regionHead{
+      display:flex; justify-content:space-between; align-items:center;
       padding:10px 12px;
       border-bottom:1px solid rgba(255,255,255,.08);
-      display:flex;justify-content:space-between;align-items:center;
     }
-    .regionHead b{font-family:Oswald,Inter,sans-serif;letter-spacing:.5px}
+    .regionHead b{
+      font-family:Oswald,Inter,sans-serif;
+      letter-spacing:.6px;
+    }
 
-    .roundTitles{
+    .roundLabels{
       display:grid;
-      grid-template-columns: 240px 190px 160px 140px;
-      gap:10px;
+      grid-template-columns: 260px 210px 170px 150px;
+      gap:12px;
       padding:10px 12px;
       color:var(--muted);
       font-weight:900;
       font-size:11px;
-      letter-spacing:.5px;
       text-transform:uppercase;
+      letter-spacing:.5px;
     }
     .rounds{
       display:grid;
-      grid-template-columns: 240px 190px 160px 140px;
-      gap:10px;
+      grid-template-columns: 260px 210px 170px 150px;
+      gap:12px;
       padding:0 12px 12px;
       align-items:start;
     }
-    .col{display:grid; gap:10px}
-    .game{border:1px solid rgba(255,255,255,.10); border-radius:14px; background:rgba(255,255,255,.03); overflow:hidden}
+    .col{display:grid; gap:12px}
+
+    /* Match “real bracket” feel: slimmer team rows + lines */
+    .game{
+      position:relative;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      background:rgba(255,255,255,.03);
+      overflow:hidden;
+    }
     .teamRow{
-      display:flex;justify-content:space-between;align-items:center;gap:8px;
-      padding:7px 8px;
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      padding:8px 10px;
       border-bottom:1px solid rgba(255,255,255,.06);
     }
     .teamRow:last-child{border-bottom:none}
-    .left{display:flex;align-items:center;gap:8px;min-width:0}
-    .seed{width:22px;text-align:center;font-family:Oswald,Inter,sans-serif;opacity:.9}
-    .name{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .owner{color:var(--muted);font-size:11px;font-weight:900;white-space:nowrap}
-    .score{font-family:Oswald,Inter,sans-serif;min-width:18px;text-align:right;opacity:.95}
-    .win{background:rgba(48,209,88,.12)}
-    .hi{background:var(--hi); outline:2px solid rgba(255,122,0,.32)}
+
+    .leftRow{display:flex; align-items:center; gap:10px; min-width:0}
+    .seed{
+      width:22px; text-align:center;
+      font-family:Oswald,Inter,sans-serif;
+      opacity:.95;
+    }
+    .teamText{min-width:0}
+    .teamName{
+      font-weight:950;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      line-height:1.1;
+    }
+    .owner{
+      margin-top:2px;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:900;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .score{
+      font-family:Oswald,Inter,sans-serif;
+      min-width:20px;
+      text-align:right;
+      opacity:.95;
+    }
+
+    .winnerRow{background:var(--win)}
+    .hi{background:var(--hi); outline:2px solid rgba(255,122,0,.34)}
     .hi2{background:var(--hi2); outline:2px solid rgba(42,102,255,.26)}
 
-    .centerBody{padding:12px}
-    .centerGrid{display:grid;gap:12px}
-    .centerLabel{color:var(--muted);font-weight:900;font-size:11px;letter-spacing:.5px;text-transform:uppercase;}
-    .centerBlock{border:1px solid rgba(255,255,255,.10);border-radius:16px;background:rgba(0,0,0,.22);padding:10px;}
-
+    /* Center (Final Four) styled like header blocks */
+    .centerBody{padding:14px}
+    .centerStack{display:grid; gap:14px}
+    .centerLabel{
+      color:var(--muted);
+      font-weight:900;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.5px;
+    }
+    .centerBlock{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      background:rgba(0,0,0,.22);
+      padding:12px;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="topbar">
+  <div class="topbar">
+    <div class="topInner">
       <div class="brand">
         <div class="mark"></div>
         <div>
-          <h1>LIVE BRACKET</h1>
-          <div class="sub">All 4 regions always visible • Updates teams/owners/scores live</div>
+          <h1>Live Bracket</h1>
+          <div class="sub">All regions visible • Teams + player ownership populate live</div>
         </div>
       </div>
 
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+      <div class="controls">
         <div class="pill"><span>LAST UPDATE</span><b id="lastUpdate">—</b></div>
         <button class="btn secondary" id="pollBtn">Poll</button>
         <button class="btn secondary" id="zoomOut">−</button>
@@ -175,30 +255,32 @@
         <button class="btn" id="backBtn">Pick Page</button>
       </div>
     </div>
+  </div>
 
+  <div class="wrap">
     <div class="viewer">
       <div class="viewport" id="viewport">
         <div class="content" id="content">
-          <div class="bracket">
-            <div class="side">
-              <div class="sideHeader">
+          <div class="grid">
+            <div class="panel">
+              <div class="panelHead">
                 <h2>LEFT SIDE</h2>
                 <div class="legend"><span class="dot"></span> Highlight slot <span class="dot2"></span> Your token</div>
               </div>
-              <div class="regions2" id="leftRegions"></div>
+              <div class="regions" id="leftRegions"></div>
             </div>
 
-            <div class="center">
-              <div class="centerHead">
+            <div class="panel">
+              <div class="panelHead">
                 <h2>FINAL FOUR + TITLE</h2>
-                <div class="legend"><span class="dot"></span> Highlighted</div>
+                <div class="legend"><span class="dot"></span> Highlight slot</div>
               </div>
               <div class="centerBody">
-                <div class="centerGrid">
-                  <div class="centerLabel">National Semifinal (Game 1)</div>
+                <div class="centerStack">
+                  <div class="centerLabel">National Semifinal</div>
                   <div class="centerBlock" id="ff1"></div>
 
-                  <div class="centerLabel">National Semifinal (Game 2)</div>
+                  <div class="centerLabel">National Semifinal</div>
                   <div class="centerBlock" id="ff2"></div>
 
                   <div class="centerLabel">National Championship</div>
@@ -207,12 +289,12 @@
               </div>
             </div>
 
-            <div class="side">
-              <div class="sideHeader">
+            <div class="panel">
+              <div class="panelHead">
                 <h2>RIGHT SIDE</h2>
                 <div class="legend"><span class="dot"></span> Highlight slot <span class="dot2"></span> Your token</div>
               </div>
-              <div class="regions2" id="rightRegions"></div>
+              <div class="regions" id="rightRegions"></div>
             </div>
           </div>
         </div>
@@ -244,9 +326,8 @@
       });
     }
 
-    // Always show all 4 regions (even if API doesn’t have them yet)
-    const REGION_ORDER_LEFT  = ["East","West"];
-    const REGION_ORDER_RIGHT = ["South","Midwest"];
+    const LEFT = ["East","West"];
+    const RIGHT = ["South","Midwest"];
 
     function normalizeRegion(r){
       const s = String(r||"").toLowerCase().trim();
@@ -265,23 +346,28 @@
       return { rounds:{ r1:Array.from({length:8},emptyGame), r2:Array.from({length:4},emptyGame), r3:Array.from({length:2},emptyGame), r4:Array.from({length:1},emptyGame) } };
     }
 
+    function rowClass(t, opts){
+      const cls = [];
+      if (t.isWinner) cls.push("winnerRow");
+      if (opts.highlightSlot && t.slotKey === opts.highlightSlot) cls.push("hi");
+      if (opts.token && t.ownerToken && t.ownerToken === opts.token) cls.push("hi2");
+      return cls.join(" ");
+    }
+
     function renderTeamRow(t, opts){
       const team = t.team || "TBD";
       const seed = t.seed || "";
       const score = (t.score ?? "");
-      const owner = t.ownerName ? `— ${t.ownerName}` : "";
-      const cls = [
-        (t.isWinner ? "win" : ""),
-        (opts.highlightSlot && t.slotKey === opts.highlightSlot ? "hi" : ""),
-        (opts.token && t.ownerToken === opts.token ? "hi2" : "")
-      ].filter(Boolean).join(" ");
+      const owner = t.ownerName ? t.ownerName : "";
 
       return `
-        <div class="teamRow ${cls}">
-          <div class="left">
+        <div class="teamRow ${rowClass(t, opts)}">
+          <div class="leftRow">
             <div class="seed">${escapeHtml(seed)}</div>
-            <div class="name" title="${escapeHtml(team)}">${escapeHtml(team)}</div>
-            ${owner ? `<div class="owner">${escapeHtml(owner)}</div>` : ``}
+            <div class="teamText">
+              <div class="teamName" title="${escapeHtml(team)}">${escapeHtml(team)}</div>
+              <div class="owner">${owner ? escapeHtml(owner) : "Awaiting…"}</div>
+            </div>
           </div>
           <div class="score">${escapeHtml(String(score))}</div>
         </div>
@@ -297,24 +383,24 @@
       `;
     }
 
-    function renderRegionCard(regionName, regionData, opts){
-      const card = document.createElement("div");
-      card.className = "regionCard";
+    function renderRegion(regionName, data, opts){
+      const region = document.createElement("div");
+      region.className = "region";
 
       const head = document.createElement("div");
       head.className = "regionHead";
       head.innerHTML = `<b>${escapeHtml(regionName)}</b><span style="color:var(--muted);font-weight:900;font-size:12px;">Region</span>`;
-      card.appendChild(head);
+      region.appendChild(head);
 
-      const titles = document.createElement("div");
-      titles.className = "roundTitles";
-      titles.innerHTML = `
+      const labels = document.createElement("div");
+      labels.className = "roundLabels";
+      labels.innerHTML = `
         <div>First Round</div>
         <div>Second Round</div>
         <div>Sweet 16</div>
         <div>Elite 8</div>
       `;
-      card.appendChild(titles);
+      region.appendChild(labels);
 
       const rounds = document.createElement("div");
       rounds.className = "rounds";
@@ -322,20 +408,20 @@
       ["r1","r2","r3","r4"].forEach(k => {
         const col = document.createElement("div");
         col.className = "col";
-        col.innerHTML = (regionData.rounds[k] || []).map(g => renderGame(g, opts)).join("");
+        col.innerHTML = (data.rounds[k] || []).map(g => renderGame(g, opts)).join("");
         rounds.appendChild(col);
       });
 
-      card.appendChild(rounds);
-      return card;
+      region.appendChild(rounds);
+      return region;
     }
 
-    function renderCenterBlock(blockEl, game, opts){
+    function renderCenterBlock(target, game, opts){
       if (!game) {
-        blockEl.innerHTML = renderGame({home:{team:"TBD"},away:{team:"TBD"}}, opts);
+        target.innerHTML = renderGame({home:{team:"TBD"},away:{team:"TBD"}}, opts);
         return;
       }
-      blockEl.innerHTML = renderGame(game, opts);
+      target.innerHTML = renderGame(game, opts);
     }
 
     async function loadBracket(){
@@ -347,27 +433,18 @@
       if(!data || !data.ok) throw new Error(data?.error || "Failed to load bracket");
 
       el("lastUpdate").textContent = data.updatedAt || "—";
-
       const opts = { token, highlightSlot };
+
+      const apiRegions = {};
+      Object.keys(data.regions || {}).forEach(k => apiRegions[normalizeRegion(k)] = data.regions[k]);
 
       const left = el("leftRegions");
       const right = el("rightRegions");
       left.innerHTML = "";
       right.innerHTML = "";
 
-      // Normalize keys coming from API
-      const apiRegions = {};
-      Object.keys(data.regions || {}).forEach(k => apiRegions[normalizeRegion(k)] = data.regions[k]);
-
-      REGION_ORDER_LEFT.forEach(r => {
-        const region = apiRegions[normalizeRegion(r)] || emptyRegion();
-        left.appendChild(renderRegionCard(normalizeRegion(r), region, opts));
-      });
-
-      REGION_ORDER_RIGHT.forEach(r => {
-        const region = apiRegions[normalizeRegion(r)] || emptyRegion();
-        right.appendChild(renderRegionCard(normalizeRegion(r), region, opts));
-      });
+      LEFT.forEach(r => left.appendChild(renderRegion(r, apiRegions[r] || emptyRegion(), opts)));
+      RIGHT.forEach(r => right.appendChild(renderRegion(r, apiRegions[r] || emptyRegion(), opts)));
 
       renderCenterBlock(el("ff1"), data.center?.ff1, opts);
       renderCenterBlock(el("ff2"), data.center?.ff2, opts);
@@ -414,12 +491,6 @@
     window.addEventListener("mouseup", ()=>{
       dragging = false; viewport.classList.remove("dragging");
     });
-    viewport.addEventListener("wheel", (e)=>{
-      if(!e.ctrlKey) return;
-      e.preventDefault();
-      const factor = (-e.deltaY) > 0 ? 1.08 : 0.92;
-      zoomTo(scale * factor, e.clientX, e.clientY);
-    }, { passive:false });
 
     el("zoomIn").addEventListener("click", ()=> zoomTo(scale * 1.12));
     el("zoomOut").addEventListener("click", ()=> zoomTo(scale * 0.88));
