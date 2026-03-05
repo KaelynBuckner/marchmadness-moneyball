@@ -1,110 +1,142 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Money Madness</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live Board</title>
 
   <style>
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#0b1220;color:#eef3ff}
-    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 60px}
-    h1{margin:0 0 6px;font-size:42px}
-    .muted{opacity:.75;font-size:14px}
-    .card{margin-top:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:16px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media(max-width:900px){.row{grid-template-columns:1fr}}
-    label{display:block;margin:0 0 6px;font-size:13px;opacity:.8;font-weight:700}
-    input{width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.25);color:#fff}
-    .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
-    a{color:#93c5fd;text-decoration:none;font-weight:800}
-    .chip{padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);font-weight:800;font-size:13px;opacity:.9}
-    .grid{display:grid;grid-template-columns:repeat(14,1fr);gap:10px;margin-top:14px}
-    @media(max-width:1000px){.grid{grid-template-columns:repeat(10,1fr)}}
-    @media(max-width:640px){.grid{grid-template-columns:repeat(7,1fr)}}
-    .ball{height:52px;border-radius:16px;border:1px solid rgba(255,255,255,.14);
-      background:linear-gradient(180deg,#ffb07a,#d36b35);
-      display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;font-weight:900;color:rgba(0,0,0,.6)}
-    .ball.taken{opacity:.28;cursor:not-allowed}
-    .status{margin-top:12px;font-size:13px;opacity:.85;min-height:18px;white-space:pre-wrap}
-
-    .back{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.65)}
-    .modal{width:min(520px,100%);background:#0f1a33;border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:16px}
-    .modal h2{margin:0 0 6px;font-size:18px}
-    .btns{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
-    button{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.10);color:#eef3ff;font-weight:900;padding:10px 12px;border-radius:14px;cursor:pointer}
-    .primary{background:linear-gradient(180deg,#4aa3ff,#2a78d2)}
-    .primary:disabled{opacity:.6;cursor:not-allowed}
+    :root{
+      --bg0:#070A12;
+      --bg1:#0b1220;
+      --bg2:#0b1935;
+      --glass: rgba(255,255,255,.07);
+      --border: rgba(255,255,255,.14);
+      --text: #eef3ff;
+      --muted: rgba(238,243,255,.72);
+      --blue: #4aa3ff;
+      --shadow: 0 26px 90px rgba(0,0,0,.45);
+      --radius: 22px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 520px at 15% 18%, rgba(255,120,80,.18), transparent 60%),
+        radial-gradient(900px 520px at 78% 22%, rgba(70,160,255,.16), transparent 58%),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 30%, var(--bg2));
+      min-height:100vh;
+    }
+    .wrap{ max-width: 1240px; margin:0 auto; padding: 34px 18px 70px; }
+    .top{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+    h1{ margin:0; font-size: 22px; letter-spacing:.2px; }
+    a{
+      color: var(--text);
+      text-decoration:none;
+      font-weight: 900;
+      padding: 12px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      box-shadow: 0 18px 55px rgba(0,0,0,.28);
+    }
+    .card{
+      margin-top: 16px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(90deg, rgba(255,255,255,.07), rgba(255,255,255,.05));
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .bar{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+      margin-bottom: 10px;
+    }
+    .chip{
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(238,243,255,.85);
+      font-weight: 900;
+      font-size: 13px;
+    }
+    input{
+      width: min(320px, 100%);
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      outline:none;
+      font-size: 14px;
+    }
+    table{ width:100%; border-collapse:collapse; overflow:hidden; border-radius: 16px; }
+    th, td{
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      text-align:left;
+      font-size: 13px;
+    }
+    th{ color: rgba(238,243,255,.78); font-weight: 1000; letter-spacing:.2px; }
+    tr:hover td{ background: rgba(255,255,255,.04); }
+    .muted{ margin-top: 10px; color: var(--muted); font-weight: 800; font-size: 13px; white-space:pre-wrap; }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <h1>Money Madness</h1>
-    <div class="muted">Pick any <b>blank</b> basketball. Once claimed, it locks.</div>
+    <div class="top">
+      <h1>Live Board</h1>
+      <a href="./">← Back</a>
+    </div>
 
     <div class="card">
-      <div class="row">
-        <div>
-          <label>Your name</label>
-          <input id="name" placeholder="Type your name (required)">
-        </div>
-        <div>
-          <label>Invite token</label>
-          <input id="token" placeholder="Auto-filled from your link">
-        </div>
-      </div>
-
-      <div class="topbar">
-        <a href="bracket.html">📋 View Bracket</a>
-        <div class="chip" id="countChip">Loading balls…</div>
+      <div class="bar">
+        <div class="chip" id="countChip">Loading…</div>
+        <input id="filter" placeholder="Search name or token…" />
         <div class="chip" id="updatedChip">Last updated: —</div>
       </div>
 
-      <div class="grid" id="grid"></div>
-      <div class="status" id="status"></div>
-    </div>
-  </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:44%">Name</th>
+            <th style="width:36%">Token</th>
+            <th style="width:20%">Ball #</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
 
-  <div class="back" id="modalBack">
-    <div class="modal">
-      <h2>Confirm your pick</h2>
-      <div class="muted" id="modalText">—</div>
-      <div class="btns">
-        <button id="cancelBtn">Cancel</button>
-        <button class="primary" id="confirmBtn">Confirm</button>
-      </div>
+      <div class="muted" id="status">Loading…</div>
     </div>
   </div>
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzlQ91quFkT2XA98MusdUMtvh6heIQKxzjpF2vkvfxmoc7vPLUvChIQoqHax2l5r-I/exec";
+    const BALL_COUNT = 68;
 
-    const nameEl = document.getElementById("name");
-    const tokenEl = document.getElementById("token");
-    const gridEl = document.getElementById("grid");
+    const rowsEl = document.getElementById("rows");
     const statusEl = document.getElementById("status");
     const countChip = document.getElementById("countChip");
     const updatedChip = document.getElementById("updatedChip");
+    const filterEl = document.getElementById("filter");
 
-    const modalBack = document.getElementById("modalBack");
-    const modalText = document.getElementById("modalText");
-    const cancelBtn = document.getElementById("cancelBtn");
-    const confirmBtn = document.getElementById("confirmBtn");
+    let allPicks = [];
 
-    let pendingBallNumber = null;
-    let busy = false;
-
-    // JSONP helper (bypasses CORS)
     function jsonp(params) {
       return new Promise((resolve, reject) => {
         const cb = "mm_cb_" + Math.random().toString(16).slice(2);
         const url = new URL(WEB_APP_URL);
-        Object.entries({ ...params, callback: cb }).forEach(([k, v]) => url.searchParams.set(k, v));
+        Object.entries({ ...params, callback: cb }).forEach(([k,v]) => url.searchParams.set(k, v));
 
         const script = document.createElement("script");
         const timer = setTimeout(() => { cleanup(); reject(new Error("JSONP timeout")); }, 12000);
 
-        function cleanup() {
+        function cleanup(){
           clearTimeout(timer);
           delete window[cb];
           script.remove();
@@ -117,110 +149,58 @@
       });
     }
 
-    function showModal(ballNumber) {
-      pendingBallNumber = ballNumber;
-      modalText.textContent = `Confirm to lock in your pick. You will receive Ball #${ballNumber}.`;
-      modalBack.style.display = "flex";
+    function esc(s){
+      return String(s).replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[m]));
     }
 
-    function hideModal() {
-      pendingBallNumber = null;
-      modalBack.style.display = "none";
+    function stamp(){
+      return new Date().toLocaleString();
     }
 
-    function renderBalls(balls) {
-      gridEl.innerHTML = "";
-      balls.forEach(b => {
-        const d = document.createElement("div");
-        d.className = "ball" + (b.available ? "" : " taken");
-        d.textContent = "●";
+    function render(){
+      const q = filterEl.value.trim().toLowerCase();
+      const picks = !q ? allPicks : allPicks.filter(p =>
+        String(p.name).toLowerCase().includes(q) || String(p.token).toLowerCase().includes(q)
+      );
 
-        if (b.available) {
-          d.onclick = () => {
-            if (busy) return;
-            const name = nameEl.value.trim();
-            const token = tokenEl.value.trim();
-            if (!name || !token) {
-              statusEl.textContent = "Enter your name and token first.";
-              return;
-            }
-            showModal(b.ballNumber);
-          };
-        }
-        gridEl.appendChild(d);
+      rowsEl.innerHTML = "";
+      picks.forEach(p=>{
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${esc(p.name)}</td><td>${esc(p.token)}</td><td>${p.ballNumber}</td>`;
+        rowsEl.appendChild(tr);
       });
+
+      statusEl.textContent = `Showing ${picks.length} of ${allPicks.length} picks. Refreshing every 10 seconds.`;
     }
 
-    async function loadState() {
-      try {
-        const st = await jsonp({ action: "getState" });
-        if (!st.ok) {
-          countChip.textContent = "Error";
+    async function load(){
+      try{
+        const st = await jsonp({ action:"getState" });
+        if(!st.ok){
+          countChip.textContent = "API error";
           statusEl.textContent = "API ERROR: " + (st.error || "Unknown");
           return;
         }
 
-        const taken = st.balls.filter(x => !x.available).length;
-        countChip.textContent = `${taken}/${st.ballCount || 68} claimed`;
-        updatedChip.textContent = "Last updated: " + new Date().toLocaleString();
+        allPicks = st.picks || [];
+        const taken = (st.balls || []).filter(x=>!x.available).length;
 
-        renderBalls(st.balls);
-        statusEl.textContent = "";
-      } catch (err) {
-        countChip.textContent = "Error";
-        statusEl.textContent = "LOAD ERROR: " + String(err);
+        countChip.textContent = `${taken}/${st.ballCount || BALL_COUNT} claimed`;
+        updatedChip.textContent = `Last updated: ${stamp()}`;
+
+        render();
+      }catch(err){
+        countChip.textContent = "Load error";
+        statusEl.textContent = String(err);
       }
     }
 
-    async function confirmPick() {
-      if (busy || !pendingBallNumber) return;
-      busy = true;
-      confirmBtn.disabled = true;
+    filterEl.addEventListener("input", render);
 
-      try {
-        statusEl.textContent = "Saving…";
-        const out = await jsonp({
-          action: "pickBall",
-          name: nameEl.value.trim(),
-          token: tokenEl.value.trim(),
-          ballNumber: String(pendingBallNumber)
-        });
-
-        if (!out.ok) {
-          statusEl.textContent = "SAVE ERROR: " + (out.error || "Unknown");
-          hideModal();
-          await loadState();
-          return;
-        }
-
-        statusEl.textContent = `Locked in! You got Ball #${pendingBallNumber}.`;
-        hideModal();
-        await loadState();
-      } catch (err) {
-        statusEl.textContent = "SAVE ERROR: " + String(err);
-        hideModal();
-      } finally {
-        busy = false;
-        confirmBtn.disabled = false;
-      }
-    }
-
-    // ✅ Auto-fill token from URL ?token=...
-    (function init() {
-      const params = new URLSearchParams(location.search);
-      const t = params.get("token");
-      if (t) tokenEl.value = t;
-
-      loadState();
-      setInterval(loadState, 10000);
-    })();
-
-    // Modal close handlers
-    modalBack.addEventListener("click", (e) => { if (e.target === modalBack) hideModal(); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modalBack.style.display === "flex") hideModal(); });
-
-    cancelBtn.onclick = hideModal;
-    confirmBtn.onclick = confirmPick;
+    load();
+    setInterval(load, 10000);
   </script>
 </body>
 </html>
